@@ -19,6 +19,8 @@ Nova Report is designed as a modular system with six main services:
 | **web-frontend (UI)** | Interface for registration, subscription, and viewing reports |
 
 ---
+![Nova Report Architecture](docs/novareport-architecture.drawio.png)
+---
 
 ## 🚀 Features
 
