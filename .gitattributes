@@ -76,7 +76,7 @@ pnpm-lock.yaml merge=ours
 # ---- Lock binary files completely ----
 *.pem binary -diff -merge
 *.key binary -diff -merge
-*.crt binary -diff -merge
+*.crt
 *.pfx binary -diff -merge
 *.p12 binary -diff -merge
 *.jks binary -diff -merge
