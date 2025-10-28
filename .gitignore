@@ -1,102 +1,209 @@
-############################################################
-# Project-specific temporary files
-############################################################
-docs/*.crswap
-docs/*.drawio.*.crswap
+# ===============================
+# NOVA REPORT - GLOBAL .gitignore
+# ===============================
 
-############################################################
-# Build outputs and generated artifacts
-############################################################
-target/
-out/
-cmake-build-*/
-.mtj.tmp/
-
-# Java package and class files
+# ---- IDE / System files ----
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
 *.class
 *.jar
 *.war
-*.nar
 *.ear
-
-# Common archive formats
-*.zip
-*.tar.gz
-*.rar
-
-############################################################
-# Logs and crash dumps
-############################################################
-*.log
-logs/
-hs_err_pid*
-replay_pid*
-*.stackdump
-
-############################################################
-# Local databases
-############################################################
-*.mv.db
-*.trace.db
-*.lock.db
-
-############################################################
-# IDE-specific files
-############################################################
-.idea/
-.idea_modules/
-*.iws
-*.iml
-*.ipr
-.vscode/
-.history/
-.ionide/
-
-############################################################
-# Editor backups
-############################################################
-*.bak
-*~
-Session.vim
-Sessionx.vim
-tags
-.netrwhist
-
-############################################################
-# Operating system files
-############################################################
+*.db
+*.sqlite
 .DS_Store
-.AppleDouble
-.LSOverride
-Icon
-._*
-.DocumentRevisions-V100
-.fseventsd
-.Spotlight-V100
-.TemporaryItems
-.Trashes
-.VolumeIcon.icns
-.com.apple.timemachine.donotpresent
-.AppleDB
-.AppleDesktop
-Network Trash Folder
-Temporary Items
-.apdisk
 Thumbs.db
-Thumbs.db:encryptable
+desktop.ini
 ehthumbs.db
-ehthumbs_vista.db
-[Dd]esktop.ini
-$RECYCLE.BIN/
-*.cab
-*.msi
-*.msix
-*.msm
-*.msp
-*.lnk
+__pycache__/
+*.pyc
 
-############################################################
-# Environment and tooling files
-############################################################
-.env
-*.vsix
+# ---- OS / Editor backups ----
+*~
+*.orig
+*.rej
+*.kate-swp
+*.sublime-project
+*.sublime-workspace
+
+# ---- Git & Merge ----
+*.merge_file_*
+*.orig
+*.BACKUP.*
+*.BASE.*
+*.LOCAL.*
+*.REMOTE.*
+
+# ---- Build outputs ----
+**/target/
+**/out/
+**/build/
+**/dist/
+**/bin/
+**/obj/
+**/classes/
+
+# ---- Maven / Gradle ----
+**/.mvn/
+.mvn/wrapper/maven-wrapper.jar
+.mvn/wrapper/maven-wrapper.properties
+.gradle/
+.gradle-cache/
+**/dependency-reduced-pom.xml
+**/release.properties
+**/pom.xml.tag
+**/pom.xml.releaseBackup
+**/pom.xml.next
+**/pom.xml.versionsBackup
+**/pom.xml.bak
+
+# ---- Node / Frontend ----
+**/node_modules/
+**/package-lock.json
+**/yarn.lock
+**/pnpm-lock.yaml
+**/.npm/
+**/.npmrc
+**/coverage/
+**/.eslintcache
+**/vite.config.ts.timestamp-*
+**/.parcel-cache
+**/.turbo/
+**/.next/
+**/.cache/
+**/.vite/
+
+# ---- Environment / Config ----
+**/.env
+**/.env.*
+**/.env.local
+**/.env.development.local
+**/.env.production.local
+**/.env.test.local
+**/env/
+.envrc
+.envrc.local
+*.pem
+*.key
+*.crt
+*.p12
+*.keystore
+*.jks
+*.pfx
+*.cer
+*.csr
+*.der
+*.gpg
+*.asc
+*.ovpn
+*.credentials
+*.secrets.json
+**/secrets/
+**/certs/
+**/keys/
+**/private/
+**/tmp/
+**/temp/
+
+# ---- Logs ----
+logs/
+*.log
+*.out
+*.err
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+pnpm-debug.log*
+
+# ---- Docker / Compose ----
+**/.env
+**/.env.*
+**/docker-compose.override.yml
+**/docker-compose.dev.yml
+**/docker-compose.local.yml
+**/.docker/
+**/docker/tmp/
+**/docker/cache/
+**/docker/logs/
+**/*.pid
+
+# ---- Misc / Reports / Dumps ----
+**/dump.rdb
+**/nohup.out
+**/*.pid
+**/*.seed
+**/*.csv
+**/*.tsv
+**/*.dat
+**/*.log.*
+**/*.bak
+**/*.save
+**/*.zip
+**/*.tar
+**/*.tar.gz
+**/*.tgz
+
+# ---- IDE Workspace files ----
+**/.classpath
+**/.project
+**/.settings/
+**/.factorypath
+**/.idea_modules/
+
+# ---- Test artifacts ----
+**/test-output/
+**/reports/
+**/allure-results/
+**/allure-report/
+**/.coverage/
+**/.nyc_output/
+**/junit.xml
+**/coverage.xml
+**/test-results/
+**/test-data/
+**/cypress/videos/
+**/cypress/screenshots/
+**/playwright-report/
+**/.scannerwork/
+
+# ---- Draw.io temporary swap files ----
+*.crswap
+
+# ---- Security ----
+**/id_rsa
+**/id_rsa.pub
+**/id_dsa
+**/id_dsa.pub
+**/id_ecdsa
+**/id_ecdsa.pub
+**/id_ed25519
+**/id_ed25519.pub
+**/ssh_keys/
+**/ssh/
+**/.aws/
+**/.azure/
+**/.gcp/
+**/.config/
+**/.credentials/
+**/.ssh/
+
+# ---- OS-specific ----
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+Icon?
+$RECYCLE.BIN/
+
+# ---- VS Code local settings ----
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
