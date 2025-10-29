@@ -175,6 +175,18 @@
         <mxCell id="pjfJJXKttcQccKvAJDV4-9" value="dashboard" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" vertex="1" parent="1">
           <mxGeometry x="1035" y="473" width="60" height="30" as="geometry" />
         </mxCell>
+        <mxCell id="pjfJJXKttcQccKvAJDV4-11" value="" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#000000;fontSize=11;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.094;entryY=0.016;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="frontend" target="8w5x9YnXfVrMmDPxOVFb-24">
+          <mxGeometry as="geometry">
+            <mxPoint x="392" y="646" as="sourcePoint" />
+            <mxPoint x="368" y="549" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="pjfJJXKttcQccKvAJDV4-12" value="" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#000000;fontSize=11;exitX=0.896;exitY=0.016;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitPerimeter=0;" edge="1" parent="1" source="8w5x9YnXfVrMmDPxOVFb-24" target="subs">
+          <mxGeometry as="geometry">
+            <mxPoint x="460" y="502" as="sourcePoint" />
+            <mxPoint x="338" y="562" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
