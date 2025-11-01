@@ -54,11 +54,12 @@ public class AuthController {
 
     @PostMapping("/login")
     public AuthResponse login(@Valid @RequestBody LoginRequest req) {
-        User user = users.findByEmail(req.email()).orElseThrow(() -> new IllegalStateException("Invalid credentials"));
-        if (!user.getIsActive()) {
-            throw new IllegalStateException("Account is inactive");
-        }
-        if (!encoder.matches(req.password(), user.getPasswordHash())) {
+        // Always use the same error message for authentication failures
+        User user = users.findByEmail(req.email()).orElse(null);
+        // Use a dummy password hash if user not found to mitigate timing attacks
+        String passwordHash = (user != null) ? user.getPasswordHash() : "$2a$10$7EqJtq98hPqEX7fNZaFWoO5uG1FQvY8p1p5lD1FQvY8p1p5lD1FQv"; // bcrypt for "invalid"
+        boolean isActive = (user != null) ? user.getIsActive() : false;
+        if (!isActive || !encoder.matches(req.password(), passwordHash)) {
             throw new IllegalStateException("Invalid credentials");
         }
         activity.save(ActivityLog.builder().user(user).event("LOGIN").build());
