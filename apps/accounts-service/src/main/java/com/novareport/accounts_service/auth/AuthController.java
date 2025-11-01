@@ -55,6 +55,9 @@ public class AuthController {
     @PostMapping("/login")
     public AuthResponse login(@Valid @RequestBody LoginRequest req) {
         User user = users.findByEmail(req.email()).orElseThrow(() -> new IllegalStateException("Invalid credentials"));
+        if (!user.getIsActive()) {
+            throw new IllegalStateException("Account is inactive");
+        }
         if (!encoder.matches(req.password(), user.getPasswordHash())) {
             throw new IllegalStateException("Invalid credentials");
         }
