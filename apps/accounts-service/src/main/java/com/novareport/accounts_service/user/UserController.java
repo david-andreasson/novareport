@@ -20,13 +20,15 @@ public class UserController {
 
     @GetMapping("/me")
     public UserProfileResponse me(Authentication auth) {
-        var user = users.findByEmail(auth.getName()).orElseThrow();
+        var user = users.findByEmail(auth.getName())
+            .orElseThrow(() -> new java.util.NoSuchElementException("User not found with email: " + auth.getName()));
         return new UserProfileResponse(user.getId(), user.getEmail(), user.getFirstName(), user.getLastName(), user.getRole());
     }
 
     @PutMapping("/me/settings")
     public void updateSettings(Authentication auth, @Valid @RequestBody UpdateSettingsRequest req) {
-        var user = users.findByEmail(auth.getName()).orElseThrow();
+        var user = users.findByEmail(auth.getName())
+            .orElseThrow(() -> new java.util.NoSuchElementException("User not found with email: " + auth.getName()));
         var s = settings.findById(user.getId()).orElseThrow();
         s.setLocale(req.locale());
         s.setTimezone(req.timezone());
