@@ -24,6 +24,9 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http, JwtService jwt) throws Exception {
         return http
+                // CSRF protection is intentionally disabled for this stateless JWT-based API.
+                // Since authentication is handled via JWT tokens and no session is maintained,
+                // CSRF protection is not required. See: https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html#csrf-stateless
                 .csrf(csrf -> csrf.disable())
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
