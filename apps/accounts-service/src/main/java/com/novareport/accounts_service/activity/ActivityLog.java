@@ -14,6 +14,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -27,6 +28,7 @@ import java.util.UUID;
 @Table(name = "activity_log")
 public class ActivityLog {
     @Id
+    @UuidGenerator
     private UUID id;
 
     @ManyToOne
@@ -45,8 +47,5 @@ public class ActivityLog {
     @PrePersist
     void onCreate() {
         createdAt = Instant.now();
-        if (id == null) {
-            id = UUID.randomUUID();
-        }
     }
 }
