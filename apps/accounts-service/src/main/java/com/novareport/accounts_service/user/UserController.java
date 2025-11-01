@@ -29,7 +29,7 @@ public class UserController {
     public void updateSettings(Authentication auth, @Valid @RequestBody UpdateSettingsRequest req) {
         var user = users.findByEmail(auth.getName())
             .orElseThrow(() -> new java.util.NoSuchElementException("User not found with email: " + auth.getName()));
-        var s = settings.findById(user.getId()).orElseThrow();
+        var s = settings.findById(user.getId()).orElseThrow(() -> new java.util.NoSuchElementException("User settings not found for user ID: " + user.getId()));
         s.setLocale(req.locale());
         s.setTimezone(req.timezone());
         s.setMarketingOptIn(Boolean.TRUE.equals(req.marketingOptIn()));
