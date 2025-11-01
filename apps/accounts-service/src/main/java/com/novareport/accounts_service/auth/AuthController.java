@@ -54,10 +54,20 @@ public class AuthController {
 
     @PostMapping("/login")
     public AuthResponse login(@Valid @RequestBody LoginRequest req) {
-        User user = users.findByEmail(req.email()).orElseThrow(() -> new IllegalStateException("Invalid credentials"));
-        if (!encoder.matches(req.password(), user.getPasswordHash())) {
+        // To prevent timing attacks, always perform password verification
+        // even if the user doesn't exist
+        User user = users.findByEmail(req.email()).orElse(null);
+        
+        // Use a dummy hash if user doesn't exist to ensure constant time
+        String passwordHash = user != null ? user.getPasswordHash() : 
+            "$2a$10$dummyhashtopreventtimingattacksdummyhashtoprevent";
+        
+        boolean passwordMatches = encoder.matches(req.password(), passwordHash);
+        
+        if (user == null || !passwordMatches) {
             throw new IllegalStateException("Invalid credentials");
         }
+        
         activity.save(ActivityLog.builder().user(user).event("LOGIN").build());
         String token = jwt.createAccessToken(user.getId(), user.getEmail(), user.getRole());
         return new AuthResponse(token);
