@@ -274,6 +274,81 @@ body {
   accent-color: #4f63d6;
 }
 
+.subscription-card {
+  margin-top: 1.75rem;
+  padding: 1.5rem;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #f7f9ff 0%, #eef2ff 100%);
+  border: 1px dashed rgba(73, 86, 145, 0.28);
+  display: grid;
+  gap: 1.25rem;
+}
+
+.subscription-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.45rem 0.95rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px dashed currentColor;
+  color: #3f4a6f;
+  background: rgba(63, 74, 111, 0.12);
+}
+
+.subscription-chip.active {
+  color: #0f8a5f;
+  background: rgba(15, 138, 95, 0.12);
+}
+
+.subscription-chip.inactive {
+  color: #7a7f97;
+  background: rgba(122, 127, 151, 0.15);
+}
+
+.subscription-chip.pending {
+  color: #4f63d6;
+  background: rgba(79, 99, 214, 0.15);
+}
+
+.subscription-chip.error {
+  color: #b42318;
+  background: rgba(180, 35, 24, 0.15);
+}
+
+.subscription-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.subscription-meta span {
+  display: block;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #5a6789;
+  margin-bottom: 0.3rem;
+}
+
+.subscription-meta strong {
+  font-size: 1.05rem;
+  color: #1f2a3d;
+}
+
+.subscription-error {
+  margin: 0;
+  padding: 0.75rem 0.95rem;
+  border-radius: 12px;
+  border: 1px dashed #b42318;
+  background: rgba(180, 35, 24, 0.12);
+  color: #8f1d12;
+  font-size: 0.9rem;
+}
+
 @media (max-width: 900px) {
   .auth-shell {
     flex-direction: column;
