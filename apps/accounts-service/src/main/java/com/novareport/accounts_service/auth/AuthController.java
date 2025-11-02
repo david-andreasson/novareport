@@ -69,26 +69,26 @@ public class AuthController {
 
     @NonNull
     private User createUser(RegisterRequest req) {
-        return Objects.requireNonNull(User.builder()
+        return User.builder()
                 .email(req.email())
                 .passwordHash(encoder.encode(req.password()))
                 .firstName(req.firstName())
                 .lastName(req.lastName())
-                .build());
+                .build();
     }
 
     @NonNull
     private UserSettings createDefaultSettings(User user) {
-        return Objects.requireNonNull(UserSettings.builder()
+        return UserSettings.builder()
                 .user(user)
-                .build());
+                .build();
     }
 
     @NonNull
     private ActivityLog createActivityLog(User user, String event) {
-        return Objects.requireNonNull(ActivityLog.builder()
+        return ActivityLog.builder()
                 .user(user)
                 .event(event)
-                .build());
+                .build();
     }
 }
