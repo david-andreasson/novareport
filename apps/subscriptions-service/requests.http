@@ -1,0 +1,35 @@
+### Subscriptions Service Requests
+
+@host = http://localhost:8080
+@token = <paste access token>
+@internalKey = dev-change-me
+
+### Check access for current user
+GET {{host}}/api/v1/subscriptions/me/has-access
+Authorization: Bearer {{token}}
+
+### Get active subscription for current user
+GET {{host}}/api/v1/subscriptions/me
+Authorization: Bearer {{token}}
+
+### Activate subscription (internal)
+POST {{host}}/api/v1/internal/subscriptions/activate
+X-INTERNAL-KEY: {{internalKey}}
+Content-Type: application/json
+
+{
+  "userId": "<uuid>",
+  "plan": "PRO",
+  "durationDays": 30,
+  "txId": "optional-tx"
+}
+
+### Cancel subscription (internal)
+POST {{host}}/api/v1/internal/subscriptions/cancel
+X-INTERNAL-KEY: {{internalKey}}
+Content-Type: application/json
+
+{
+  "userId": "<uuid>",
+  "reason": "User requested cancellation"
+}

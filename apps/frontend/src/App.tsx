@@ -3,6 +3,7 @@ import type { ChangeEvent, FormEvent, JSX } from 'react'
 import './App.css'
 
 const API_BASE = 'http://localhost:8080'
+const SUBS_API_BASE = (import.meta.env.VITE_SUBS_API_BASE as string | undefined) ?? API_BASE
 
 type View = 'login' | 'register' | 'profile' | 'settings'
 
@@ -19,6 +20,40 @@ type UserProfile = {
   lastName: string
   role: string
 }
+
+type SubscriptionDetail = {
+  userId: string
+  plan: string
+  status: string
+  startAt: string
+  endAt: string
+}
+
+type SubscriptionState = {
+  phase: 'idle' | 'loading' | 'success' | 'error'
+  hasAccess: boolean | null
+  detail: SubscriptionDetail | null
+  error?: string
+}
+
+const translateStatus = (status: string) => {
+  switch (status) {
+    case 'ACTIVE':
+      return 'Aktiv'
+    case 'EXPIRED':
+      return 'Utgången'
+    case 'CANCELLED':
+      return 'Avslutad'
+    default:
+      return status
+  }
+}
+
+const formatDateTime = (iso: string) =>
+  new Date(iso).toLocaleString('sv-SE', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  })
 
 function App() {
   const [view, setView] = useState<View>('login')
@@ -39,6 +74,11 @@ function App() {
   })
   const [message, setMessage] = useState<Message | null>(null)
   const [loading, setLoading] = useState<View | null>(null)
+  const [subscriptionState, setSubscriptionState] = useState<SubscriptionState>({
+    phase: 'idle',
+    hasAccess: null,
+    detail: null,
+  })
 
   const renderMessage = (scope: View) =>
     message?.scope === scope ? (
@@ -48,6 +88,49 @@ function App() {
   const handleChangeView = (nextView: View) => {
     setView(nextView)
     setMessage((prev) => (prev?.scope === nextView ? prev : null))
+  }
+
+  const fetchSubscriptionInfo = async () => {
+    if (!token) {
+      setSubscriptionState({ phase: 'idle', hasAccess: null, detail: null })
+      return
+    }
+    setSubscriptionState((prev) => ({ ...prev, phase: 'loading', error: undefined }))
+    try {
+      const accessResponse = await fetch(`${SUBS_API_BASE}/api/v1/subscriptions/me/has-access`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      if (accessResponse.status === 401) {
+        throw new Error('Inloggningen har gått ut. Logga in igen.')
+      }
+
+      if (!accessResponse.ok) {
+        const errorText = await accessResponse.text()
+        throw new Error(errorText || 'Kunde inte kontrollera prenumeration')
+      }
+
+      const { hasAccess } = (await accessResponse.json()) as { hasAccess: boolean }
+      let detail: SubscriptionDetail | null = null
+
+      if (hasAccess) {
+        const detailResponse = await fetch(`${SUBS_API_BASE}/api/v1/subscriptions/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        if (detailResponse.ok) {
+          detail = (await detailResponse.json()) as SubscriptionDetail
+        } else if (detailResponse.status !== 404) {
+          const errorText = await detailResponse.text()
+          throw new Error(errorText || 'Kunde inte hämta prenumerationsdetaljer')
+        }
+      }
+
+      setSubscriptionState({ phase: 'success', hasAccess, detail })
+    } catch (error) {
+      const text = error instanceof Error ? error.message : 'Okänt fel'
+      setSubscriptionState({ phase: 'error', hasAccess: null, detail: null, error: text })
+    }
   }
 
   const handleLoginSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -72,6 +155,7 @@ function App() {
       const data: { accessToken: string } = await response.json()
       setToken(data.accessToken)
       setProfile(null)
+      setSubscriptionState({ phase: 'idle', hasAccess: null, detail: null })
       setMessage({ scope: 'profile', status: 'success', text: 'Inloggning lyckades' })
       setView('profile')
     } catch (error) {
@@ -106,6 +190,7 @@ function App() {
       const data: { accessToken: string } = await response.json()
       setToken(data.accessToken)
       setProfile(null)
+      setSubscriptionState({ phase: 'idle', hasAccess: null, detail: null })
       setMessage({ scope: 'profile', status: 'success', text: 'Konto skapat och inloggad' })
       setView('profile')
     } catch (error) {
@@ -190,14 +275,21 @@ function App() {
     }
   }
 
+  const handleRefreshProfile = () => {
+    void fetchProfile()
+    void fetchSubscriptionInfo()
+  }
+
   useEffect(() => {
     if (view === 'profile') {
       if (!token) {
         setProfile(null)
+        setSubscriptionState({ phase: 'idle', hasAccess: null, detail: null })
         setMessage({ scope: 'profile', status: 'error', text: 'Logga in för att se profilen.' })
         return
       }
       void fetchProfile()
+      void fetchSubscriptionInfo()
     } else if (view === 'settings' && !token) {
       setMessage({ scope: 'settings', status: 'error', text: 'Logga in för att ändra inställningar.' })
     }
@@ -318,7 +410,7 @@ function App() {
                 <button
                   className="pill-button"
                   type="button"
-                  onClick={fetchProfile}
+                  onClick={handleRefreshProfile}
                   disabled={loading === 'profile'}
                 >
                   {loading === 'profile' ? 'Hämtar…' : 'Uppdatera profil'}
@@ -345,6 +437,66 @@ function App() {
                   <p className="auth-note">Ingen profildata hämtad ännu.</p>
                 )
               )}
+              <section className="subscription-card">
+                <div
+                  className={`subscription-chip ${
+                    subscriptionState.phase === 'success'
+                      ? subscriptionState.hasAccess
+                        ? 'active'
+                        : 'inactive'
+                      : subscriptionState.phase === 'error'
+                        ? 'error'
+                        : 'pending'
+                  }`}
+                >
+                  Prenumerationsstatus
+                </div>
+
+                {subscriptionState.phase === 'loading' && (
+                  <p className="auth-note">Kontrollerar prenumeration…</p>
+                )}
+
+                {subscriptionState.phase === 'error' && (
+                  <p className="subscription-error">{subscriptionState.error}</p>
+                )}
+
+                {subscriptionState.phase === 'success' && (
+                  subscriptionState.hasAccess ? (
+                    <div className="subscription-meta">
+                      <div>
+                        <span>Plan</span>
+                        <strong>{subscriptionState.detail?.plan ?? 'Okänd'}</strong>
+                      </div>
+                      <div>
+                        <span>Status</span>
+                        <strong>
+                          {subscriptionState.detail
+                            ? translateStatus(subscriptionState.detail.status)
+                            : 'Aktiv'}
+                        </strong>
+                      </div>
+                      {subscriptionState.detail && (
+                        <>
+                          <div>
+                            <span>Startade</span>
+                            <strong>{formatDateTime(subscriptionState.detail.startAt)}</strong>
+                          </div>
+                          <div>
+                            <span>Giltig till</span>
+                            <strong>{formatDateTime(subscriptionState.detail.endAt)}</strong>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="auth-note">Ingen aktiv prenumeration.</p>
+                  )
+                )}
+
+                {subscriptionState.phase === 'idle' && (
+                  <p className="auth-note">Prenumerationsstatus hämtas efter inloggning.</p>
+                )}
+              </section>
             </>
           ) : (
             <p className="auth-note">Logga in för att se din profil.</p>
