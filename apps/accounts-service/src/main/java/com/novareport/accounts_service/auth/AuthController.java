@@ -14,12 +14,15 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.lang.NonNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/auth")
@@ -35,19 +38,17 @@ public class AuthController {
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     @Transactional
+    @NonNull
     public AuthResponse register(@Valid @RequestBody RegisterRequest req) {
         if (users.existsByEmail(req.email())) {
             throw new IllegalStateException("Email already registered");
         }
-        User user = users.save(User.builder()
-                .email(req.email())
-                .passwordHash(encoder.encode(req.password()))
-                .firstName(req.firstName())
-                .lastName(req.lastName())
-                .build());
+        User user = users.save(createUser(req));
 
-        settingsRepo.save(UserSettings.builder().user(user).build());
-        activity.save(ActivityLog.builder().user(user).event("REGISTER").build());
+        UserSettings settings = createDefaultSettings(user);
+        settingsRepo.save(settings);
+        ActivityLog registerLog = createActivityLog(user, "REGISTER");
+        activity.save(registerLog);
         String token = jwt.createAccessToken(user.getId(), user.getEmail(), user.getRole());
         return new AuthResponse(token);
     }
@@ -60,8 +61,34 @@ public class AuthController {
         if (!validPassword || !activeAccount) {
             throw new IllegalStateException("Invalid credentials");
         }
-        activity.save(ActivityLog.builder().user(user).event("LOGIN").build());
+        ActivityLog loginLog = createActivityLog(user, "LOGIN");
+        activity.save(loginLog);
         String token = jwt.createAccessToken(user.getId(), user.getEmail(), user.getRole());
         return new AuthResponse(token);
+    }
+
+    @NonNull
+    private User createUser(RegisterRequest req) {
+        return Objects.requireNonNull(User.builder()
+                .email(req.email())
+                .passwordHash(encoder.encode(req.password()))
+                .firstName(req.firstName())
+                .lastName(req.lastName())
+                .build());
+    }
+
+    @NonNull
+    private UserSettings createDefaultSettings(User user) {
+        return Objects.requireNonNull(UserSettings.builder()
+                .user(user)
+                .build());
+    }
+
+    @NonNull
+    private ActivityLog createActivityLog(User user, String event) {
+        return Objects.requireNonNull(ActivityLog.builder()
+                .user(user)
+                .event(event)
+                .build());
     }
 }
