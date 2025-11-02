@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Objects;
+
 @RestController
 @RequiredArgsConstructor
 public class UserController {
@@ -29,7 +31,8 @@ public class UserController {
     public void updateSettings(Authentication auth, @Valid @RequestBody UpdateSettingsRequest req) {
         var user = users.findByEmail(auth.getName())
             .orElseThrow(() -> new java.util.NoSuchElementException("User not found with email: " + auth.getName()));
-        var s = settings.findById(user.getId()).orElseThrow(() -> new java.util.NoSuchElementException("User settings not found for user ID: " + user.getId()));
+        var userId = Objects.requireNonNull(user.getId(), "User ID must not be null");
+        var s = settings.findById(userId).orElseThrow(() -> new java.util.NoSuchElementException("User settings not found for user ID: " + userId));
         s.setLocale(req.locale());
         s.setTimezone(req.timezone());
         s.setMarketingOptIn(Boolean.TRUE.equals(req.marketingOptIn()));

@@ -26,6 +26,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
+        String path = request.getRequestURI();
+        boolean skip = path.startsWith("/auth/") ||
+               path.startsWith("/h2-console") ||
+               path.equals("/actuator/health") ||
+               path.startsWith("/swagger-ui") ||
+               path.equals("/v3/api-docs") ||
+               path.startsWith("/v3/api-docs/") ||
+               path.startsWith("/swagger-resources");
+        log.debug("shouldNotFilter for path '{}': {}", path, skip);
+        return skip;
+    }
+
+    @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain chain)
             throws ServletException, IOException {
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
