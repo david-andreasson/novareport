@@ -60,7 +60,6 @@ public class SubscriptionService {
             subscription.setPlan(plan);
             subscription.setStatus(SubscriptionStatus.ACTIVE);
             subscription.setEndAt(base.plus(Duration.ofDays(durationDays)));
-            subscription.setStartAt(subscription.getStartAt() != null ? subscription.getStartAt() : now);
             return repository.save(subscription);
         }
 
