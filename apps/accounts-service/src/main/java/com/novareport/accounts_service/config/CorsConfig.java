@@ -16,7 +16,7 @@ public class CorsConfig {
 
         CorsConfiguration cfg = new CorsConfiguration();
         cfg.setAllowCredentials(true);
-        cfg.addAllowedOriginPattern("*"); // change to frontend url like http://localhost:5173
+        cfg.addAllowedOriginPattern("http://localhost:5173"); // TODO: Replace with production frontend URL as needed
         cfg.addAllowedHeader("*");
         cfg.addAllowedMethod("*");
 
