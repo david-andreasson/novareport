@@ -1,0 +1,29 @@
+### Reporter Service Requests
+
+@host = http://localhost:8082
+@token = <paste access token>
+@internalKey = dev-change-me
+
+### Get latest report (requires valid subscriptions access)
+GET {{host}}/api/v1/reports/latest
+Authorization: Bearer {{token}}
+
+### List reports between dates
+GET {{host}}/api/v1/reports?from=2025-10-01&to=2025-11-01&page=0&size=5
+Authorization: Bearer {{token}}
+
+### Trigger ingest (internal)
+POST {{host}}/api/v1/internal/reporter/ingest-now
+X-INTERNAL-KEY: {{internalKey}}
+
+### Build report for specific date (internal)
+POST {{host}}/api/v1/internal/reporter/build-report?date=2025-11-02
+X-INTERNAL-KEY: {{internalKey}}
+
+### Re-send notification for date (internal)
+POST {{host}}/api/v1/internal/reporter/notify?date=2025-11-02
+X-INTERNAL-KEY: {{internalKey}}
+
+### Check reporter status (internal)
+GET {{host}}/api/v1/internal/reporter/status
+X-INTERNAL-KEY: {{internalKey}}
