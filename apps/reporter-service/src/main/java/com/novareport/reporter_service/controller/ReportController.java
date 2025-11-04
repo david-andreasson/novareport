@@ -1,5 +1,6 @@
 package com.novareport.reporter_service.controller;
 
+import com.novareport.reporter_service.config.PaginationProperties;
 import com.novareport.reporter_service.dto.DailyReportResponse;
 import com.novareport.reporter_service.dto.PagedDailyReportsResponse;
 import com.novareport.reporter_service.service.DailyReportService;
@@ -26,13 +27,16 @@ public class ReportController {
 
     private final DailyReportService dailyReportService;
     private final SubscriptionAccessService subscriptionAccessService;
+    private final PaginationProperties paginationProperties;
 
     public ReportController(
         DailyReportService dailyReportService,
-        SubscriptionAccessService subscriptionAccessService
+        SubscriptionAccessService subscriptionAccessService,
+        PaginationProperties paginationProperties
     ) {
         this.dailyReportService = dailyReportService;
         this.subscriptionAccessService = subscriptionAccessService;
+        this.paginationProperties = paginationProperties;
     }
 
     @GetMapping("/latest")
@@ -60,8 +64,8 @@ public class ReportController {
         if (page < 0) {
             throw new IllegalArgumentException("page must be >= 0");
         }
-        if (size < 1 || size > 50) {
-            throw new IllegalArgumentException("size must be between 1 and 50");
+        if (size < 1 || size > paginationProperties.getMaxPageSize()) {
+            throw new IllegalArgumentException("size must be between 1 and " + paginationProperties.getMaxPageSize());
         }
         Pageable pageable = PageRequest.of(page, size);
         LocalDate effectiveTo = Optional.ofNullable(to).orElse(LocalDate.now());
