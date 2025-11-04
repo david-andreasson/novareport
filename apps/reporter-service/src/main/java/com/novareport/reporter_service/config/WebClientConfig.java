@@ -20,7 +20,7 @@ public class WebClientConfig {
         @Value("${webclient.timeout.read:10}") long readTimeoutSeconds
     ) {
         HttpClient httpClient = HttpClient.create()
-            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, Math.toIntExact(Duration.ofSeconds(connectTimeoutSeconds).toMillis()))
+            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) Duration.ofSeconds(connectTimeoutSeconds).toMillis())
             .responseTimeout(Duration.ofSeconds(readTimeoutSeconds));
 
         return WebClient.builder()
