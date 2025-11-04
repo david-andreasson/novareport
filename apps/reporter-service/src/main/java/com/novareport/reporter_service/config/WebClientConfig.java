@@ -8,7 +8,6 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
-import reactor.netty.tcp.TcpClient;
 
 import java.time.Duration;
 
@@ -20,10 +19,8 @@ public class WebClientConfig {
         @Value("${webclient.timeout.connect:5}") long connectTimeoutSeconds,
         @Value("${webclient.timeout.read:10}") long readTimeoutSeconds
     ) {
-        TcpClient tcpClient = TcpClient.create()
-            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) Duration.ofSeconds(connectTimeoutSeconds).toMillis());
-
-        HttpClient httpClient = HttpClient.from(tcpClient)
+        HttpClient httpClient = HttpClient.create()
+            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, Math.toIntExact(Duration.ofSeconds(connectTimeoutSeconds).toMillis()))
             .responseTimeout(Duration.ofSeconds(readTimeoutSeconds));
 
         return WebClient.builder()

@@ -5,8 +5,6 @@ import com.novareport.reporter_service.domain.DailyReport;
 import com.novareport.reporter_service.domain.DailyReportRepository;
 import com.novareport.reporter_service.domain.NewsItem;
 import com.novareport.reporter_service.domain.NewsItemRepository;
-import com.novareport.reporter_service.service.RssIngestService;
-import com.novareport.reporter_service.service.DailyReportService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
