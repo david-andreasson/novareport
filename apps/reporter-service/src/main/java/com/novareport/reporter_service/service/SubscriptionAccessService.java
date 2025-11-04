@@ -55,9 +55,6 @@ public class SubscriptionAccessService {
                 .blockOptional()
                 .orElse(false);
         } catch (WebClientResponseException ex) {
-            if (ex.getStatusCode().is4xxClientError()) {
-                return false;
-            }
             log.error("Subscription access check failed with status {}", ex.getStatusCode());
             throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Failed to verify subscription access");
         } catch (Exception ex) {
