@@ -28,6 +28,30 @@ services:
     depends_on:
       - accounts-service
 
+  reporter-service:
+    build:
+      context: ../apps/reporter-service
+    image: novareport/reporter-service:dev
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      JWT_SECRET: dev-secret-change-me-please-32-bytes-minimum
+      JWT_ISSUER: accounts-service
+      INTERNAL_API_KEY: dev-change-me
+      SUBS_BASE_URL: http://subscriptions-service:8080
+      NOTIF_BASE_URL: http://notifications-service:8080
+      RSS_FEEDS: https://cointelegraph.com/rss
+      REPORTER_FAKE_AI: 'true'
+      REPORTER_DEDUP_WINDOW_HOURS: '48'
+    ports:
+      - '8082:8080'
+    volumes:
+      - reporter-h2:/app/data/h2/reporter-service
+    networks:
+      - novareport
+    depends_on:
+      - accounts-service
+      - subscriptions-service
+
   frontend:
     build:
       context: ../apps/frontend
@@ -46,3 +70,6 @@ services:
 networks:
   novareport:
     driver: bridge
+
+volumes:
+  reporter-h2:

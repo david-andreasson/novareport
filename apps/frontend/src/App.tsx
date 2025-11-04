@@ -4,8 +4,9 @@ import './App.css'
 
 const API_BASE = 'http://localhost:8080'
 const SUBS_API_BASE = (import.meta.env.VITE_SUBS_API_BASE as string | undefined) ?? API_BASE
+const REPORTER_API_BASE = (import.meta.env.VITE_REPORTER_API_BASE as string | undefined) ?? 'http://localhost:8082'
 
-type View = 'login' | 'register' | 'profile' | 'settings'
+type View = 'login' | 'register' | 'profile' | 'settings' | 'report'
 
 type Message = {
   scope: View
@@ -33,6 +34,19 @@ type SubscriptionState = {
   phase: 'idle' | 'loading' | 'success' | 'error'
   hasAccess: boolean | null
   detail: SubscriptionDetail | null
+  error?: string
+}
+
+type DailyReport = {
+  id: string
+  reportDate: string
+  summary: string
+  createdAt: string
+}
+
+type LatestReportState = {
+  phase: 'idle' | 'loading' | 'success' | 'error'
+  report: DailyReport | null
   error?: string
 }
 
@@ -78,6 +92,10 @@ function App() {
     phase: 'idle',
     hasAccess: null,
     detail: null,
+  })
+  const [reportState, setReportState] = useState<LatestReportState>({
+    phase: 'idle',
+    report: null,
   })
 
   const renderMessage = (scope: View) =>
@@ -280,6 +298,86 @@ function App() {
     void fetchSubscriptionInfo()
   }
 
+  const fetchLatestReport = async () => {
+    if (!token) {
+      setReportState({ phase: 'error', report: null, error: 'Logga in för att se rapporten.' })
+      return
+    }
+
+    setReportState({ phase: 'loading', report: null })
+    try {
+      const response = await fetch(`${REPORTER_API_BASE}/api/v1/reports/latest`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      if (response.status === 404) {
+        setReportState({ phase: 'error', report: null, error: 'Ingen rapport tillgänglig ännu.' })
+        return
+      }
+
+      if (response.status === 403) {
+        setReportState({
+          phase: 'error',
+          report: null,
+          error: 'Du saknar prenumeration för att läsa rapporten.',
+        })
+        return
+      }
+
+      if (response.status === 401) {
+        setReportState({ phase: 'error', report: null, error: 'Inloggningen har gått ut. Logga in igen.' })
+        return
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(errorText || 'Kunde inte hämta rapport')
+      }
+
+      const data = (await response.json()) as DailyReport
+      setReportState({ phase: 'success', report: data })
+    } catch (error) {
+      const text = error instanceof Error ? error.message : 'Okänt fel'
+      setReportState({ phase: 'error', report: null, error: text })
+    }
+  }
+
+  const renderReportSummary = (summary: string) => {
+    const lines = summary
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
+
+    if (lines.length === 0) {
+      return <p className="report-summary__empty">Ingen sammanfattning tillgänglig.</p>
+    }
+
+    const lead = lines[0].startsWith('- ') ? null : lines[0]
+    const remainder = lead ? lines.slice(1) : lines
+    const bullets = remainder
+      .filter((line) => line.startsWith('- '))
+      .map((line) => line.replace(/^-\s*/, ''))
+    const paragraphs = remainder.filter((line) => !line.startsWith('- '))
+
+    return (
+      <>
+        {lead && <p className="report-summary__lead">{lead}</p>}
+        {bullets.length > 0 && (
+          <ul className="report-summary__list">
+            {bullets.map((item, index) => (
+              <li key={index}>{item}</li>
+            ))}
+          </ul>
+        )}
+        {paragraphs.map((text, index) => (
+          <p key={`p-${index}`} className="report-summary__paragraph">
+            {text}
+          </p>
+        ))}
+      </>
+    )
+  }
+
   useEffect(() => {
     if (view === 'profile') {
       if (!token) {
@@ -292,6 +390,8 @@ function App() {
       void fetchSubscriptionInfo()
     } else if (view === 'settings' && !token) {
       setMessage({ scope: 'settings', status: 'error', text: 'Logga in för att ändra inställningar.' })
+    } else if (view === 'report') {
+      void fetchLatestReport()
     }
   }, [view, token])
 
@@ -562,6 +662,48 @@ function App() {
         </>
       )
       break
+    case 'report':
+      panelContent = (
+        <>
+          <h2>Senaste rapport (temporär vy)</h2>
+          <p className="auth-note">
+            Visar resultatet från reporter-service. Kräver aktiv prenumeration.
+          </p>
+          {reportState.phase === 'loading' && <p className="auth-note">Hämtar rapport…</p>}
+          {reportState.phase === 'error' && (
+            <p className="subscription-error">{reportState.error ?? 'Ett fel inträffade.'}</p>
+          )}
+          {reportState.phase === 'success' && reportState.report && (
+            <article className="report-preview">
+              <header className="report-preview__header">
+                <div>
+                  <span className="chip">Senaste rapport</span>
+                  <h3>{new Date(reportState.report.reportDate).toLocaleDateString('sv-SE')}</h3>
+                </div>
+                <div className="report-meta">
+                  <span>Skapad</span>
+                  <strong>{new Date(reportState.report.createdAt).toLocaleString('sv-SE')}</strong>
+                </div>
+              </header>
+              <section className="report-summary">
+                {renderReportSummary(reportState.report.summary)}
+              </section>
+              <div className="report-actions">
+                <button className="pill-button" type="button" onClick={() => void fetchLatestReport()}>
+                  Uppdatera
+                </button>
+              </div>
+            </article>
+          )}
+          {token && reportState.phase !== 'loading' && reportState.phase !== 'success' && (
+            <button className="pill-button" type="button" onClick={() => void fetchLatestReport()}>
+              Försök igen
+            </button>
+          )}
+          {!token && <p className="auth-note">Logga in för att kunna läsa rapporten.</p>}
+        </>
+      )
+      break
   }
 
   return (
@@ -599,6 +741,14 @@ function App() {
             onClick={() => handleChangeView('settings')}
           >
             Inställningar
+          </button>
+          <button
+            type="button"
+            className={`${view === 'report' ? 'active' : ''} ${token ? '' : 'locked'}`.trim()}
+            onClick={() => handleChangeView('report')}
+            disabled={!token}
+          >
+            Rapport (test)
           </button>
         </nav>
         {token && (

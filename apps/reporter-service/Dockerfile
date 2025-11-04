@@ -15,6 +15,8 @@ FROM eclipse-temurin:21-jre
 WORKDIR /app
 RUN useradd -ms /bin/bash appuser
 COPY --from=build /app/target/*.jar /app/app.jar
+COPY --from=build /app/src/main/resources/application-dev.properties /app/application-dev.properties
+RUN mkdir -p /app/data/h2/reporter-service && chown -R appuser:appuser /app/data
 ENV SPRING_PROFILES_ACTIVE=prod \
     JAVA_OPTS="-XX:MaxRAMPercentage=75"
 EXPOSE 8080
