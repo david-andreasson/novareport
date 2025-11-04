@@ -85,8 +85,15 @@ public class RssIngestService {
         }
 
         if (attempted > 0) {
-            double ratio = stored == 0 ? 0d : (double) stored / attempted;
-            log.info("RSS ingest completed: attempted={}, stored={}, dedupeRatio={}", attempted, stored, String.format("%.2f", ratio));
+            double storageRatio = (double) stored / attempted;
+            double dedupeRatio = 1 - storageRatio;
+            log.info(
+                "RSS ingest completed: attempted={}, stored={}, storageRatio={}, dedupeRatio={}",
+                attempted,
+                stored,
+                String.format("%.2f", storageRatio),
+                String.format("%.2f", dedupeRatio)
+            );
         }
 
         return new IngestResult(attempted, stored);

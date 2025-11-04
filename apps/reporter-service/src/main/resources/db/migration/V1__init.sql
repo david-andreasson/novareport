@@ -10,7 +10,7 @@ CREATE TABLE news_items (
 );
 
 CREATE INDEX idx_news_items_published_at ON news_items (published_at);
-CREATE UNIQUE INDEX idx_news_items_hash ON news_items (hash);
+CREATE INDEX idx_news_items_ingested_at ON news_items (ingested_at);
 
 CREATE TABLE daily_reports (
     id UUID PRIMARY KEY,
@@ -18,5 +18,3 @@ CREATE TABLE daily_reports (
     summary TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL
 );
-
-CREATE UNIQUE INDEX idx_daily_reports_report_date ON daily_reports (report_date);

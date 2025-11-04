@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.server.ResponseStatusException;
+import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 
@@ -46,9 +47,9 @@ public class SubscriptionAccessService {
                     log.warn("Subscription access call failed: {}", ex.getMessage());
                     return switch (ex) {
                         case WebClientResponseException e when e.getStatusCode().is4xxClientError() -> {
-                            yield reactor.core.publisher.Mono.just(false);
+                            yield Mono.just(false);
                         }
-                        default -> reactor.core.publisher.Mono.error(ex);
+                        default -> Mono.error(ex);
                     };
                 })
                 .blockOptional()

@@ -3,7 +3,10 @@ package com.novareport.reporter_service.service;
 import com.novareport.reporter_service.client.NotificationsClient;
 import com.novareport.reporter_service.domain.DailyReport;
 import com.novareport.reporter_service.domain.DailyReportRepository;
+import com.novareport.reporter_service.domain.NewsItem;
 import com.novareport.reporter_service.domain.NewsItemRepository;
+import com.novareport.reporter_service.service.RssIngestService;
+import com.novareport.reporter_service.service.DailyReportService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -81,7 +84,7 @@ public class ReporterCoordinator {
 
     public ReporterStatus status() {
         Instant lastIngested = newsItemRepository.findTop1ByOrderByIngestedAtDesc()
-            .map(newsItem -> newsItem.getIngestedAt())
+            .map(NewsItem::getIngestedAt)
             .orElse(null);
         LocalDate lastReport = dailyReportRepository.findTop1ByOrderByReportDateDesc()
             .map(DailyReport::getReportDate)
