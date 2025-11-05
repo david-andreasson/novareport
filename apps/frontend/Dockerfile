@@ -12,9 +12,9 @@ ENV VITE_NOTIF_API_BASE=${VITE_NOTIF_API_BASE}
 ENV VITE_REPORTER_API_BASE=${VITE_REPORTER_API_BASE}
 ENV VITE_INTERNAL_API_KEY=${VITE_INTERNAL_API_KEY}
 COPY package*.json ./
-RUN npm ci && ls -la node_modules/.bin/ | grep -E '(tsc|vite)'
+RUN npm ci
 COPY . .
-RUN ./node_modules/.bin/tsc -b && ./node_modules/.bin/vite build
+RUN npm run build
 
 # Serve
 FROM nginx:alpine

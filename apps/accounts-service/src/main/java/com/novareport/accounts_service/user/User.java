@@ -41,7 +41,6 @@ public class User {
     private String email;
 
     @NotBlank
-    @Size(min = 8)
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 

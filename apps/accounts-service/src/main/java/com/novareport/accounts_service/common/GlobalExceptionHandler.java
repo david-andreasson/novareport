@@ -9,7 +9,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,7 +25,7 @@ public class GlobalExceptionHandler {
         detail.setTitle("Validation failed");
         detail.setDetail("Request validation failed");
         detail.setProperty("errors", errors.stream()
-            .collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage, (existing, replacement) -> existing, HashMap::new)));
+            .collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage)));
         return detail;
     }
 
