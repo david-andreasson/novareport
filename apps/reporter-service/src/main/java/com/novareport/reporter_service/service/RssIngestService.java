@@ -91,9 +91,9 @@ public class RssIngestService {
             ));
     }
 
-    private int persistNewItems(Map<String, NewsItem> deduped) {
+    private long persistNewItems(Map<String, NewsItem> deduped) {
         if (deduped.isEmpty()) {
-            return 0;
+            return 0L;
         }
 
         Set<String> existing = newsItemRepository.findExistingHashes(deduped.keySet());
@@ -102,7 +102,7 @@ public class RssIngestService {
             .map(Map.Entry::getValue)
             .toList();
 
-        return toPersist.isEmpty() ? 0 : newsItemRepository.saveAll(toPersist).size();
+        return toPersist.isEmpty() ? 0L : (long) newsItemRepository.saveAll(toPersist).size();
     }
 
     private void logIngestSummary(long attempted, long stored) {
