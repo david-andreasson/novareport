@@ -52,7 +52,7 @@ public class RssIngestService {
         }
 
         List<NewsItem> items = collectNewsItems(feeds);
-        int attempted = items.size();
+        long attempted = (long) items.size();
         if (attempted == 0) {
             log.info("RSS ingest completed: no entries processed");
             return new IngestResult(0, 0);
