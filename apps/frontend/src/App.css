@@ -283,6 +283,26 @@ body {
   background: rgba(180, 35, 24, 0.1);
 }
 
+.password-feedback {
+  margin: 0;
+  padding: 0.75rem 0.85rem;
+  border-radius: 12px;
+  border: 1px dashed rgba(36, 50, 74, 0.2);
+  background: rgba(238, 241, 255, 0.8);
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  list-style: none;
+}
+
+.password-feedback li.valid {
+  color: #0f8a5f;
+}
+
+.password-feedback li.invalid {
+  color: #b42318;
+}
+
 .pill-button {
   display: inline-flex;
   align-items: center;

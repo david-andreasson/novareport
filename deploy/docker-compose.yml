@@ -76,6 +76,8 @@ services:
         VITE_ACCOUNTS_API_BASE: http://localhost:8080
         VITE_SUBS_API_BASE: http://localhost:8081
         VITE_NOTIF_API_BASE: http://localhost:8083
+        VITE_REPORTER_API_BASE: http://localhost:8082
+        VITE_INTERNAL_API_KEY: dev-change-me
     image: novareport/frontend:dev
     ports:
       - '5173:80'

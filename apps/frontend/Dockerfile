@@ -3,12 +3,18 @@ FROM node:20-alpine AS build
 WORKDIR /app
 ARG VITE_ACCOUNTS_API_BASE="http://localhost:8080"
 ARG VITE_SUBS_API_BASE="http://localhost:8081"
+ARG VITE_NOTIF_API_BASE="http://localhost:8083"
+ARG VITE_REPORTER_API_BASE="http://localhost:8082"
+ARG VITE_INTERNAL_API_KEY=""
 ENV VITE_ACCOUNTS_API_BASE=${VITE_ACCOUNTS_API_BASE}
 ENV VITE_SUBS_API_BASE=${VITE_SUBS_API_BASE}
+ENV VITE_NOTIF_API_BASE=${VITE_NOTIF_API_BASE}
+ENV VITE_REPORTER_API_BASE=${VITE_REPORTER_API_BASE}
+ENV VITE_INTERNAL_API_KEY=${VITE_INTERNAL_API_KEY}
 COPY package*.json ./
-RUN npm ci
+RUN npm ci && ls -la node_modules/.bin/ | grep -E '(tsc|vite)'
 COPY . .
-RUN npm run build
+RUN ./node_modules/.bin/tsc -b && ./node_modules/.bin/vite build
 
 # Serve
 FROM nginx:alpine

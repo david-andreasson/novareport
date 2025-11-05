@@ -6,6 +6,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -30,26 +34,38 @@ public class User {
     @UuidGenerator
     private UUID id;
 
+    @Email
+    @NotBlank
+    @Size(max = 255)
     @Column(nullable = false, unique = true)
     private String email;
 
+    @NotBlank
+    @Size(min = 8)
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
+    @Size(max = 100)
     private String firstName;
+
+    @Size(max = 100)
     private String lastName;
 
+    @NotBlank
     @Builder.Default
     @Column(nullable = false)
     private String role = "USER";
 
+    @NotNull
     @Builder.Default
     @Column(nullable = false)
     private Boolean isActive = true;
 
+    @NotNull
     @Column(nullable = false)
     private Instant createdAt;
 
+    @NotNull
     @Column(nullable = false)
     private Instant updatedAt;
 

@@ -8,6 +8,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -29,12 +31,15 @@ public class DailyReport {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @NotNull
     @Column(name = "report_date", nullable = false, unique = true)
     private LocalDate reportDate;
 
+    @NotBlank
     @Column(columnDefinition = "TEXT", nullable = false)
     private String summary;
 
+    @NotNull
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
