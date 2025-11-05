@@ -2,6 +2,7 @@ package com.novareport.reporter_service.controller;
 
 import com.novareport.reporter_service.dto.IngestResponse;
 import com.novareport.reporter_service.service.ReporterCoordinator;
+import com.novareport.reporter_service.service.ReporterStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -47,7 +48,7 @@ public class InternalReporterController {
 
     @GetMapping("/status")
     @Operation(summary = "Get reporter service status")
-    public ResponseEntity<ReporterCoordinator.ReporterStatus> status() {
+    public ResponseEntity<ReporterStatus> status() {
         return ResponseEntity.ok(coordinator.status());
     }
 }
