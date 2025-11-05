@@ -4,7 +4,7 @@ import './App.css'
 
 const API_BASE = 'http://localhost:8080'
 const SUBS_API_BASE = (import.meta.env.VITE_SUBS_API_BASE as string | undefined) ?? API_BASE
-const REPORTER_API_BASE = (import.meta.env.VITE_REPORTER_API_BASE as string | undefined) ?? 'http://localhost:8082'
+const NOTIF_API_BASE = (import.meta.env.VITE_NOTIF_API_BASE as string | undefined) ?? 'http://localhost:8083'
 
 type View = 'login' | 'register' | 'profile' | 'settings' | 'report'
 
@@ -38,10 +38,12 @@ type SubscriptionState = {
 }
 
 type DailyReport = {
-  id: string
+  id?: string
+  reportId?: string
   reportDate: string
   summary: string
-  createdAt: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 type LatestReportState = {
@@ -306,12 +308,17 @@ function App() {
 
     setReportState({ phase: 'loading', report: null })
     try {
-      const response = await fetch(`${REPORTER_API_BASE}/api/v1/reports/latest`, {
+      const response = await fetch(`${NOTIF_API_BASE}/api/v1/notifications/latest`, {
         headers: { Authorization: `Bearer ${token}` },
       })
 
       if (response.status === 404) {
         setReportState({ phase: 'error', report: null, error: 'Ingen rapport tillgänglig ännu.' })
+        return
+      }
+
+      if (response.status === 401) {
+        setReportState({ phase: 'error', report: null, error: 'Inloggningen har gått ut. Logga in igen.' })
         return
       }
 
@@ -321,11 +328,6 @@ function App() {
           report: null,
           error: 'Du saknar prenumeration för att läsa rapporten.',
         })
-        return
-      }
-
-      if (response.status === 401) {
-        setReportState({ phase: 'error', report: null, error: 'Inloggningen har gått ut. Logga in igen.' })
         return
       }
 
@@ -680,10 +682,12 @@ function App() {
                   <span className="chip">Senaste rapport</span>
                   <h3>{new Date(reportState.report.reportDate).toLocaleDateString('sv-SE')}</h3>
                 </div>
-                <div className="report-meta">
-                  <span>Skapad</span>
-                  <strong>{new Date(reportState.report.createdAt).toLocaleString('sv-SE')}</strong>
-                </div>
+                {reportState.report.createdAt && (
+                  <div className="report-meta">
+                    <span>Skapad</span>
+                    <strong>{new Date(reportState.report.createdAt).toLocaleString('sv-SE')}</strong>
+                  </div>
+                )}
               </header>
               <section className="report-summary">
                 {renderReportSummary(reportState.report.summary)}
@@ -744,9 +748,8 @@ function App() {
           </button>
           <button
             type="button"
-            className={`${view === 'report' ? 'active' : ''} ${token ? '' : 'locked'}`.trim()}
+            className={`${view === 'report' ? 'active' : ''}`}
             onClick={() => handleChangeView('report')}
-            disabled={!token}
           >
             Rapport (test)
           </button>

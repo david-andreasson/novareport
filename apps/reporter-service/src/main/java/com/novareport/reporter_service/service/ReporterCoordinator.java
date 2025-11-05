@@ -5,6 +5,7 @@ import com.novareport.reporter_service.domain.DailyReport;
 import com.novareport.reporter_service.domain.DailyReportRepository;
 import com.novareport.reporter_service.domain.NewsItem;
 import com.novareport.reporter_service.domain.NewsItemRepository;
+import com.novareport.reporter_service.dto.ReportReadyNotificationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -67,8 +68,19 @@ public class ReporterCoordinator {
             return;
         }
 
+        DailyReport report = dailyReportRepository.findByReportDate(date)
+            .orElseGet(() -> {
+                log.warn("No report available for {} to notify", date);
+                return null;
+            });
+        if (report == null) {
+            return;
+        }
+
+        ReportReadyNotificationRequest payload = ReportReadyNotificationRequest.from(report);
+
         try {
-            notificationsClient.notifyReportReady(notificationsBaseUrl, internalApiKey, date)
+            notificationsClient.notifyReportReady(notificationsBaseUrl, internalApiKey, payload)
                 .timeout(Duration.ofSeconds(5))
                 .onErrorResume(ex -> {
                     log.warn("Failed to send notification for {}: {}", date, ex.getMessage());

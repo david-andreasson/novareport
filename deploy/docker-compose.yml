@@ -38,7 +38,7 @@ services:
       JWT_ISSUER: accounts-service
       INTERNAL_API_KEY: dev-change-me
       SUBS_BASE_URL: http://subscriptions-service:8080
-      NOTIF_BASE_URL: http://notifications-service:8080
+      NOTIF_BASE_URL: http://notifications-service:8083
       RSS_FEEDS: https://cointelegraph.com/rss
       REPORTER_FAKE_AI: 'true'
       REPORTER_DEDUP_WINDOW_HOURS: '48'
@@ -52,12 +52,30 @@ services:
       - accounts-service
       - subscriptions-service
 
+  notifications-service:
+    build:
+      context: ../apps/notifications-service
+    image: novareport/notifications-service:dev
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      JWT_SECRET: dev-secret-change-me-please-32-bytes-minimum
+      JWT_ISSUER: accounts-service
+      JWT_ACCESS_TOKEN_MINUTES: '30'
+      INTERNAL_API_KEY: dev-change-me
+    ports:
+      - '8083:8083'
+    networks:
+      - novareport
+    depends_on:
+      - accounts-service
+
   frontend:
     build:
       context: ../apps/frontend
       args:
         VITE_ACCOUNTS_API_BASE: http://localhost:8080
         VITE_SUBS_API_BASE: http://localhost:8081
+        VITE_NOTIF_API_BASE: http://localhost:8083
     image: novareport/frontend:dev
     ports:
       - '5173:80'
