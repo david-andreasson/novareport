@@ -7,5 +7,3 @@ CREATE TABLE notification_reports (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL
 );
 
-CREATE UNIQUE INDEX idx_notification_reports_report_date
-    ON notification_reports (report_date);
