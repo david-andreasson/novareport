@@ -51,7 +51,22 @@ public class RssIngestService {
             return IngestResult.empty();
         }
 
-        List<NewsItem> items = Flux.fromIterable(feeds)
+        List<NewsItem> items = collectNewsItems(feeds);
+        int attempted = items.size();
+        if (attempted == 0) {
+            log.info("RSS ingest completed: no entries processed");
+            return new IngestResult(0, 0);
+        }
+
+        Map<String, NewsItem> deduped = deduplicateByHash(items);
+        int stored = persistNewItems(deduped);
+        logIngestSummary(attempted, stored);
+
+        return new IngestResult(attempted, stored);
+    }
+
+    private List<NewsItem> collectNewsItems(List<String> feeds) {
+        return Flux.fromIterable(feeds)
             .flatMap(this::fetchFeed)
             .flatMap(tuple -> Flux.fromIterable(tuple.getT2().getEntries())
                 .map(entry -> toNewsItem(tuple.getT2(), tuple.getT1(), entry)))
@@ -59,44 +74,47 @@ public class RssIngestService {
             .collectList()
             .blockOptional()
             .orElse(List.of());
+    }
 
-        long attempted = items.size();
-        int stored = 0;
-        if (!items.isEmpty()) {
-            Map<String, NewsItem> deduped = items.stream()
-                .filter(item -> item.getHash() != null)
-                .collect(Collectors.toMap(
-                    NewsItem::getHash,
-                    item -> item,
-                    (existing, replacement) -> existing,
-                    LinkedHashMap::new
-                ));
-
-            Set<String> existing = deduped.isEmpty()
-                ? Set.of()
-                : newsItemRepository.findExistingHashes(deduped.keySet());
-
-            List<NewsItem> toPersist = deduped.entrySet().stream()
-                .filter(entry -> !existing.contains(entry.getKey()))
-                .map(Map.Entry::getValue)
-                .collect(Collectors.toList());
-
-            stored = toPersist.isEmpty() ? 0 : newsItemRepository.saveAll(toPersist).size();
+    private Map<String, NewsItem> deduplicateByHash(List<NewsItem> items) {
+        if (items.isEmpty()) {
+            return Map.of();
         }
 
-        if (attempted > 0) {
-            double storageRatio = (double) stored / attempted;
-            double dedupeRatio = 1 - storageRatio;
-            log.info(
-                "RSS ingest completed: attempted={}, stored={}, storageRatio={}, dedupeRatio={}",
-                attempted,
-                stored,
-                String.format("%.2f", storageRatio),
-                String.format("%.2f", dedupeRatio)
-            );
+        return items.stream()
+            .filter(item -> item.getHash() != null)
+            .collect(Collectors.toMap(
+                NewsItem::getHash,
+                item -> item,
+                (existing, replacement) -> existing,
+                LinkedHashMap::new
+            ));
+    }
+
+    private int persistNewItems(Map<String, NewsItem> deduped) {
+        if (deduped.isEmpty()) {
+            return 0;
         }
 
-        return new IngestResult(attempted, stored);
+        Set<String> existing = newsItemRepository.findExistingHashes(deduped.keySet());
+        List<NewsItem> toPersist = deduped.entrySet().stream()
+            .filter(entry -> !existing.contains(entry.getKey()))
+            .map(Map.Entry::getValue)
+            .toList();
+
+        return toPersist.isEmpty() ? 0 : newsItemRepository.saveAll(toPersist).size();
+    }
+
+    private void logIngestSummary(int attempted, int stored) {
+        double storageRatio = attempted == 0 ? 0 : (double) stored / attempted;
+        double dedupeRatio = 1 - storageRatio;
+        log.info(
+            "RSS ingest completed: attempted={}, stored={}, storageRatio={}, dedupeRatio={}",
+            attempted,
+            stored,
+            String.format("%.2f", storageRatio),
+            String.format("%.2f", dedupeRatio)
+        );
     }
 
     private Flux<Tuple2<String, SyndFeed>> fetchFeed(String url) {
