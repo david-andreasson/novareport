@@ -3,6 +3,8 @@ package com.novareport.accounts_service.activity;
 import com.novareport.accounts_service.user.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -32,8 +34,9 @@ public class ActivityLog {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String event;
+    private ActivityEventType event;
 
     @Column(columnDefinition = "TEXT")
     private String meta;

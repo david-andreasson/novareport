@@ -1,5 +1,6 @@
 package com.novareport.accounts_service.auth;
 
+import com.novareport.accounts_service.activity.ActivityEventType;
 import com.novareport.accounts_service.activity.ActivityLog;
 import com.novareport.accounts_service.activity.ActivityLogRepository;
 import com.novareport.accounts_service.auth.dto.AuthResponse;
@@ -45,7 +46,7 @@ public class AuthController {
 
         UserSettings settings = createDefaultSettings(user);
         settingsRepo.save(settings);
-        ActivityLog registerLog = createActivityLog(user, "REGISTER");
+        ActivityLog registerLog = createActivityLog(user, ActivityEventType.REGISTER);
         activity.save(registerLog);
         String token = jwt.createAccessToken(user.getId(), user.getEmail(), user.getRole());
         return new AuthResponse(token);
@@ -59,7 +60,7 @@ public class AuthController {
         if (!validPassword || !activeAccount) {
             throw new IllegalStateException("Invalid credentials");
         }
-        ActivityLog loginLog = createActivityLog(user, "LOGIN");
+        ActivityLog loginLog = createActivityLog(user, ActivityEventType.LOGIN);
         activity.save(loginLog);
         String token = jwt.createAccessToken(user.getId(), user.getEmail(), user.getRole());
         return new AuthResponse(token);
@@ -83,7 +84,7 @@ public class AuthController {
     }
 
     @NonNull
-    private ActivityLog createActivityLog(User user, String event) {
+    private ActivityLog createActivityLog(User user, ActivityEventType event) {
         return ActivityLog.builder()
                 .user(user)
                 .event(event)
