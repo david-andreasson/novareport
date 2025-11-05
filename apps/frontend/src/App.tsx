@@ -5,6 +5,13 @@ import './App.css'
 const API_BASE = 'http://localhost:8080'
 const SUBS_API_BASE = (import.meta.env.VITE_SUBS_API_BASE as string | undefined) ?? API_BASE
 const NOTIF_API_BASE = (import.meta.env.VITE_NOTIF_API_BASE as string | undefined) ?? 'http://localhost:8083'
+const REPORTER_API_BASE =
+  (import.meta.env.VITE_REPORTER_API_BASE as string | undefined) ?? 'http://localhost:8082'
+const INTERNAL_API_KEY = (import.meta.env.VITE_INTERNAL_API_KEY as string | undefined) ?? ''
+
+const FOUR_HOURS_MS = 4 * 60 * 60 * 1000
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 type View = 'login' | 'register' | 'profile' | 'settings' | 'report'
 
@@ -74,12 +81,14 @@ const formatDateTime = (iso: string) =>
 function App() {
   const [view, setView] = useState<View>('login')
   const [loginForm, setLoginForm] = useState({ email: '', password: '' })
-  const [registerForm, setRegisterForm] = useState({
+  const createInitialRegisterForm = () => ({
     email: '',
     password: '',
+    confirmPassword: '',
     firstName: '',
     lastName: '',
   })
+  const [registerForm, setRegisterForm] = useState(createInitialRegisterForm())
   const [token, setToken] = useState<string | null>(null)
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [settingsForm, setSettingsForm] = useState({
@@ -99,6 +108,17 @@ function App() {
     phase: 'idle',
     report: null,
   })
+
+  const isLoadingReport = reportState.phase === 'loading'
+
+  const passwordPolicyRegex = /^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,}$/
+  const meetsPasswordPolicy = passwordPolicyRegex.test(registerForm.password)
+  const passwordsMatch =
+    registerForm.password.length > 0 &&
+    registerForm.confirmPassword.length > 0 &&
+    registerForm.password === registerForm.confirmPassword
+  const showPasswordFeedback =
+    registerForm.password.length > 0 || registerForm.confirmPassword.length > 0
 
   const renderMessage = (scope: View) =>
     message?.scope === scope ? (
@@ -153,6 +173,94 @@ function App() {
     }
   }
 
+  const getLatestReport = async (): Promise<DailyReport | null> => {
+    const response = await fetch(`${NOTIF_API_BASE}/api/v1/notifications/latest`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+
+    if (response.status === 404) {
+      return null
+    }
+
+    if (response.status === 401) {
+      throw new Error('Inloggningen har gått ut. Logga in igen.')
+    }
+
+    if (response.status === 403) {
+      throw new Error('Du saknar prenumeration för att läsa rapporten.')
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(errorText || 'Kunde inte hämta rapport')
+    }
+
+    return (await response.json()) as DailyReport
+  }
+
+  const isReportFresh = (report: DailyReport | null) => {
+    if (!report?.createdAt) {
+      return false
+    }
+    const createdAt = new Date(report.createdAt)
+    if (Number.isNaN(createdAt.getTime())) {
+      return false
+    }
+    return Date.now() - createdAt.getTime() <= FOUR_HOURS_MS
+  }
+
+  const triggerIngest = async () => {
+    const response = await fetch(`${REPORTER_API_BASE}/api/v1/internal/reporter/ingest-now`, {
+      method: 'POST',
+      headers: {
+        'X-INTERNAL-KEY': INTERNAL_API_KEY,
+      },
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(errorText || 'Kunde inte hämta nyhetsdata inför rapportbygget.')
+    }
+  }
+
+  const triggerReportBuild = async (date: string) => {
+    const response = await fetch(
+      `${REPORTER_API_BASE}/api/v1/internal/reporter/build-report?date=${date}`,
+      {
+        method: 'POST',
+        headers: {
+          'X-INTERNAL-KEY': INTERNAL_API_KEY,
+        },
+      },
+    )
+
+    if (!response.ok && response.status !== 202) {
+      const errorText = await response.text()
+      throw new Error(errorText || 'Kunde inte trigga rapportbygge.')
+    }
+  }
+
+  const pollForNewReport = async (previousReportId?: string) => {
+    const attempts = 6
+    for (let i = 0; i < attempts; i += 1) {
+      await delay(i === 0 ? 1000 : 1500)
+      try {
+        const candidate = await getLatestReport()
+        if (!candidate) {
+          continue
+        }
+        if (!previousReportId || candidate.reportId !== previousReportId || isReportFresh(candidate)) {
+          return candidate
+        }
+      } catch (error) {
+        if (error instanceof Error && error.message.includes('Logga in igen')) {
+          throw error
+        }
+      }
+    }
+    return null
+  }
+
   const handleLoginSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setLoading('login')
@@ -188,6 +296,14 @@ function App() {
 
   const handleRegisterSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (!meetsPasswordPolicy || !passwordsMatch) {
+      setMessage({
+        scope: 'register',
+        status: 'error',
+        text: 'Kontrollera att lösenordet uppfyller kraven och att fälten matchar.',
+      })
+      return
+    }
     setLoading('register')
     setMessage((prev) => (prev?.scope === 'register' ? null : prev))
     try {
@@ -213,6 +329,7 @@ function App() {
       setSubscriptionState({ phase: 'idle', hasAccess: null, detail: null })
       setMessage({ scope: 'profile', status: 'success', text: 'Konto skapat och inloggad' })
       setView('profile')
+      setRegisterForm(createInitialRegisterForm())
     } catch (error) {
       const text = error instanceof Error ? error.message : 'Okänt fel'
       setMessage({ scope: 'register', status: 'error', text })
@@ -308,36 +425,48 @@ function App() {
 
     setReportState({ phase: 'loading', report: null })
     try {
-      const response = await fetch(`${NOTIF_API_BASE}/api/v1/notifications/latest`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-
-      if (response.status === 404) {
+      const data = await getLatestReport()
+      if (!data) {
         setReportState({ phase: 'error', report: null, error: 'Ingen rapport tillgänglig ännu.' })
         return
       }
-
-      if (response.status === 401) {
-        setReportState({ phase: 'error', report: null, error: 'Inloggningen har gått ut. Logga in igen.' })
-        return
-      }
-
-      if (response.status === 403) {
-        setReportState({
-          phase: 'error',
-          report: null,
-          error: 'Du saknar prenumeration för att läsa rapporten.',
-        })
-        return
-      }
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(errorText || 'Kunde inte hämta rapport')
-      }
-
-      const data = (await response.json()) as DailyReport
       setReportState({ phase: 'success', report: data })
+    } catch (error) {
+      const text = error instanceof Error ? error.message : 'Okänt fel'
+      setReportState({ phase: 'error', report: null, error: text })
+    }
+  }
+
+  const handleEnsureFreshReport = async () => {
+    if (!token) {
+      setReportState({ phase: 'error', report: null, error: 'Logga in för att se rapporten.' })
+      return
+    }
+
+    setReportState({ phase: 'loading', report: null })
+    try {
+      const current = await getLatestReport()
+      if (current && isReportFresh(current)) {
+        setReportState({ phase: 'success', report: current })
+        return
+      }
+
+      if (!INTERNAL_API_KEY) {
+        throw new Error('Intern API-nyckel saknas. Sätt VITE_INTERNAL_API_KEY i frontendens miljövariabler.')
+      }
+
+      await triggerIngest()
+
+      const today = new Date().toISOString().slice(0, 10)
+      await triggerReportBuild(today)
+
+      const refreshed = await pollForNewReport(current?.reportId)
+      if (refreshed) {
+        setReportState({ phase: 'success', report: refreshed })
+        return
+      }
+
+      throw new Error('Rapporten kunde inte hämtas efter byggförsök. Försök igen om en stund.')
     } catch (error) {
       const text = error instanceof Error ? error.message : 'Okänt fel'
       setReportState({ phase: 'error', report: null, error: text })
@@ -494,8 +623,37 @@ function App() {
                 required
               />
             </label>
+            <label>
+              Bekräfta lösenord
+              <input
+                type="password"
+                name="registerConfirmPassword"
+                placeholder="Upprepa lösenord"
+                value={registerForm.confirmPassword}
+                onChange={(event) =>
+                  setRegisterForm({ ...registerForm, confirmPassword: event.target.value })
+                }
+                required
+              />
+            </label>
+            {showPasswordFeedback && (
+              <ul className="password-feedback">
+                <li className={meetsPasswordPolicy ? 'valid' : 'invalid'}>
+                  {meetsPasswordPolicy ? '✓' : '✗'} Uppfyller lösenordskraven (minst 8 tecken, stor bokstav och specialtecken)
+                </li>
+                <li className={passwordsMatch ? 'valid' : 'invalid'}>
+                  {passwordsMatch ? '✓' : '✗'} Lösenorden matchar
+                </li>
+              </ul>
+            )}
             {renderMessage('register')}
-            <button className="pill-button" type="submit" disabled={loading === 'register'}>
+            <button
+              className="pill-button"
+              type="submit"
+              disabled={
+                loading === 'register' || !meetsPasswordPolicy || !passwordsMatch
+              }
+            >
               {loading === 'register' ? 'Skapar…' : 'Registrera'}
             </button>
           </form>
@@ -693,15 +851,23 @@ function App() {
                 {renderReportSummary(reportState.report.summary)}
               </section>
               <div className="report-actions">
-                <button className="pill-button" type="button" onClick={() => void fetchLatestReport()}>
-                  Uppdatera
+                {!isReportFresh(reportState.report) && (
+                  <p className="auth-note">Rapporten är äldre än 4 timmar. Klicka för att skapa en ny.</p>
+                )}
+                <button
+                  className="pill-button"
+                  type="button"
+                  onClick={() => void handleEnsureFreshReport()}
+                  disabled={isLoadingReport}
+                >
+                  {isReportFresh(reportState.report) ? 'Visa senaste igen' : 'Skapa ny rapport'}
                 </button>
               </div>
             </article>
           )}
           {token && reportState.phase !== 'loading' && reportState.phase !== 'success' && (
-            <button className="pill-button" type="button" onClick={() => void fetchLatestReport()}>
-              Försök igen
+            <button className="pill-button" type="button" onClick={() => void handleEnsureFreshReport()}>
+              Skapa eller uppdatera rapport
             </button>
           )}
           {!token && <p className="auth-note">Logga in för att kunna läsa rapporten.</p>}

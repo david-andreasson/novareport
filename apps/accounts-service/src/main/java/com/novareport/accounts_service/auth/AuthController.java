@@ -6,6 +6,8 @@ import com.novareport.accounts_service.activity.ActivityLogRepository;
 import com.novareport.accounts_service.auth.dto.AuthResponse;
 import com.novareport.accounts_service.auth.dto.LoginRequest;
 import com.novareport.accounts_service.auth.dto.RegisterRequest;
+import com.novareport.accounts_service.common.exception.EmailAlreadyExistsException;
+import com.novareport.accounts_service.common.exception.InvalidCredentialsException;
 import com.novareport.accounts_service.security.JwtService;
 import com.novareport.accounts_service.settings.UserSettings;
 import com.novareport.accounts_service.settings.UserSettingsRepository;
@@ -40,7 +42,7 @@ public class AuthController {
     @NonNull
     public AuthResponse register(@Valid @RequestBody RegisterRequest req) {
         if (users.existsByEmail(req.email())) {
-            throw new IllegalStateException("Email already registered");
+            throw new EmailAlreadyExistsException(req.email());
         }
         User user = users.save(createUser(req));
 
@@ -54,11 +56,12 @@ public class AuthController {
 
     @PostMapping("/login")
     public AuthResponse login(@Valid @RequestBody LoginRequest req) {
-        User user = users.findByEmail(req.email()).orElseThrow(() -> new IllegalStateException("Invalid credentials"));
+        User user = users.findByEmail(req.email())
+            .orElseThrow(() -> InvalidCredentialsException.invalidCredentials());
         boolean validPassword = encoder.matches(req.password(), user.getPasswordHash());
         boolean activeAccount = user.getIsActive();
         if (!validPassword || !activeAccount) {
-            throw new IllegalStateException("Invalid credentials");
+            throw InvalidCredentialsException.invalidCredentials();
         }
         ActivityLog loginLog = createActivityLog(user, ActivityEventType.LOGIN);
         activity.save(loginLog);
