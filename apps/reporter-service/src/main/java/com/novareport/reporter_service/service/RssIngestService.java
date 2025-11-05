@@ -59,7 +59,7 @@ public class RssIngestService {
         }
 
         Map<String, NewsItem> deduped = deduplicateByHash(items);
-        int stored = persistNewItems(deduped);
+        long stored = persistNewItems(deduped);
         logIngestSummary(attempted, stored);
 
         return new IngestResult(attempted, stored);
@@ -91,9 +91,9 @@ public class RssIngestService {
             ));
     }
 
-    private int persistNewItems(Map<String, NewsItem> deduped) {
+    private long persistNewItems(Map<String, NewsItem> deduped) {
         if (deduped.isEmpty()) {
-            return 0;
+            return 0L;
         }
 
         Set<String> existing = newsItemRepository.findExistingHashes(deduped.keySet());
@@ -102,10 +102,10 @@ public class RssIngestService {
             .map(Map.Entry::getValue)
             .toList();
 
-        return toPersist.isEmpty() ? 0 : newsItemRepository.saveAll(toPersist).size();
+        return toPersist.isEmpty() ? 0L : (long) newsItemRepository.saveAll(toPersist).size();
     }
 
-    private void logIngestSummary(int attempted, int stored) {
+    private void logIngestSummary(long attempted, long stored) {
         double storageRatio = attempted == 0 ? 0 : (double) stored / attempted;
         double dedupeRatio = 1 - storageRatio;
         log.info(
