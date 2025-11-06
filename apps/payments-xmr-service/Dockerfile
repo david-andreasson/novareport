@@ -15,8 +15,9 @@ FROM eclipse-temurin:21-jre
 WORKDIR /app
 RUN useradd -ms /bin/bash appuser
 COPY --from=build /app/target/*.jar /app/app.jar
+RUN mkdir -p /app/data/h2/payments-xmr-service && chown -R appuser:appuser /app/data
 ENV SPRING_PROFILES_ACTIVE=prod \
     JAVA_OPTS="-XX:MaxRAMPercentage=75"
-EXPOSE 8080
+EXPOSE 8084
 USER appuser
 ENTRYPOINT ["sh","-c","java $JAVA_OPTS -jar /app/app.jar"]
