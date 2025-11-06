@@ -10,6 +10,5 @@ CREATE TABLE payments (
     confirmed_at TIMESTAMP
 );
 
-CREATE INDEX idx_payments_user_id ON payments(user_id);
-CREATE INDEX idx_payments_status ON payments(status);
+CREATE INDEX idx_payments_user_id_status ON payments(user_id, status);
 CREATE INDEX idx_payments_created_at ON payments(created_at);

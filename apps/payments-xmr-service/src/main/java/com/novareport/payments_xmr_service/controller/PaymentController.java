@@ -4,6 +4,7 @@ import com.novareport.payments_xmr_service.dto.CreatePaymentRequest;
 import com.novareport.payments_xmr_service.dto.CreatePaymentResponse;
 import com.novareport.payments_xmr_service.dto.PaymentStatusResponse;
 import com.novareport.payments_xmr_service.service.PaymentService;
+import com.novareport.payments_xmr_service.util.RequestUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,7 @@ public class PaymentController {
             @Valid @RequestBody CreatePaymentRequest request,
             HttpServletRequest httpRequest
     ) {
-        UUID userId = resolveUserId(httpRequest);
+        UUID userId = RequestUtils.resolveUserId(httpRequest);
         log.info("Creating payment for user {}", userId);
 
         return paymentService.createPayment(
@@ -48,22 +49,9 @@ public class PaymentController {
             @PathVariable UUID paymentId,
             HttpServletRequest httpRequest
     ) {
-        UUID userId = resolveUserId(httpRequest);
+        UUID userId = RequestUtils.resolveUserId(httpRequest);
         log.debug("Getting payment status for payment {} and user {}", paymentId, userId);
 
         return paymentService.getPaymentStatus(paymentId, userId);
-    }
-
-    private UUID resolveUserId(HttpServletRequest request) {
-        Object uidAttr = request.getAttribute("uid");
-        if (uidAttr instanceof String value) {
-            try {
-                return UUID.fromString(value);
-            } catch (IllegalArgumentException e) {
-                log.error("Invalid UUID in uid attribute: {}", value);
-                throw new IllegalStateException("Invalid user ID");
-            }
-        }
-        throw new IllegalStateException("User ID not found in request");
     }
 }

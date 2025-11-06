@@ -13,6 +13,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
 @Component
@@ -40,7 +42,7 @@ public class InternalApiKeyFilter extends OncePerRequestFilter {
 
         String apiKey = request.getHeader("X-INTERNAL-KEY");
 
-        if (apiKey == null || !apiKey.equals(internalApiKey)) {
+        if (apiKey == null || !isConstantTimeEqual(apiKey, internalApiKey)) {
             log.warn("Invalid or missing internal API key for path: {}", requestPath);
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.getWriter().write("{\"error\":\"Forbidden\"}");
@@ -56,5 +58,14 @@ public class InternalApiKeyFilter extends OncePerRequestFilter {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         filterChain.doFilter(request, response);
+    }
+
+    private boolean isConstantTimeEqual(String a, String b) {
+        if (a == null || b == null) {
+            return false;
+        }
+        byte[] aBytes = a.getBytes(StandardCharsets.UTF_8);
+        byte[] bBytes = b.getBytes(StandardCharsets.UTF_8);
+        return MessageDigest.isEqual(aBytes, bBytes);
     }
 }

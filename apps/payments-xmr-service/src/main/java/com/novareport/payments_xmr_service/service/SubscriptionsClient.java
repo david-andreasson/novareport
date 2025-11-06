@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.Duration;
 import java.util.UUID;
@@ -35,7 +35,9 @@ public class SubscriptionsClient {
                 durationDays
         );
 
-        String url = subscriptionsBaseUrl + "/api/v1/internal/subscriptions/activate";
+        String url = UriComponentsBuilder.fromUriString(subscriptionsBaseUrl)
+                .path("/api/v1/internal/subscriptions/activate")
+                .toUriString();
 
         log.info("Activating subscription for user {} with plan {} for {} days", userId, plan, durationDays);
 
@@ -47,9 +49,12 @@ public class SubscriptionsClient {
                     .retrieve()
                     .bodyToMono(Void.class)
                     .timeout(Duration.ofSeconds(5))
-                    .block();
+                    .blockOptional(Duration.ofSeconds(5))
+                    .orElseThrow(() -> new SubscriptionActivationException("Subscription activation timed out"));
 
             log.info("Successfully activated subscription for user {}", userId);
+        } catch (SubscriptionActivationException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Failed to activate subscription for user {}: {}", userId, e.getMessage());
             throw new SubscriptionActivationException("Failed to activate subscription", e);

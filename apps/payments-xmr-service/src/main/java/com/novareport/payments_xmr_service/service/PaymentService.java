@@ -33,7 +33,6 @@ public class PaymentService {
 
         String paymentAddress = generateFakeMoneroAddress();
         int durationDays = calculateDurationDays(plan);
-        Instant expiresAt = Instant.now().plus(PAYMENT_EXPIRY_HOURS, ChronoUnit.HOURS);
 
         Payment payment = Payment.builder()
                 .userId(userId)
@@ -47,6 +46,9 @@ public class PaymentService {
         Payment savedPayment = paymentRepository.save(payment);
 
         log.info("Created payment {} with address {}", savedPayment.getId(), paymentAddress);
+
+        // Calculate expiry time for response (24 hours from now)
+        Instant expiresAt = Instant.now().plus(PAYMENT_EXPIRY_HOURS, ChronoUnit.HOURS);
 
         return new CreatePaymentResponse(
                 savedPayment.getId(),
@@ -94,18 +96,23 @@ public class PaymentService {
                     payment.getPlan(),
                     payment.getDurationDays()
             );
+            log.info("Successfully confirmed payment {} and activated subscription", paymentId);
         } catch (SubscriptionActivationException e) {
-            log.error("Failed to activate subscription for payment {}, marking as failed", paymentId);
+            log.error("Failed to activate subscription for payment {}, marking as failed", paymentId, e);
             payment.fail();
             paymentRepository.save(payment);
-            throw e;
+            // Do not re-throw to prevent transaction rollback - payment is now marked as FAILED
         }
-
-        log.info("Successfully confirmed payment {} and activated subscription", paymentId);
     }
 
     private String generateFakeMoneroAddress() {
-        return "XMR-" + UUID.randomUUID().toString().replace("-", "").substring(0, 32);
+        // Real Monero addresses are 95 characters starting with 4
+        // This generates a more realistic fake address for better simulation
+        String prefix = "4";
+        String randomPart = UUID.randomUUID().toString().replace("-", "") +
+                UUID.randomUUID().toString().replace("-", "") +
+                UUID.randomUUID().toString().replace("-", "");
+        return prefix + randomPart.substring(0, 94);
     }
 
     private int calculateDurationDays(String plan) {
@@ -113,8 +120,8 @@ public class PaymentService {
             case "monthly" -> MONTHLY_DURATION_DAYS;
             case "yearly" -> YEARLY_DURATION_DAYS;
             default -> {
-                log.warn("Unknown plan: {}, defaulting to monthly", plan);
-                yield MONTHLY_DURATION_DAYS;
+                log.error("Unknown plan: {}", plan);
+                throw new IllegalArgumentException("Unknown plan: " + plan);
             }
         };
     }

@@ -46,7 +46,7 @@ public class GlobalExceptionHandler {
         log.warn("Validation failed: {}", ex.getMessage());
         String detail = ex.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
-                .findFirst()
+                .reduce((a, b) -> a + ", " + b)
                 .orElse("Validation failed");
 
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, detail);
