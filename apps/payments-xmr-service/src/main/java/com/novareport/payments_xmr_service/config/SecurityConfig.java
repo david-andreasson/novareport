@@ -29,7 +29,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health").permitAll()
-                        .requestMatchers("/api/v1/internal/**").permitAll()
+                        .requestMatchers("/api/v1/internal/**").authenticated()
                         .requestMatchers("/api/v1/payments/**").authenticated()
                         .anyRequest().denyAll()
                 )

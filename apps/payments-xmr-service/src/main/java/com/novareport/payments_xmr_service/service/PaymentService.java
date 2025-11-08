@@ -31,8 +31,9 @@ public class PaymentService {
     public CreatePaymentResponse createPayment(UUID userId, String plan, BigDecimal amountXmr) {
         log.info("Creating payment for user {} with plan {} and amount {}", userId, plan, amountXmr);
 
-        String paymentAddress = generateFakeMoneroAddress();
+        // Validate plan early to fail fast before any database operations
         int durationDays = calculateDurationDays(plan);
+        String paymentAddress = generateFakeMoneroAddress();
 
         Payment payment = Payment.builder()
                 .userId(userId)

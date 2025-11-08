@@ -44,8 +44,7 @@ public class InternalApiKeyFilter extends OncePerRequestFilter {
 
         if (apiKey == null || !isConstantTimeEqual(apiKey, internalApiKey)) {
             log.warn("Invalid or missing internal API key for path: {}", requestPath);
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            response.getWriter().write("{\"error\":\"Forbidden\"}");
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
             return;
         }
 

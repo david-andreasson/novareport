@@ -53,8 +53,6 @@ public class SubscriptionsClient {
                     .orElseThrow(() -> new SubscriptionActivationException("Subscription activation timed out"));
 
             log.info("Successfully activated subscription for user {}", userId);
-        } catch (SubscriptionActivationException e) {
-            throw e;
         } catch (Exception e) {
             log.error("Failed to activate subscription for user {}: {}", userId, e.getMessage());
             throw new SubscriptionActivationException("Failed to activate subscription", e);
