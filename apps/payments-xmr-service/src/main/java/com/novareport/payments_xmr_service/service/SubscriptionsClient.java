@@ -49,8 +49,7 @@ public class SubscriptionsClient {
                     .retrieve()
                     .bodyToMono(Void.class)
                     .timeout(Duration.ofSeconds(5))
-                    .blockOptional()
-                    .orElseThrow(() -> new SubscriptionActivationException("Subscription activation timed out"));
+                    .block();
 
             log.info("Successfully activated subscription for user {}", userId);
         } catch (Exception e) {

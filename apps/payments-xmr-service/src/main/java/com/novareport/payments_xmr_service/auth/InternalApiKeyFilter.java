@@ -59,6 +59,11 @@ public class InternalApiKeyFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    /**
+     * Performs constant-time string comparison to prevent timing attacks.
+     * Uses MessageDigest.isEqual which provides constant-time byte array comparison,
+     * preventing attackers from using timing differences to guess API keys.
+     */
     private boolean isConstantTimeEqual(String a, String b) {
         if (a == null || b == null) {
             return false;

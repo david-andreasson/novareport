@@ -3,6 +3,7 @@ package com.novareport.payments_xmr_service.config;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -14,6 +15,9 @@ import java.util.concurrent.TimeUnit;
 
 @Configuration
 public class WebClientConfig {
+
+    @Value("${webclient.max-buffer-size:1048576}")
+    private int maxBufferSize;
 
     @Bean
     public WebClient webClient() {
@@ -28,7 +32,7 @@ public class WebClientConfig {
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .codecs(configurer -> configurer
                         .defaultCodecs()
-                        .maxInMemorySize(1024 * 1024)) // 1MB buffer limit
+                        .maxInMemorySize(maxBufferSize))
                 .build();
     }
 }

@@ -26,11 +26,9 @@ public class PaymentService {
     
     // Monero address format constants
     private static final String MONERO_ADDRESS_PREFIX = "4";
-    private static final int MONERO_ADDRESS_LENGTH = 95;
-    private static final int MONERO_RANDOM_PART_LENGTH = MONERO_ADDRESS_LENGTH - MONERO_ADDRESS_PREFIX.length();
 
     private final PaymentRepository paymentRepository;
-    private final SubscriptionsClient subscriptionsClient;
+    private final PaymentEventPublisher eventPublisher;
 
     @Transactional
     public CreatePaymentResponse createPayment(UUID userId, String plan, BigDecimal amountXmr) {
@@ -94,42 +92,24 @@ public class PaymentService {
         payment.confirm();
         Payment confirmedPayment = paymentRepository.save(payment);
 
-        log.info("Payment {} confirmed, will activate subscription after transaction commit", paymentId);
+        log.info("Payment {} confirmed, publishing event for subscription activation", paymentId);
 
-        // Activate subscription outside transaction to prevent inconsistent state
-        activateSubscriptionForPayment(confirmedPayment);
-    }
-
-    private void activateSubscriptionForPayment(Payment payment) {
-        try {
-            subscriptionsClient.activateSubscription(
-                    payment.getUserId(),
-                    payment.getPlan(),
-                    payment.getDurationDays()
-            );
-            log.info("Successfully activated subscription for payment {}", payment.getId());
-        } catch (Exception e) {
-            log.error("Failed to activate subscription for payment {}, marking as failed", payment.getId(), e);
-            // Mark payment as failed in a separate transaction
-            markPaymentAsFailed(payment.getId());
-        }
-    }
-
-    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
-    private void markPaymentAsFailed(UUID paymentId) {
-        Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new PaymentNotFoundException("Payment not found"));
-        payment.fail();
-        paymentRepository.save(payment);
+        // Publish event that will be handled after transaction commit
+        // This ensures subscription activation happens outside the transaction boundary
+        eventPublisher.publishPaymentConfirmed(confirmedPayment);
     }
 
     private String generateFakeMoneroAddress() {
         // Real Monero addresses are 95 characters starting with 4
-        // This generates a more realistic fake address for better simulation
-        String randomPart = UUID.randomUUID().toString().replace("-", "") +
-                UUID.randomUUID().toString().replace("-", "") +
-                UUID.randomUUID().toString().replace("-", "");
-        return MONERO_ADDRESS_PREFIX + randomPart.substring(0, MONERO_RANDOM_PART_LENGTH);
+        // Generate exactly 94 random hex characters for better simulation
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        byte[] bytes = new byte[47]; // 47 bytes = 94 hex chars
+        random.nextBytes(bytes);
+        StringBuilder hexString = new StringBuilder();
+        for (byte b : bytes) {
+            hexString.append(String.format("%02x", b));
+        }
+        return MONERO_ADDRESS_PREFIX + hexString.toString();
     }
 
     private int calculateDurationDays(String plan) {

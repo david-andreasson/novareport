@@ -5,7 +5,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -55,16 +54,6 @@ public class Payment {
 
     @Column(name = "confirmed_at")
     private Instant confirmedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        if (createdAt == null) {
-            createdAt = Instant.now();
-        }
-        if (status == null) {
-            status = PaymentStatus.PENDING;
-        }
-    }
 
     public boolean isPending() {
         return status == PaymentStatus.PENDING;

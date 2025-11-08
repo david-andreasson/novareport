@@ -10,5 +10,7 @@ CREATE TABLE payments (
     confirmed_at TIMESTAMP
 );
 
+-- Composite index for queries filtering by user_id and/or status
 CREATE INDEX idx_payments_user_id_status ON payments(user_id, status);
+-- Index for time-based queries
 CREATE INDEX idx_payments_created_at ON payments(created_at);
