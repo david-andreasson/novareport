@@ -123,8 +123,8 @@ public class PaymentService {
             case "monthly" -> MONTHLY_DURATION_DAYS;
             case "yearly" -> YEARLY_DURATION_DAYS;
             default -> {
-                log.error("Unknown plan: {}", plan);
-                throw new IllegalArgumentException("Unknown plan: " + plan);
+                log.error("Unknown plan: {}", LogSanitizer.sanitize(plan));
+                throw new IllegalArgumentException("Unknown plan: " + LogSanitizer.sanitize(plan));
             }
         };
     }

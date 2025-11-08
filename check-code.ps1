@@ -20,7 +20,7 @@ foreach ($service in $services) {
     try {
         # 1. Compile
         Write-Host "  → Compiling..." -NoNewline
-        $output = & ./mvnw clean compile -q 2>&1
+        $output = & ./mvnw clean compile 2>&1
         if ($LASTEXITCODE -ne 0) {
             Write-Host " ✗" -ForegroundColor Red
             Write-Host $output
@@ -56,7 +56,7 @@ foreach ($service in $services) {
         
         # 3. Run tests
         Write-Host "  → Running tests..." -NoNewline
-        $output = & ./mvnw test -q 2>&1
+        $output = & ./mvnw test 2>&1
         if ($LASTEXITCODE -ne 0) {
             Write-Host " ✗" -ForegroundColor Red
             Write-Host $output
@@ -67,7 +67,7 @@ foreach ($service in $services) {
         
         # 4. Package (creates JAR)
         Write-Host "  → Building package..." -NoNewline
-        $output = & ./mvnw package -DskipTests -q 2>&1
+        $output = & ./mvnw package -DskipTests 2>&1
         if ($LASTEXITCODE -ne 0) {
             Write-Host " ✗" -ForegroundColor Red
             Write-Host $output
