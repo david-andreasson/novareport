@@ -268,7 +268,7 @@ Lägg till:
 ```properties
 server.port=8084
 
-spring.datasource.url=jdbc:h2:file:./data/h2/payments-xmr-service;MODE=PostgreSQL
+spring.datasource.url=jdbc:h2:file:${user.home}/.novareport/payments-xmr-service;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
 spring.datasource.driver-class-name=org.h2.Driver
 spring.datasource.username=sa
 spring.datasource.password=

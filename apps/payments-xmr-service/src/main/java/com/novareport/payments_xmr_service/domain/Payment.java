@@ -11,7 +11,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
@@ -21,7 +20,6 @@ import java.util.UUID;
 @Entity
 @Table(name = "payments")
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -48,10 +46,12 @@ public class Payment {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
-    private PaymentStatus status;
+    @Builder.Default
+    private PaymentStatus status = PaymentStatus.PENDING;
 
-    @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
+    @Column(nullable = false, name = "created_at")
+    @Builder.Default
+    private Instant createdAt = Instant.now();
 
     @Column(name = "confirmed_at")
     private Instant confirmedAt;
