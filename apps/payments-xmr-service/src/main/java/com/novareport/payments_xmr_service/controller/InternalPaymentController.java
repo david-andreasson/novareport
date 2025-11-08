@@ -1,6 +1,7 @@
 package com.novareport.payments_xmr_service.controller;
 
 import com.novareport.payments_xmr_service.service.PaymentService;
+import com.novareport.payments_xmr_service.util.LogSanitizer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -23,7 +24,7 @@ public class InternalPaymentController {
     @PostMapping("/{paymentId}/confirm")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void confirmPayment(@PathVariable UUID paymentId) {
-        log.info("Received request to confirm payment {}", paymentId);
+        log.info("Confirming payment {}", LogSanitizer.sanitize(paymentId));
         paymentService.confirmPayment(paymentId);
     }
 }

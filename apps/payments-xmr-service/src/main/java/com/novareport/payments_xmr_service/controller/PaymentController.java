@@ -4,6 +4,7 @@ import com.novareport.payments_xmr_service.dto.CreatePaymentRequest;
 import com.novareport.payments_xmr_service.dto.CreatePaymentResponse;
 import com.novareport.payments_xmr_service.dto.PaymentStatusResponse;
 import com.novareport.payments_xmr_service.service.PaymentService;
+import com.novareport.payments_xmr_service.util.LogSanitizer;
 import com.novareport.payments_xmr_service.util.RequestUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -35,7 +36,7 @@ public class PaymentController {
             HttpServletRequest httpRequest
     ) {
         UUID userId = RequestUtils.resolveUserId(httpRequest);
-        log.info("Creating payment for user {}", userId);
+        log.info("Creating payment for user {}", LogSanitizer.sanitize(userId));
 
         return paymentService.createPayment(
                 userId,
@@ -50,7 +51,7 @@ public class PaymentController {
             HttpServletRequest httpRequest
     ) {
         UUID userId = RequestUtils.resolveUserId(httpRequest);
-        log.debug("Getting payment status for payment {} and user {}", paymentId, userId);
+        log.debug("Getting payment status for payment {} and user {}", LogSanitizer.sanitize(paymentId), LogSanitizer.sanitize(userId));
 
         return paymentService.getPaymentStatus(paymentId, userId);
     }

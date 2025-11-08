@@ -19,14 +19,17 @@ public class WebClientConfig {
     @Value("${webclient.max-buffer-size:1048576}")
     private int maxBufferSize;
 
+    @Value("${webclient.timeout-seconds:5}")
+    private int timeoutSeconds;
+
     @Bean
     public WebClient webClient() {
         HttpClient httpClient = HttpClient.create()
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
-                .responseTimeout(Duration.ofSeconds(5))
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeoutSeconds * 1000)
+                .responseTimeout(Duration.ofSeconds(timeoutSeconds))
                 .doOnConnected(conn -> conn
-                        .addHandlerLast(new ReadTimeoutHandler(5, TimeUnit.SECONDS))
-                        .addHandlerLast(new WriteTimeoutHandler(5, TimeUnit.SECONDS)));
+                        .addHandlerLast(new ReadTimeoutHandler(timeoutSeconds, TimeUnit.SECONDS))
+                        .addHandlerLast(new WriteTimeoutHandler(timeoutSeconds, TimeUnit.SECONDS)));
 
         return WebClient.builder()
                 .clientConnector(new ReactorClientHttpConnector(httpClient))

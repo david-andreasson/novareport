@@ -2,6 +2,7 @@ package com.novareport.payments_xmr_service.auth;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import com.novareport.payments_xmr_service.util.LogSanitizer;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -58,7 +59,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception e) {
-            log.error("JWT authentication failed: {}", e.getMessage());
+            log.error("JWT validation failed: {}", LogSanitizer.sanitize(e.getMessage()));
         }
 
         filterChain.doFilter(request, response);

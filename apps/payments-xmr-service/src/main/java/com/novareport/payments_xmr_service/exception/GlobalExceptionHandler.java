@@ -3,6 +3,7 @@ package com.novareport.payments_xmr_service.exception;
 import com.novareport.payments_xmr_service.service.InvalidPaymentStateException;
 import com.novareport.payments_xmr_service.service.PaymentNotFoundException;
 import com.novareport.payments_xmr_service.service.SubscriptionActivationException;
+import com.novareport.payments_xmr_service.util.LogSanitizer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -16,7 +17,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(PaymentNotFoundException.class)
     public ProblemDetail handlePaymentNotFound(PaymentNotFoundException ex) {
-        log.warn("Payment not found: {}", ex.getMessage());
+        log.warn("Payment not found: {}", LogSanitizer.sanitize(ex.getMessage()));
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         problem.setTitle("Payment Not Found");
         return problem;
@@ -24,7 +25,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidPaymentStateException.class)
     public ProblemDetail handleInvalidPaymentState(InvalidPaymentStateException ex) {
-        log.warn("Invalid payment state: {}", ex.getMessage());
+        log.warn("Invalid payment state: {}", LogSanitizer.sanitize(ex.getMessage()));
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         problem.setTitle("Invalid Payment State");
         return problem;
@@ -32,7 +33,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(SubscriptionActivationException.class)
     public ProblemDetail handleSubscriptionActivationFailure(SubscriptionActivationException ex) {
-        log.error("Subscription activation failed: {}", ex.getMessage());
+        log.error("Subscription activation failed: {}", LogSanitizer.sanitize(ex.getMessage()));
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Failed to activate subscription"
@@ -43,7 +44,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleValidationException(MethodArgumentNotValidException ex) {
-        log.warn("Validation failed: {}", ex.getMessage());
+        log.warn("Validation failed: {}", LogSanitizer.sanitize(ex.getMessage()));
         String detail = ex.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .reduce((a, b) -> a + ", " + b)
@@ -56,7 +57,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ProblemDetail handleIllegalArgument(IllegalArgumentException ex) {
-        log.warn("Invalid argument: {}", ex.getMessage());
+        log.warn("Invalid argument: {}", LogSanitizer.sanitize(ex.getMessage()));
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         problem.setTitle("Invalid Request");
         return problem;
@@ -64,7 +65,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleGenericException(Exception ex) {
-        log.error("Unexpected error: {}", ex.getMessage(), ex);
+        log.error("Unexpected error: {}", LogSanitizer.sanitize(ex.getMessage()), ex);
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "An unexpected error occurred"

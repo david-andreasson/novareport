@@ -1,29 +1,32 @@
 package com.novareport.payments_xmr_service.service;
 
 import com.novareport.payments_xmr_service.dto.ActivateSubscriptionRequest;
+import com.novareport.payments_xmr_service.util.LogSanitizer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.time.Duration;
 import java.util.UUID;
 
 @Service
 @Slf4j
 public class SubscriptionsClient {
 
-    private final WebClient webClient;
+    private final RestTemplate restTemplate;
     private final String subscriptionsBaseUrl;
     private final String internalApiKey;
 
     public SubscriptionsClient(
-            WebClient webClient,
+            RestTemplate restTemplate,
             @Value("${subscriptions.base-url}") String subscriptionsBaseUrl,
             @Value("${internal.api-key}") String internalApiKey
     ) {
-        this.webClient = webClient;
+        this.restTemplate = restTemplate;
         this.subscriptionsBaseUrl = subscriptionsBaseUrl;
         this.internalApiKey = internalApiKey;
     }
@@ -39,21 +42,18 @@ public class SubscriptionsClient {
                 .path("/api/v1/internal/subscriptions/activate")
                 .toUriString();
 
-        log.info("Activating subscription for user {} with plan {} for {} days", userId, plan, durationDays);
+        log.info("Activating subscription for user {} with plan {} for {} days", LogSanitizer.sanitize(userId), LogSanitizer.sanitize(plan), LogSanitizer.sanitize(durationDays));
 
         try {
-            webClient.post()
-                    .uri(url)
-                    .header("X-INTERNAL-KEY", internalApiKey)
-                    .bodyValue(request)
-                    .retrieve()
-                    .bodyToMono(Void.class)
-                    .timeout(Duration.ofSeconds(5))
-                    .block();
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("X-INTERNAL-KEY", internalApiKey);
+            HttpEntity<ActivateSubscriptionRequest> entity = new HttpEntity<>(request, headers);
+            
+            restTemplate.exchange(url, HttpMethod.POST, entity, Void.class);
 
-            log.info("Successfully activated subscription for user {}", userId);
+            log.info("Successfully activated subscription for user {}", LogSanitizer.sanitize(userId));
         } catch (Exception e) {
-            log.error("Failed to activate subscription for user {}: {}", userId, e.getMessage());
+            log.error("Failed to activate subscription for user {}: {}", LogSanitizer.sanitize(userId), LogSanitizer.sanitize(e.getMessage()));
             throw new SubscriptionActivationException("Failed to activate subscription", e);
         }
     }

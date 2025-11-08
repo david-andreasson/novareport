@@ -2,7 +2,7 @@ package com.novareport.payments_xmr_service.service;
 
 import com.novareport.payments_xmr_service.domain.Payment;
 import com.novareport.payments_xmr_service.domain.PaymentRepository;
-import com.novareport.payments_xmr_service.service.PaymentNotFoundException;
+import com.novareport.payments_xmr_service.util.LogSanitizer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,9 +34,9 @@ public class SubscriptionActivationService {
                     payment.getPlan(),
                     payment.getDurationDays()
             );
-            log.info("Successfully activated subscription for payment {}", payment.getId());
+            log.info("Successfully activated subscription for payment {}", LogSanitizer.sanitize(payment.getId()));
         } catch (Exception e) {
-            log.error("Failed to activate subscription for payment {}, marking as failed", payment.getId(), e);
+            log.error("Failed to activate subscription for payment {}, marking as failed", LogSanitizer.sanitize(payment.getId()), e);
             markPaymentAsFailed(payment.getId());
         }
     }
@@ -51,6 +51,6 @@ public class SubscriptionActivationService {
                 .orElseThrow(() -> new PaymentNotFoundException("Payment not found"));
         payment.fail();
         paymentRepository.save(payment);
-        log.info("Marked payment {} as failed", paymentId);
+        log.info("Marked payment {} as failed", LogSanitizer.sanitize(paymentId));
     }
 }

@@ -1,6 +1,7 @@
 package com.novareport.payments_xmr_service.service;
 
 import com.novareport.payments_xmr_service.domain.Payment;
+import com.novareport.payments_xmr_service.util.LogSanitizer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -20,7 +21,7 @@ public class PaymentEventPublisher {
      * Publishes a payment confirmed event that will be handled after transaction commit.
      */
     public void publishPaymentConfirmed(Payment payment) {
-        log.debug("Publishing payment confirmed event for payment {}", payment.getId());
+        log.debug("Publishing payment confirmed event for payment {}", LogSanitizer.sanitize(payment.getId()));
         eventPublisher.publishEvent(new PaymentConfirmedEvent(payment));
     }
 

@@ -32,7 +32,7 @@ try {
     $token = $registerResponse.accessToken
     Write-Host "✓ Användare registrerad!" -ForegroundColor Green
 }
-Write-Host "Token: $($token.Substring(0, 20))..." -ForegroundColor Gray
+Write-Host "✓ Token mottagen" -ForegroundColor Gray
 Write-Host ""
 
 # 2. Skapa betalning

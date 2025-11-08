@@ -2,6 +2,7 @@ package com.novareport.payments_xmr_service.auth;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import com.novareport.payments_xmr_service.util.LogSanitizer;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +44,7 @@ public class InternalApiKeyFilter extends OncePerRequestFilter {
         String apiKey = request.getHeader("X-INTERNAL-KEY");
 
         if (apiKey == null || !isConstantTimeEqual(apiKey, internalApiKey)) {
-            log.warn("Invalid or missing internal API key for path: {}", requestPath);
+            log.warn("Invalid or missing internal API key from {}", LogSanitizer.sanitize(request.getRemoteAddr()));
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
             return;
         }
@@ -63,6 +64,9 @@ public class InternalApiKeyFilter extends OncePerRequestFilter {
      * Performs constant-time string comparison to prevent timing attacks.
      * Uses MessageDigest.isEqual which provides constant-time byte array comparison,
      * preventing attackers from using timing differences to guess API keys.
+     * 
+     * Note: String.getBytes() may not be constant-time. For production, consider
+     * pre-hashing API keys or using a dedicated constant-time comparison library.
      */
     private boolean isConstantTimeEqual(String a, String b) {
         if (a == null || b == null) {

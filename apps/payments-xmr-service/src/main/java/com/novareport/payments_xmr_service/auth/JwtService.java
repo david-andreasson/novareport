@@ -2,6 +2,7 @@ package com.novareport.payments_xmr_service.auth;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import com.novareport.payments_xmr_service.util.LogSanitizer;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,7 +36,9 @@ public class JwtService {
     }
 
     public String extractUserId(String token) {
-        return extractClaims(token).getSubject();
+        String userId = extractClaim(token, "uid");
+        log.debug("Extracted user ID from token: {}", LogSanitizer.sanitize(userId));
+        return userId;
     }
 
     public String extractClaim(String token, String claimName) {
@@ -48,7 +51,7 @@ public class JwtService {
             extractClaims(token);
             return true;
         } catch (Exception e) {
-            log.debug("Invalid token: {}", e.getMessage());
+            log.debug("Invalid token: {}", LogSanitizer.sanitize(e.getMessage()));
             return false;
         }
     }

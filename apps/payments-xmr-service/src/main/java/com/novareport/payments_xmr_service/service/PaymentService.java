@@ -5,6 +5,9 @@ import com.novareport.payments_xmr_service.domain.PaymentRepository;
 import com.novareport.payments_xmr_service.domain.PaymentStatus;
 import com.novareport.payments_xmr_service.dto.CreatePaymentResponse;
 import com.novareport.payments_xmr_service.dto.PaymentStatusResponse;
+import com.novareport.payments_xmr_service.service.InvalidPaymentStateException;
+import com.novareport.payments_xmr_service.service.PaymentNotFoundException;
+import com.novareport.payments_xmr_service.util.LogSanitizer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,13 +29,14 @@ public class PaymentService {
     
     // Monero address format constants
     private static final String MONERO_ADDRESS_PREFIX = "4";
+    private static final java.security.SecureRandom SECURE_RANDOM = new java.security.SecureRandom();
 
     private final PaymentRepository paymentRepository;
     private final PaymentEventPublisher eventPublisher;
 
     @Transactional
     public CreatePaymentResponse createPayment(UUID userId, String plan, BigDecimal amountXmr) {
-        log.info("Creating payment for user {} with plan {} and amount {}", userId, plan, amountXmr);
+        log.info("Creating payment for user {} with plan {} and amount {}", LogSanitizer.sanitize(userId), LogSanitizer.sanitize(plan), LogSanitizer.sanitize(amountXmr));
 
         // Validate plan early to fail fast before any database operations
         int durationDays = calculateDurationDays(plan);
@@ -64,7 +68,7 @@ public class PaymentService {
 
     @Transactional(readOnly = true)
     public PaymentStatusResponse getPaymentStatus(UUID paymentId, UUID userId) {
-        log.debug("Getting payment status for payment {} and user {}", paymentId, userId);
+        log.info("Getting payment status for payment {} and user {}", LogSanitizer.sanitize(paymentId), LogSanitizer.sanitize(userId));
 
         Payment payment = paymentRepository.findByIdAndUserId(paymentId, userId)
                 .orElseThrow(() -> new PaymentNotFoundException("Payment not found"));
@@ -77,22 +81,22 @@ public class PaymentService {
         );
     }
 
-    @Transactional(isolation = org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
+    @Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
     public void confirmPayment(UUID paymentId) {
-        log.info("Confirming payment {}", paymentId);
+        log.info("Confirming payment {}", LogSanitizer.sanitize(paymentId));
 
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new PaymentNotFoundException("Payment not found"));
 
         if (!payment.isPending()) {
-            log.warn("Payment {} is not pending, current status: {}", paymentId, payment.getStatus());
+            log.warn("Payment {} is not pending, current status: {}", LogSanitizer.sanitize(paymentId), LogSanitizer.sanitize(payment.getStatus()));
             throw new InvalidPaymentStateException("Payment is not in pending state");
         }
 
         payment.confirm();
         Payment confirmedPayment = paymentRepository.save(payment);
 
-        log.info("Payment {} confirmed, publishing event for subscription activation", paymentId);
+        log.info("Payment {} confirmed, publishing event for subscription activation", LogSanitizer.sanitize(paymentId));
 
         // Publish event that will be handled after transaction commit
         // This ensures subscription activation happens outside the transaction boundary
@@ -102,9 +106,8 @@ public class PaymentService {
     private String generateFakeMoneroAddress() {
         // Real Monero addresses are 95 characters starting with 4
         // Generate exactly 94 random hex characters for better simulation
-        java.security.SecureRandom random = new java.security.SecureRandom();
         byte[] bytes = new byte[47]; // 47 bytes = 94 hex chars
-        random.nextBytes(bytes);
+        SECURE_RANDOM.nextBytes(bytes);
         StringBuilder hexString = new StringBuilder();
         for (byte b : bytes) {
             hexString.append(String.format("%02x", b));
@@ -116,7 +119,7 @@ public class PaymentService {
         if (plan == null) {
             throw new IllegalArgumentException("Plan cannot be null");
         }
-        return switch (plan.toLowerCase()) {
+        return switch (plan.toLowerCase(java.util.Locale.ROOT)) {
             case "monthly" -> MONTHLY_DURATION_DAYS;
             case "yearly" -> YEARLY_DURATION_DAYS;
             default -> {

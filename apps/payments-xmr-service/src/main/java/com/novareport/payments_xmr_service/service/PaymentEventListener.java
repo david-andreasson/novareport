@@ -1,7 +1,10 @@
 package com.novareport.payments_xmr_service.service;
 
+import com.novareport.payments_xmr_service.util.LogSanitizer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -19,10 +22,16 @@ public class PaymentEventListener {
     /**
      * Handles payment confirmed events after the transaction has committed.
      * This ensures subscription activation happens outside the payment confirmation transaction.
+     * Retries up to 3 times with exponential backoff if activation fails.
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Retryable(
+        maxAttempts = 3,
+        backoff = @Backoff(delay = 1000, multiplier = 2),
+        retryFor = Exception.class
+    )
     public void handlePaymentConfirmed(PaymentEventPublisher.PaymentConfirmedEvent event) {
-        log.info("Handling payment confirmed event for payment {}", event.payment().getId());
+        log.info("Handling payment confirmed event for payment {}", LogSanitizer.sanitize(event.payment().getId()));
         subscriptionActivationService.activateSubscriptionForPayment(event.payment());
     }
 }

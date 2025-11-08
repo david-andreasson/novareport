@@ -18,7 +18,7 @@ public final class RequestUtils {
             try {
                 return UUID.fromString(value);
             } catch (IllegalArgumentException e) {
-                log.error("Invalid UUID in uid attribute: {}", value);
+                log.error("User ID not found in request attributes: {}", LogSanitizer.sanitize(request.getRequestURI()));
                 throw new IllegalStateException("Invalid user ID");
             }
         }
