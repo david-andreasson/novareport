@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +31,6 @@ public class PaymentService {
     
     // Monero address format constants
     private static final String MONERO_ADDRESS_PREFIX = "4";
-    private static final java.security.SecureRandom SECURE_RANDOM = new java.security.SecureRandom();
 
     private final PaymentRepository paymentRepository;
     private final PaymentEventPublisher eventPublisher;
@@ -107,11 +107,11 @@ public class PaymentService {
     private String generateFakeMoneroAddress() {
         // Real Monero addresses are 95 characters starting with 4
         // Generate exactly 94 random hex characters for better simulation
-        byte[] bytes = new byte[47]; // 47 bytes = 94 hex chars
-        SECURE_RANDOM.nextBytes(bytes);
+        // Using ThreadLocalRandom for better performance in simulated context
+        ThreadLocalRandom random = ThreadLocalRandom.current();
         StringBuilder hexString = new StringBuilder(94); // Pre-allocate capacity
-        for (byte b : bytes) {
-            hexString.append(String.format("%02x", b));
+        for (int i = 0; i < 47; i++) { // 47 bytes = 94 hex chars
+            hexString.append(String.format("%02x", random.nextInt(256)));
         }
         return MONERO_ADDRESS_PREFIX + hexString.toString();
     }
