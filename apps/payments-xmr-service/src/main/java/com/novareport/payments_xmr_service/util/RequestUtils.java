@@ -18,7 +18,9 @@ public final class RequestUtils {
             try {
                 return UUID.fromString(value);
             } catch (IllegalArgumentException e) {
-                log.error("Invalid user ID format in request attributes: {}", LogSanitizer.sanitize(request.getRequestURI()));
+                log.error("Invalid user ID format in request attributes: {} (value: {})", 
+                    LogSanitizer.sanitize(request.getRequestURI()), 
+                    LogSanitizer.sanitize(value));
                 throw new IllegalStateException("Invalid user ID");
             }
         }
