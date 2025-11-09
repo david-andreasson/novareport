@@ -31,8 +31,4 @@
         <Bug pattern="IMPROPER_UNICODE"/>
     </Match>
     
-    <!-- Remaining CRLF injection warnings are sanitized or low-risk -->
-    <Match>
-        <Bug pattern="CRLF_INJECTION_LOGS"/>
-    </Match>
 </FindBugsFilter>
