@@ -66,7 +66,7 @@ public class SubscriptionsClient {
             
             var response = restTemplate.exchange(url, HttpMethod.POST, entity, Void.class);
             
-            if (!response.getStatusCode().equals(org.springframework.http.HttpStatus.OK)) {
+            if (!response.getStatusCode().is2xxSuccessful()) {
                 log.error("Failed to activate subscription for user {}. Unexpected response status: {}", 
                     LogSanitizer.sanitize(userId), response.getStatusCode());
                 throw new SubscriptionActivationException("Unexpected response status: " + response.getStatusCode());
