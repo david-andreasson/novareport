@@ -52,6 +52,25 @@ services:
       - accounts-service
       - subscriptions-service
 
+  payments-xmr-service:
+    build:
+      context: ../apps/payments-xmr-service
+    image: novareport/payments-xmr-service:dev
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      # WARNING: Do not use hard-coded secrets in production!
+      # Use Docker secrets, environment files, or secret management tools.
+      JWT_SECRET: dev-secret-change-me-please-32-bytes-minimum
+      JWT_ISSUER: accounts-service
+      INTERNAL_API_KEY: dev-change-me
+      SUBSCRIPTIONS_BASE_URL: http://subscriptions-service:8080
+    ports:
+      - '8084:8084'
+    networks:
+      - novareport
+    depends_on:
+      - subscriptions-service
+
   notifications-service:
     build:
       context: ../apps/notifications-service
@@ -77,6 +96,7 @@ services:
         VITE_SUBS_API_BASE: http://localhost:8081
         VITE_NOTIF_API_BASE: http://localhost:8083
         VITE_REPORTER_API_BASE: http://localhost:8082
+        VITE_PAYMENTS_API_BASE: http://localhost:8084
         VITE_INTERNAL_API_KEY: dev-change-me
     image: novareport/frontend:dev
     ports:
@@ -86,6 +106,7 @@ services:
     depends_on:
       - accounts-service
       - subscriptions-service
+      - payments-xmr-service
 
 networks:
   novareport:
