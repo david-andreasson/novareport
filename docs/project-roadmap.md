@@ -77,7 +77,7 @@ const status = await fetch(`${PAYMENTS_API_BASE}/api/v1/payments/${paymentId}/st
 
 ### 1.2 Reporter: Scheduler för automatisk rapportgenerering ✅ KLAR
 **Varför:** Rapporter genereras inte automatiskt - måste köras manuellt!  
-**Status:** ✅ **IMPLEMENTERAD OCH TESTAD** (2024-11-09)
+**Status:** ✅ **IMPLEMENTERAD OCH TESTAD** (2025-11-09)
 
 **Schema:** Rapporter ska genereras **var 4:e timme** (6 rapporter per dag)
 - 00:00, 04:00, 08:00, 12:00, 16:00, 20:00
@@ -166,8 +166,9 @@ curl -X POST http://localhost:8082/api/v1/internal/reporter/build-report \
 
 ---
 
-### 1.3 Reporter: Integrera 1min.ai för riktig AI-generering 🔥 KRITISKT
-**Varför:** Fake AI ger ingen värde - behöver riktigt innehåll!
+### 1.3 Reporter: Integrera 1min.ai för riktig AI-generering ✅ KLAR
+**Varför:** Fake AI ger ingen värde - behöver riktigt innehåll!  
+**Status:** ✅ **IMPLEMENTERAD OCH TESTAD** (2025-11-09)
 
 **API:** https://docs.1min.ai/docs/api/ai-feature-api
 
@@ -468,8 +469,8 @@ public class DiscordNotificationService {
 
 ### Vecka 1-2: MVP - Gör det användbart
 - [ ] Frontend betalningssida (4-6h)
-- [x] Reporter scheduler (2-3h) ✅ **KLAR 2024-11-09**
-- [ ] 1min.ai integration (6-8h)
+- [x] Reporter scheduler (2-3h) ✅ **KLAR 2025-11-09**
+- [x] 1min.ai integration (6-8h) ✅ **KLAR 2025-11-09**
 - [ ] Manuell testning av hela flödet (4h)
 
 **Mål:** Användare kan köpa prenumeration och få AI-genererade rapporter var 4:e timme

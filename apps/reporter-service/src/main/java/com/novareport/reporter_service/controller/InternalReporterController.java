@@ -1,6 +1,8 @@
 package com.novareport.reporter_service.controller;
 
+import com.novareport.reporter_service.dto.DailyReportResponse;
 import com.novareport.reporter_service.dto.IngestResponse;
+import com.novareport.reporter_service.service.DailyReportService;
 import com.novareport.reporter_service.service.ReporterCoordinator;
 import com.novareport.reporter_service.service.ReporterStatus;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,9 +22,11 @@ import java.time.LocalDate;
 public class InternalReporterController {
 
     private final ReporterCoordinator coordinator;
+    private final DailyReportService dailyReportService;
 
-    public InternalReporterController(ReporterCoordinator coordinator) {
+    public InternalReporterController(ReporterCoordinator coordinator, DailyReportService dailyReportService) {
         this.coordinator = coordinator;
+        this.dailyReportService = dailyReportService;
     }
 
     @PostMapping("/ingest-now")
@@ -50,5 +54,14 @@ public class InternalReporterController {
     @Operation(summary = "Get reporter service status")
     public ResponseEntity<ReporterStatus> status() {
         return ResponseEntity.ok(coordinator.status());
+    }
+
+    @GetMapping("/latest-report")
+    @Operation(summary = "Get latest report (internal, no auth required)")
+    public ResponseEntity<DailyReportResponse> latestReport() {
+        return dailyReportService.findLatest()
+            .map(DailyReportResponse::fromEntity)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
     }
 }

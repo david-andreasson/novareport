@@ -40,8 +40,10 @@ services:
       SUBS_BASE_URL: http://subscriptions-service:8080
       NOTIF_BASE_URL: http://notifications-service:8083
       RSS_FEEDS: https://cointelegraph.com/rss
-      REPORTER_FAKE_AI: 'true'
+      REPORTER_FAKE_AI: 'false'
       REPORTER_DEDUP_WINDOW_HOURS: '48'
+      ONEMIN_API_KEY: ${ONEMIN_API_KEY:-}
+      ONEMIN_MODEL: ${ONEMIN_MODEL:-gpt-4o-mini}
     ports:
       - '8082:8080'
     volumes:
