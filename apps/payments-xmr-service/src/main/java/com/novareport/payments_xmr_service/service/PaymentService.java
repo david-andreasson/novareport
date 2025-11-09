@@ -86,7 +86,7 @@ public class PaymentService {
     public void confirmPayment(UUID paymentId) {
         log.info("Confirming payment {}", LogSanitizer.sanitize(paymentId));
 
-        Payment payment = paymentRepository.findById(paymentId)
+        Payment payment = paymentRepository.findByIdWithLock(paymentId)
                 .orElseThrow(() -> new PaymentNotFoundException("Payment not found"));
 
         if (!payment.isPending()) {
