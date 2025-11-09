@@ -41,8 +41,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             if (jwtService.isTokenValid(token)) {
-                String email = jwtService.extractUserId(token);
-                String userId = jwtService.extractClaim(token, "uid");
+                String userId = jwtService.extractUserId(token);
 
                 if (userId != null) {
                     request.setAttribute("uid", userId);
@@ -50,7 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
-                                email,
+                                userId,
                                 null,
                                 Collections.emptyList()
                         );
