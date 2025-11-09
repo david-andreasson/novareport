@@ -11,6 +11,7 @@ import com.novareport.payments_xmr_service.util.LogSanitizer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -81,7 +82,7 @@ public class PaymentService {
         );
     }
 
-    @Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void confirmPayment(UUID paymentId) {
         log.info("Confirming payment {}", LogSanitizer.sanitize(paymentId));
 
@@ -124,7 +125,7 @@ public class PaymentService {
             case "yearly" -> YEARLY_DURATION_DAYS;
             default -> {
                 log.error("Unknown plan: {}", LogSanitizer.sanitize(plan));
-                throw new IllegalArgumentException("Unknown plan: " + LogSanitizer.sanitize(plan));
+                throw new InvalidPlanException("Unknown plan: " + LogSanitizer.sanitize(plan));
             }
         };
     }

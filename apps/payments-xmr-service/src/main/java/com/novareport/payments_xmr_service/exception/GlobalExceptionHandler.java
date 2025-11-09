@@ -1,6 +1,7 @@
 package com.novareport.payments_xmr_service.exception;
 
 import com.novareport.payments_xmr_service.service.InvalidPaymentStateException;
+import com.novareport.payments_xmr_service.service.InvalidPlanException;
 import com.novareport.payments_xmr_service.service.PaymentNotFoundException;
 import com.novareport.payments_xmr_service.service.SubscriptionActivationException;
 import com.novareport.payments_xmr_service.util.LogSanitizer;
@@ -28,6 +29,14 @@ public class GlobalExceptionHandler {
         log.warn("Invalid payment state: {}", LogSanitizer.sanitize(ex.getMessage()));
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         problem.setTitle("Invalid Payment State");
+        return problem;
+    }
+
+    @ExceptionHandler(InvalidPlanException.class)
+    public ProblemDetail handleInvalidPlan(InvalidPlanException ex) {
+        log.warn("Invalid plan: {}", LogSanitizer.sanitize(ex.getMessage()));
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problem.setTitle("Invalid Plan");
         return problem;
     }
 

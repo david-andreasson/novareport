@@ -49,10 +49,17 @@ public class SubscriptionsClient {
             headers.set("X-INTERNAL-KEY", internalApiKey);
             HttpEntity<ActivateSubscriptionRequest> entity = new HttpEntity<>(request, headers);
             
-            restTemplate.exchange(url, HttpMethod.POST, entity, Void.class);
+            var response = restTemplate.exchange(url, HttpMethod.POST, entity, Void.class);
 
-            log.info("Successfully activated subscription for user {}", LogSanitizer.sanitize(userId));
-        } catch (Exception e) {
+            if (response.getStatusCode().is2xxSuccessful()) {
+                log.info("Successfully activated subscription for user {}. Response status: {}", 
+                    LogSanitizer.sanitize(userId), response.getStatusCode());
+            } else {
+                log.error("Failed to activate subscription for user {}. Response status: {}", 
+                    LogSanitizer.sanitize(userId), response.getStatusCode());
+                throw new SubscriptionActivationException("Failed to activate subscription: " + response.getStatusCode());
+            }
+        } catch (org.springframework.web.client.RestClientException e) {
             log.error("Failed to activate subscription for user {}: {}", LogSanitizer.sanitize(userId), LogSanitizer.sanitize(e.getMessage()));
             throw new SubscriptionActivationException("Failed to activate subscription", e);
         }

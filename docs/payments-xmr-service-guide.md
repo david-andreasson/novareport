@@ -1,6 +1,6 @@
 # Guide: Bygg payments-xmr-service (Enkel version)
 
-**Datum:** 2025-11-06  
+**Datum:** 2024-11-06  
 **Syfte:** Skapa en fungerande betalningsservice för Monero (XMR) som aktiverar prenumerationer
 
 ---

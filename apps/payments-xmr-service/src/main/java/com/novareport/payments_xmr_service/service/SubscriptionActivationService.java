@@ -35,7 +35,7 @@ public class SubscriptionActivationService {
                     payment.getDurationDays()
             );
             log.info("Successfully activated subscription for payment {}", LogSanitizer.sanitize(payment.getId()));
-        } catch (Exception e) {
+        } catch (SubscriptionActivationException e) {
             log.error("Failed to activate subscription for payment {}, marking as failed", LogSanitizer.sanitize(payment.getId()), e);
             markPaymentAsFailed(payment.getId());
         }

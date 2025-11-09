@@ -8,6 +8,13 @@ Kör detta script för att undvika Copilot-kommentarer:
 .\check-code.ps1
 ```
 
+> **Note for non-Windows users:**  
+> On Linux/macOS, you can run the script using PowerShell Core:  
+> ```bash
+> pwsh ./check-code.ps1
+> ```
+> Or create a bash equivalent script for your platform.
+
 Detta kör:
 1. **Kompilering** - Hittar syntax-fel och type errors
 2. **Tester** - Verifierar att all funktionalitet fungerar

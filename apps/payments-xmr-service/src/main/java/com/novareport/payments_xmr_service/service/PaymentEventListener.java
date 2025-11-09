@@ -28,7 +28,7 @@ public class PaymentEventListener {
     @Retryable(
         maxAttempts = 3,
         backoff = @Backoff(delay = 1000, multiplier = 2),
-        retryFor = Exception.class
+        retryFor = {org.springframework.web.client.RestClientException.class, java.io.IOException.class}
     )
     public void handlePaymentConfirmed(PaymentEventPublisher.PaymentConfirmedEvent event) {
         log.info("Handling payment confirmed event for payment {}", LogSanitizer.sanitize(event.payment().getId()));
