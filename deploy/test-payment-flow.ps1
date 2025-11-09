@@ -86,7 +86,18 @@ try {
     Write-Host "✓ Rapport hämtad!" -ForegroundColor Green
     Write-Host "Report ID: $($reportResponse.id)" -ForegroundColor Gray
     Write-Host "Date: $($reportResponse.reportDate)" -ForegroundColor Gray
-    Write-Host "Summary: $($reportResponse.summary.Substring(0, 100))..." -ForegroundColor Gray
+    
+    # Check if summary exists and has sufficient length before displaying
+    if ($reportResponse.summary -and $reportResponse.summary.Length -gt 0) {
+        $summaryText = if ($reportResponse.summary.Length -gt 100) {
+            $reportResponse.summary.Substring(0, 100) + "..."
+        } else {
+            $reportResponse.summary
+        }
+        Write-Host "Summary: $summaryText" -ForegroundColor Gray
+    } else {
+        Write-Host "Summary: (ingen sammanfattning tillgänglig)" -ForegroundColor Gray
+    }
 } catch {
     Write-Host "✗ Ingen rapport tillgänglig än (detta är OK för en ny installation)" -ForegroundColor Yellow
 }
