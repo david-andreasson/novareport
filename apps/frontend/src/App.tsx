@@ -7,13 +7,14 @@ const SUBS_API_BASE = (import.meta.env.VITE_SUBS_API_BASE as string | undefined)
 const NOTIF_API_BASE = (import.meta.env.VITE_NOTIF_API_BASE as string | undefined) ?? 'http://localhost:8083'
 const REPORTER_API_BASE =
   (import.meta.env.VITE_REPORTER_API_BASE as string | undefined) ?? 'http://localhost:8082'
+const PAYMENTS_API_BASE = (import.meta.env.VITE_PAYMENTS_API_BASE as string | undefined) ?? 'http://localhost:8084'
 const INTERNAL_API_KEY = (import.meta.env.VITE_INTERNAL_API_KEY as string | undefined) ?? ''
 
 const FOUR_HOURS_MS = 4 * 60 * 60 * 1000
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
-type View = 'login' | 'register' | 'profile' | 'settings' | 'report'
+type View = 'login' | 'register' | 'profile' | 'settings' | 'report' | 'subscribe'
 
 type Message = {
   scope: View
@@ -56,6 +57,20 @@ type DailyReport = {
 type LatestReportState = {
   phase: 'idle' | 'loading' | 'success' | 'error'
   report: DailyReport | null
+  error?: string
+}
+
+type PaymentInfo = {
+  paymentId: string
+  paymentAddress: string
+  amountXmr: string
+  expiresAt: string
+}
+
+type PaymentState = {
+  phase: 'idle' | 'selecting' | 'pending' | 'polling' | 'confirmed' | 'expired' | 'error'
+  selectedPlan: 'monthly' | 'yearly' | null
+  payment: PaymentInfo | null
   error?: string
 }
 
@@ -107,6 +122,11 @@ function App() {
   const [reportState, setReportState] = useState<LatestReportState>({
     phase: 'idle',
     report: null,
+  })
+  const [paymentState, setPaymentState] = useState<PaymentState>({
+    phase: 'idle',
+    selectedPlan: null,
+    payment: null,
   })
 
   const isLoadingReport = reportState.phase === 'loading'
@@ -284,6 +304,7 @@ function App() {
       setToken(data.accessToken)
       setProfile(null)
       setSubscriptionState({ phase: 'idle', hasAccess: null, detail: null })
+      setPaymentState({ phase: 'idle', selectedPlan: null, payment: null })
       setMessage({ scope: 'profile', status: 'success', text: 'Inloggning lyckades' })
       setView('profile')
     } catch (error) {
@@ -327,6 +348,7 @@ function App() {
       setToken(data.accessToken)
       setProfile(null)
       setSubscriptionState({ phase: 'idle', hasAccess: null, detail: null })
+      setPaymentState({ phase: 'idle', selectedPlan: null, payment: null })
       setMessage({ scope: 'profile', status: 'success', text: 'Konto skapat och inloggad' })
       setView('profile')
       setRegisterForm(createInitialRegisterForm())
@@ -509,6 +531,123 @@ function App() {
     )
   }
 
+  const handleSelectPlan = async (plan: 'monthly' | 'yearly') => {
+    if (!token) {
+      setMessage({ scope: 'subscribe', status: 'error', text: 'Logga in för att prenumerera.' })
+      return
+    }
+
+    setPaymentState({ phase: 'selecting', selectedPlan: plan, payment: null })
+    setMessage(null)
+
+    try {
+      const amountXmr = plan === 'monthly' ? '0.05' : '0.50'
+      const response = await fetch(`${PAYMENTS_API_BASE}/api/v1/payments/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          plan,
+          amountXmr,
+        }),
+      })
+
+      if (response.status === 401) {
+        throw new Error('Inloggningen har gått ut. Logga in igen.')
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(errorText || 'Kunde inte skapa betalning')
+      }
+
+      const data: {
+        paymentId: string
+        paymentAddress: string
+        amountXmr: string
+        expiresAt: string
+      } = await response.json()
+
+      setPaymentState({
+        phase: 'pending',
+        selectedPlan: plan,
+        payment: {
+          paymentId: data.paymentId,
+          paymentAddress: data.paymentAddress,
+          amountXmr: data.amountXmr,
+          expiresAt: data.expiresAt,
+        },
+      })
+
+      // Start polling for payment status
+      void pollPaymentStatus(data.paymentId)
+    } catch (error) {
+      const text = error instanceof Error ? error.message : 'Okänt fel'
+      setPaymentState({ phase: 'error', selectedPlan: null, payment: null, error: text })
+    }
+  }
+
+  const pollPaymentStatus = async (paymentId: string) => {
+    if (!token) return
+
+    setPaymentState((prev) => ({ ...prev, phase: 'polling' }))
+
+    const maxAttempts = 120 // 10 minutes (5 seconds * 120)
+    let attempts = 0
+
+    while (attempts < maxAttempts) {
+      try {
+        await delay(5000) // Wait 5 seconds between polls
+
+        const response = await fetch(`${PAYMENTS_API_BASE}/api/v1/payments/${paymentId}/status`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        if (!response.ok) {
+          throw new Error('Kunde inte hämta betalningsstatus')
+        }
+
+        const data: {
+          paymentId: string
+          status: 'PENDING' | 'CONFIRMED' | 'FAILED'
+          createdAt: string
+          confirmedAt: string | null
+        } = await response.json()
+
+        if (data.status === 'CONFIRMED') {
+          setPaymentState((prev) => ({ ...prev, phase: 'confirmed' }))
+          setMessage({
+            scope: 'subscribe',
+            status: 'success',
+            text: 'Betalning bekräftad! Din prenumeration är nu aktiv.',
+          })
+          // Refresh subscription info
+          void fetchSubscriptionInfo()
+          return
+        }
+
+        if (data.status === 'FAILED') {
+          setPaymentState((prev) => ({
+            ...prev,
+            phase: 'error',
+            error: 'Betalningen misslyckades',
+          }))
+          return
+        }
+
+        attempts++
+      } catch (error) {
+        console.error('Poll error:', error)
+        attempts++
+      }
+    }
+
+    // Timeout after max attempts
+    setPaymentState((prev) => ({ ...prev, phase: 'expired' }))
+  }
+
   useEffect(() => {
     if (view === 'profile') {
       if (!token) {
@@ -523,6 +662,12 @@ function App() {
       setMessage({ scope: 'settings', status: 'error', text: 'Logga in för att ändra inställningar.' })
     } else if (view === 'report') {
       void fetchLatestReport()
+    } else if (view === 'subscribe') {
+      // Reset payment state when entering subscribe view
+      setPaymentState({ phase: 'idle', selectedPlan: null, payment: null })
+      if (!token) {
+        setMessage({ scope: 'subscribe', status: 'error', text: 'Logga in för att prenumerera.' })
+      }
     }
   }, [view, token])
 
@@ -874,6 +1019,145 @@ function App() {
         </>
       )
       break
+    case 'subscribe':
+      panelContent = (
+        <>
+          <h2>Prenumerera</h2>
+          <p className="auth-note">Välj en plan och betala med Monero (XMR)</p>
+          {renderMessage('subscribe')}
+          {paymentState.phase === 'idle' || paymentState.phase === 'selecting' ? (
+            <div className="subscription-plans">
+              <div className="plan-card">
+                <h3>Månad</h3>
+                <div className="plan-price">
+                  <span className="price-amount">0.05</span>
+                  <span className="price-currency">XMR</span>
+                </div>
+                <p className="plan-description">Tillgång i 30 dagar</p>
+                <button
+                  className="pill-button"
+                  type="button"
+                  onClick={() => void handleSelectPlan('monthly')}
+                  disabled={paymentState.phase === 'selecting'}
+                >
+                  Välj månad
+                </button>
+              </div>
+              <div className="plan-card plan-card--featured">
+                <span className="plan-badge">Bäst värde</span>
+                <h3>År</h3>
+                <div className="plan-price">
+                  <span className="price-amount">0.50</span>
+                  <span className="price-currency">XMR</span>
+                </div>
+                <p className="plan-description">Tillgång i 365 dagar</p>
+                <p className="plan-savings">Spara 17% jämfört med månad</p>
+                <button
+                  className="pill-button"
+                  type="button"
+                  onClick={() => void handleSelectPlan('yearly')}
+                  disabled={paymentState.phase === 'selecting'}
+                >
+                  Välj år
+                </button>
+              </div>
+            </div>
+          ) : null}
+          {paymentState.phase === 'pending' || paymentState.phase === 'polling' ? (
+            <div className="payment-details">
+              <h3>Skicka betalning</h3>
+              <p className="auth-note">
+                Skicka exakt <strong>{paymentState.payment?.amountXmr} XMR</strong> till adressen nedan
+              </p>
+              <div className="payment-address">
+                <label>Monero-adress</label>
+                <code className="payment-address-code">{paymentState.payment?.paymentAddress}</code>
+                <button
+                  className="copy-button"
+                  type="button"
+                  onClick={() => {
+                    if (paymentState.payment?.paymentAddress) {
+                      void navigator.clipboard.writeText(paymentState.payment.paymentAddress)
+                      setMessage({ scope: 'subscribe', status: 'success', text: 'Adress kopierad!' })
+                    }
+                  }}
+                >
+                  Kopiera
+                </button>
+              </div>
+              <div className="payment-qr">
+                <p className="auth-note">QR-kod kommer här (TODO)</p>
+              </div>
+              <div className="payment-test-info">
+                <p className="auth-note">
+                  <strong>För testning:</strong> Bekräfta betalningen manuellt med PowerShell:
+                </p>
+                <code className="payment-test-command">
+                  .\confirm-payment.ps1 -PaymentId {paymentState.payment?.paymentId}
+                </code>
+                <button
+                  className="copy-button copy-button--small"
+                  type="button"
+                  onClick={() => {
+                    if (paymentState.payment?.paymentId) {
+                      void navigator.clipboard.writeText(
+                        `.\\confirm-payment.ps1 -PaymentId ${paymentState.payment.paymentId}`
+                      )
+                      setMessage({ scope: 'subscribe', status: 'success', text: 'Kommando kopierat!' })
+                    }
+                  }}
+                >
+                  Kopiera kommando
+                </button>
+              </div>
+              {paymentState.payment?.expiresAt && (
+                <p className="payment-expiry">
+                  Betalningen går ut:{' '}
+                  {new Date(paymentState.payment.expiresAt).toLocaleString('sv-SE')}
+                </p>
+              )}
+              {paymentState.phase === 'polling' && (
+                <p className="payment-status">⏳ Väntar på betalning...</p>
+              )}
+            </div>
+          ) : null}
+          {paymentState.phase === 'confirmed' ? (
+            <div className="payment-success">
+              <h3>✓ Betalning bekräftad!</h3>
+              <p>Din prenumeration är nu aktiv.</p>
+              <button className="pill-button" type="button" onClick={() => handleChangeView('report')}>
+                Visa rapporter
+              </button>
+            </div>
+          ) : null}
+          {paymentState.phase === 'expired' ? (
+            <div className="payment-error">
+              <h3>Betalningen gick ut</h3>
+              <p>Betalningen tog för lång tid. Försök igen.</p>
+              <button
+                className="pill-button"
+                type="button"
+                onClick={() => setPaymentState({ phase: 'idle', selectedPlan: null, payment: null })}
+              >
+                Försök igen
+              </button>
+            </div>
+          ) : null}
+          {paymentState.phase === 'error' && paymentState.error ? (
+            <div className="payment-error">
+              <p>{paymentState.error}</p>
+              <button
+                className="pill-button"
+                type="button"
+                onClick={() => setPaymentState({ phase: 'idle', selectedPlan: null, payment: null })}
+              >
+                Försök igen
+              </button>
+            </div>
+          ) : null}
+        </>
+      )
+      break
   }
 
   return (
@@ -911,6 +1195,13 @@ function App() {
             onClick={() => handleChangeView('settings')}
           >
             Inställningar
+          </button>
+          <button
+            type="button"
+            className={`${view === 'subscribe' ? 'active' : ''} ${token ? '' : 'locked'}`.trim()}
+            onClick={() => handleChangeView('subscribe')}
+          >
+            Prenumerera
           </button>
           <button
             type="button"
