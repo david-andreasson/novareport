@@ -23,6 +23,10 @@ public class PaymentEventListener {
      * Handles payment confirmed events after the transaction has committed.
      * This ensures subscription activation happens outside the payment confirmation transaction.
      * Retries up to 3 times with exponential backoff if activation fails.
+     * 
+     * NOTE: The subscription activation endpoint must be idempotent to safely handle retries.
+     * The subscriptions-service should use payment ID as an idempotency key to prevent
+     * duplicate subscriptions if a retry occurs after successful processing.
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Retryable(

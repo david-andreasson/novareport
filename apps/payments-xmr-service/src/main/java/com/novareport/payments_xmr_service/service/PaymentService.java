@@ -125,7 +125,7 @@ public class PaymentService {
             case "yearly" -> YEARLY_DURATION_DAYS;
             default -> {
                 log.error("Unknown plan: {}", LogSanitizer.sanitize(plan));
-                throw new InvalidPlanException("Unknown plan: " + LogSanitizer.sanitize(plan));
+                throw new InvalidPlanException("Unknown plan: " + plan);
             }
         };
     }
