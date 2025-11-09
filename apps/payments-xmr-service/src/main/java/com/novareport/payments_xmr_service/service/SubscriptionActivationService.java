@@ -10,6 +10,7 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 
 import java.io.IOException;
@@ -30,12 +31,14 @@ public class SubscriptionActivationService {
     /**
      * Activates a subscription for a confirmed payment.
      * If activation fails, marks the payment as failed in a separate transaction.
-     * Retries up to 3 times with exponential backoff if activation fails.
+     * Retries up to 3 times with exponential backoff for transient failures (5xx errors, network issues).
+     * Does not retry on 4xx client errors as they indicate invalid requests.
      */
     @Retryable(
         maxAttempts = 3,
         backoff = @Backoff(delay = 1000, multiplier = 2),
-        retryFor = {RestClientException.class, IOException.class}
+        retryFor = {RestClientException.class, IOException.class},
+        noRetryFor = {HttpClientErrorException.class}
     )
     public void activateSubscriptionForPayment(Payment payment) {
         try {
