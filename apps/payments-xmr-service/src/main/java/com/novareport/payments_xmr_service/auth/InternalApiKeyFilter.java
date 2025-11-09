@@ -53,7 +53,7 @@ public class InternalApiKeyFilter extends OncePerRequestFilter {
                 new UsernamePasswordAuthenticationToken(
                         "internal",
                         null,
-                        Collections.emptyList()
+                        Collections.singletonList(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_INTERNAL"))
                 );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);

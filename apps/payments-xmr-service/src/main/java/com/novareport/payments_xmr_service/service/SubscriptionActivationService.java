@@ -5,10 +5,14 @@ import com.novareport.payments_xmr_service.domain.PaymentRepository;
 import com.novareport.payments_xmr_service.util.LogSanitizer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClientException;
 
+import java.io.IOException;
 import java.util.UUID;
 
 /**
@@ -24,9 +28,15 @@ public class SubscriptionActivationService {
     private final PaymentRepository paymentRepository;
 
     /**
-     * Activates subscription for a confirmed payment.
+     * Activates a subscription for a confirmed payment.
      * If activation fails, marks the payment as failed in a separate transaction.
+     * Retries up to 3 times with exponential backoff if activation fails.
      */
+    @Retryable(
+        maxAttempts = 3,
+        backoff = @Backoff(delay = 1000, multiplier = 2),
+        retryFor = {RestClientException.class, IOException.class}
+    )
     public void activateSubscriptionForPayment(Payment payment) {
         try {
             subscriptionsClient.activateSubscription(
@@ -47,7 +57,7 @@ public class SubscriptionActivationService {
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void markPaymentAsFailed(UUID paymentId) {
-        Payment payment = paymentRepository.findById(paymentId)
+        Payment payment = paymentRepository.findByIdWithLock(paymentId)
                 .orElseThrow(() -> new PaymentNotFoundException("Payment not found"));
         payment.fail();
         paymentRepository.save(payment);

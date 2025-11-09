@@ -10,7 +10,8 @@ CREATE TABLE payments (
     confirmed_at TIMESTAMP
 );
 
--- Composite index for queries filtering by user_id alone or by both user_id and status together
-CREATE INDEX idx_payments_user_id_status ON payments(user_id, status);
+-- Index for queries filtering by user_id (e.g., findByIdAndUserId)
+-- Note: ID is primary key so doesn't need indexing, but user_id does
+CREATE INDEX idx_payments_user_id ON payments(user_id);
 -- Index for time-based queries
 CREATE INDEX idx_payments_created_at ON payments(created_at);

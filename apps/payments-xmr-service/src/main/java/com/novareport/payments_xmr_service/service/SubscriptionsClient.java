@@ -31,7 +31,22 @@ public class SubscriptionsClient {
         this.internalApiKey = internalApiKey;
     }
 
+    private void validateBaseUrl(String baseUrl) {
+        if (baseUrl == null || baseUrl.isBlank()) {
+            throw new IllegalStateException("Subscriptions base URL is not configured");
+        }
+        // Only allow localhost or internal service names (not user-controlled URLs)
+        if (!baseUrl.startsWith("http://localhost") && 
+            !baseUrl.startsWith("http://subscriptions-service") &&
+            !baseUrl.startsWith("https://subscriptions-service")) {
+            throw new IllegalStateException("Invalid subscriptions base URL: " + baseUrl);
+        }
+    }
+
     public void activateSubscription(UUID userId, String plan, int durationDays) {
+        // SSRF protection: Validate base URL to prevent attacks
+        validateBaseUrl(subscriptionsBaseUrl);
+        
         ActivateSubscriptionRequest request = new ActivateSubscriptionRequest(
                 userId,
                 plan,
@@ -50,6 +65,13 @@ public class SubscriptionsClient {
             HttpEntity<ActivateSubscriptionRequest> entity = new HttpEntity<>(request, headers);
             
             var response = restTemplate.exchange(url, HttpMethod.POST, entity, Void.class);
+            
+            if (!response.getStatusCode().equals(org.springframework.http.HttpStatus.OK)) {
+                log.error("Failed to activate subscription for user {}. Unexpected response status: {}", 
+                    LogSanitizer.sanitize(userId), response.getStatusCode());
+                throw new SubscriptionActivationException("Unexpected response status: " + response.getStatusCode());
+            }
+            
             log.info("Successfully activated subscription for user {}. Response status: {}", 
                 LogSanitizer.sanitize(userId), response.getStatusCode());
         } catch (org.springframework.web.client.RestClientException e) {

@@ -109,7 +109,7 @@ public class PaymentService {
         // Generate exactly 94 random hex characters for better simulation
         byte[] bytes = new byte[47]; // 47 bytes = 94 hex chars
         SECURE_RANDOM.nextBytes(bytes);
-        StringBuilder hexString = new StringBuilder();
+        StringBuilder hexString = new StringBuilder(94); // Pre-allocate capacity
         for (byte b : bytes) {
             hexString.append(String.format("%02x", b));
         }
