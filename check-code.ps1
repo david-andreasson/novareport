@@ -15,7 +15,17 @@ $allPassed = $true
 
 foreach ($service in $services) {
     Write-Host "Checking $service..." -ForegroundColor Yellow
-    Push-Location $service
+    
+    # Store current location in case Push-Location fails
+    $originalLocation = Get-Location
+    
+    try {
+        Push-Location $service -ErrorAction Stop
+    } catch {
+        Write-Host "  ✗ Failed to access directory: $_" -ForegroundColor Red
+        $allPassed = $false
+        continue
+    }
     
     try {
         # 1. Compile
