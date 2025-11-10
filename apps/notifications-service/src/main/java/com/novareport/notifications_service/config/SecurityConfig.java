@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 public class SecurityConfig {
@@ -24,11 +25,12 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(
         HttpSecurity http,
         JwtAuthenticationFilter jwtAuthenticationFilter,
-        @Value("${internal.api-key:}") String internalApiKey
+        @Value("${internal.api-key:}") String internalApiKey,
+        CorsConfigurationSource corsConfigurationSource
     ) throws Exception {
         InternalApiKeyFilter internalFilter = new InternalApiKeyFilter(internalApiKey);
         return http
-            .cors(cors -> {})
+            .cors(cors -> cors.configurationSource(corsConfigurationSource))
             .csrf(csrf -> csrf.disable())
             .headers(headers -> headers.frameOptions(frame -> frame.disable()))
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
