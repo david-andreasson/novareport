@@ -1,7 +1,8 @@
 # Nova Report - Project Roadmap
 
-**Skapad:** 2024-11-09  
-**Status:** In Progress  
+**Skapad:** 2025-11-09  
+**Senast uppdaterad:** 2025-11-10  
+**Status:** Pågående (MVP-demo klar)  
 **Mål:** Komplett fungerande mikroservice-arkitektur för AI-genererade kryptorapporter
 
 ---
@@ -9,69 +10,34 @@
 ## 📊 Nuläge - Vad är klart
 
 ### ✅ Färdiga tjänster
-- **accounts-service** - Registrering, login, JWT ✅
-- **subscriptions-service** - Prenumerationshantering ✅
-- **payments-xmr-service** - Betalningar (fake Monero) ✅
-- **reporter-service** - RSS ingest, rapportgenerering (fake AI) ⚠️
-- **notifications-service** - Databas för notiser (skickar inget än) ⚠️
-- **frontend** - Grundläggande UI (saknar betalningar) ⚠️
+- **accounts-service** – Registrering, login, JWT ✅
+- **subscriptions-service** – Prenumerationshantering ✅
+- **payments-xmr-service** – Fake Monero-betalningar ✅ (intern bekräftelse via script)
+- **reporter-service** – RSS ingest, schemalagd generering och 1min.ai-integration ✅
+- **frontend** – Komplett MVP med prenumerationsflöde och rapportvy ✅
 
-### ⚠️ Kritiska brister
-1. **Ingen kan köpa prenumeration** - Frontend saknar betalningssida
-2. **Rapporter genereras inte automatiskt** - Ingen scheduler
-3. **Fake AI** - Använder dummy-text istället för riktig AI
-4. **Notiser skickas inte** - Email/Discord inte implementerat
-5. **Inga tester** - 0 tester i alla tjänster
+### ⚠️ Kvarstående kritiska brister
+1. **Notifieringar saknas** – Ingen email/Discord-distribution än
+2. **Fake Monero-backend** – Ingen riktig blockchain-integration
+3. **Testtäckning ≈ 0%** – Kräver automatiska tester och regressioner
+4. **Secrets & säkerhet** – API-nycklar och interna nycklar ligger i miljövariabler/konfig
+5. **Observability** – Ingen övervakning, loggaggregat eller larm
 
 ---
 
 ## 🎯 PRIO 1: Gör systemet användbart (2-3 veckor)
 
-### 1.1 Frontend: Betalningssida 🔥 HÖGST PRIO
-**Varför:** Ingen kan köpa prenumeration just nu!
+### 1.1 Frontend: Prenumerationsflöde ✅ KLAR (2025-11-09)
+**Vad som levererats:**
+- Ny `Prenumerera`-vy med planval (månad/år)
+- Integration mot `POST /api/v1/payments/create` och polling av status
+- UI för Monero-adress, kopieringsknappar och testinstruktioner
+- CORS-stöd i payments-service + hjälpskript (`confirm-payment.ps1`, `test-payment-flow.ps1`)
 
-**Vad som behövs:**
-- [ ] Skapa `/subscribe` route i frontend
-- [ ] Visa planer (monthly/yearly) med priser i XMR
-- [ ] Anropa `POST /api/v1/payments/create` när användare väljer plan
-- [ ] Visa Monero-adress och QR-kod
-- [ ] Poll `GET /api/v1/payments/{id}/status` varje 5 sekunder
-- [ ] Visa countdown (24h expiry)
-- [ ] Redirect till `/reports` när status blir CONFIRMED
-
-**Komponenter att skapa:**
-```
-frontend/src/
-  pages/
-    Subscribe.tsx          # Huvudsida
-  components/
-    PlanCard.tsx          # Visa monthly/yearly planer
-    PaymentStatus.tsx     # Visa adress + QR + countdown
-    QRCode.tsx            # QR-kod för Monero-adress
-```
-
-**API-integration:**
-```typescript
-// POST /api/v1/payments/create
-const response = await fetch(`${PAYMENTS_API_BASE}/api/v1/payments/create`, {
-  method: 'POST',
-  headers: {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    plan: 'monthly',
-    amountXmr: 0.05
-  })
-});
-
-// GET /api/v1/payments/{id}/status
-const status = await fetch(`${PAYMENTS_API_BASE}/api/v1/payments/${paymentId}/status`, {
-  headers: { 'Authorization': `Bearer ${token}` }
-});
-```
-
-**Estimerad tid:** 4-6 timmar
+**Kända förbättringar framåt:**
+- Generera riktig QR-kod (placeholder idag)
+- Visa betalningshistorik
+- Låsa knapp efter bekräftad prenumeration
 
 ---
 
@@ -468,10 +434,10 @@ public class DiscordNotificationService {
 ## 📅 Tidslinje
 
 ### Vecka 1-2: MVP - Gör det användbart
-- [ ] Frontend betalningssida (4-6h)
+- [x] Frontend betalningssida (4-6h) ✅ **KLAR 2025-11-09**
 - [x] Reporter scheduler (2-3h) ✅ **KLAR 2025-11-09**
 - [x] 1min.ai integration (6-8h) ✅ **KLAR 2025-11-09**
-- [ ] Manuell testning av hela flödet (4h)
+- [x] Manuell testning av hela flödet (4h) ✅ **KLAR 2025-11-10**
 
 **Mål:** Användare kan köpa prenumeration och få AI-genererade rapporter var 4:e timme
 
@@ -502,22 +468,11 @@ public class DiscordNotificationService {
 
 **Börja med dessa 3 i ordning:**
 
-1. **Frontend betalningssida** (4-6h)
-   - Mest synligt
-   - Ger direkt värde
-   - Låser upp hela flödet
+1. **Notifieringar (email + Discord)** – ger användare värde direkt
+2. **Testtäckning & automatiserade tester** – hindra regressioner
+3. **Riktig Monero-backend** – ta steget från demo till betalprodukt
 
-2. **Reporter scheduler** (2-3h)
-   - Kritiskt för automatisering
-   - Snabb att implementera
-   - Stor impact
-
-3. **1min.ai integration** (6-8h)
-   - Ger riktigt innehåll
-   - Använder dina gratis credits
-   - Kärnan i produkten
-
-**Efter dessa 3 har du ett fungerande MVP!** 🎉
+**Dessa tre lyfter MVP-demo till ett produktionsdugligt system.** 🎉
 
 ---
 
@@ -544,4 +499,3 @@ public class DiscordNotificationService {
 
 ---
 
-**Senast uppdaterad:** 2024-11-09
