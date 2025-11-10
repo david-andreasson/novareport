@@ -2,13 +2,17 @@ import { useEffect, useState } from 'react'
 import type { ChangeEvent, FormEvent, JSX } from 'react'
 import './App.css'
 
-const API_BASE = 'http://localhost:8080'
-const SUBS_API_BASE = (import.meta.env.VITE_SUBS_API_BASE as string | undefined) ?? API_BASE
-const NOTIF_API_BASE = (import.meta.env.VITE_NOTIF_API_BASE as string | undefined) ?? 'http://localhost:8083'
-const REPORTER_API_BASE =
-  (import.meta.env.VITE_REPORTER_API_BASE as string | undefined) ?? 'http://localhost:8082'
-const PAYMENTS_API_BASE = (import.meta.env.VITE_PAYMENTS_API_BASE as string | undefined) ?? 'http://localhost:8084'
-const INTERNAL_API_KEY = (import.meta.env.VITE_INTERNAL_API_KEY as string | undefined) ?? ''
+// API calls now use relative URLs that are proxied by Nginx
+// Runtime config is loaded from /config.js
+declare global {
+  interface Window {
+    APP_CONFIG?: {
+      INTERNAL_API_KEY?: string
+    }
+  }
+}
+
+const INTERNAL_API_KEY = window.APP_CONFIG?.INTERNAL_API_KEY ?? ''
 
 const FOUR_HOURS_MS = 4 * 60 * 60 * 1000
 
@@ -157,7 +161,7 @@ function App() {
     }
     setSubscriptionState((prev) => ({ ...prev, phase: 'loading', error: undefined }))
     try {
-      const accessResponse = await fetch(`${SUBS_API_BASE}/api/v1/subscriptions/me/has-access`, {
+      const accessResponse = await fetch('/api/subscriptions/me/has-access', {
         headers: { Authorization: `Bearer ${token}` },
       })
 
@@ -174,7 +178,7 @@ function App() {
       let detail: SubscriptionDetail | null = null
 
       if (hasAccess) {
-        const detailResponse = await fetch(`${SUBS_API_BASE}/api/v1/subscriptions/me`, {
+        const detailResponse = await fetch('/api/subscriptions/me', {
           headers: { Authorization: `Bearer ${token}` },
         })
 
@@ -194,7 +198,7 @@ function App() {
   }
 
   const getLatestReport = async (): Promise<DailyReport | null> => {
-    const response = await fetch(`${NOTIF_API_BASE}/api/v1/notifications/latest`, {
+    const response = await fetch('/api/notifications/latest', {
       headers: { Authorization: `Bearer ${token}` },
     })
 
@@ -230,7 +234,7 @@ function App() {
   }
 
   const triggerIngest = async () => {
-    const response = await fetch(`${REPORTER_API_BASE}/api/v1/internal/reporter/ingest-now`, {
+    const response = await fetch('/api/reporter/ingest-now', {
       method: 'POST',
       headers: {
         'X-INTERNAL-KEY': INTERNAL_API_KEY,
@@ -245,7 +249,7 @@ function App() {
 
   const triggerReportBuild = async (date: string) => {
     const response = await fetch(
-      `${REPORTER_API_BASE}/api/v1/internal/reporter/build-report?date=${date}`,
+      `/api/reporter/build-report?date=${date}`,
       {
         method: 'POST',
         headers: {
@@ -286,7 +290,7 @@ function App() {
     setLoading('login')
     setMessage((prev) => (prev?.scope === 'login' ? null : prev))
     try {
-      const response = await fetch(`${API_BASE}/auth/login`, {
+      const response = await fetch('/api/accounts/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -328,7 +332,7 @@ function App() {
     setLoading('register')
     setMessage((prev) => (prev?.scope === 'register' ? null : prev))
     try {
-      const response = await fetch(`${API_BASE}/auth/register`, {
+      const response = await fetch('/api/accounts/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -368,7 +372,7 @@ function App() {
     setLoading('profile')
     setMessage((prev) => (prev?.scope === 'profile' ? null : prev))
     try {
-      const response = await fetch(`${API_BASE}/me`, {
+      const response = await fetch('/api/accounts/me', {
         headers: { Authorization: `Bearer ${token}` },
       })
 
@@ -411,7 +415,7 @@ function App() {
     setLoading('settings')
     setMessage((prev) => (prev?.scope === 'settings' ? null : prev))
     try {
-      const response = await fetch(`${API_BASE}/me/settings`, {
+      const response = await fetch('/api/accounts/me/settings', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -542,7 +546,7 @@ function App() {
 
     try {
       const amountXmr = plan === 'monthly' ? '0.05' : '0.50'
-      const response = await fetch(`${PAYMENTS_API_BASE}/api/v1/payments/create`, {
+      const response = await fetch('/api/payments/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -601,7 +605,7 @@ function App() {
       try {
         await delay(5000) // Wait 5 seconds between polls
 
-        const response = await fetch(`${PAYMENTS_API_BASE}/api/v1/payments/${paymentId}/status`, {
+        const response = await fetch(`/api/payments/${paymentId}/status`, {
           headers: { Authorization: `Bearer ${token}` },
         })
 
