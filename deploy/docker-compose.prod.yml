@@ -89,6 +89,8 @@ services:
 
   frontend:
     image: davidandreasson/novareport-frontend:${TAG:-latest}
+    environment:
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
     ports:
       - '15173:80'
     networks:
