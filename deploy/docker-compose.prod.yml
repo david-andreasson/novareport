@@ -1,0 +1,106 @@
+services:
+  accounts-service:
+    image: davidandreasson/novareport-accounts-service:${TAG:-latest}
+    environment:
+      SPRING_PROFILES_ACTIVE: ${ACCOUNTS_PROFILE:-dev}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ISSUER: ${JWT_ISSUER:-accounts-service}
+      JWT_ACCESS_TOKEN_MINUTES: ${JWT_ACCESS_TOKEN_MINUTES:-30}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-*}
+    ports:
+      - '18080:8080'
+    networks:
+      - novareport
+
+  subscriptions-service:
+    image: davidandreasson/novareport-subscriptions-service:${TAG:-latest}
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SUBSCRIPTIONS_PROFILE:-dev}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ISSUER: ${JWT_ISSUER:-accounts-service}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      SUBS_FAKE_ALL_ACTIVE: ${SUBS_FAKE_ALL_ACTIVE:-true}
+      JWT_ACCESS_TOKEN_MINUTES: ${JWT_ACCESS_TOKEN_MINUTES:-30}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-*}
+    ports:
+      - '18081:8080'
+    networks:
+      - novareport
+    depends_on:
+      - accounts-service
+
+  payments-xmr-service:
+    image: davidandreasson/novareport-payments-xmr-service:${TAG:-latest}
+    environment:
+      SPRING_PROFILES_ACTIVE: ${PAYMENTS_PROFILE:-dev}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ISSUER: ${JWT_ISSUER:-accounts-service}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      SUBSCRIPTIONS_BASE_URL: ${SUBSCRIPTIONS_BASE_URL:-http://subscriptions-service:8080}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-*}
+    ports:
+      - '18084:8084'
+    networks:
+      - novareport
+    depends_on:
+      - subscriptions-service
+
+  notifications-service:
+    image: davidandreasson/novareport-notifications-service:${TAG:-latest}
+    environment:
+      SPRING_PROFILES_ACTIVE: ${NOTIFICATIONS_PROFILE:-dev}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ISSUER: ${JWT_ISSUER:-accounts-service}
+      JWT_ACCESS_TOKEN_MINUTES: ${JWT_ACCESS_TOKEN_MINUTES:-30}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-*}
+    ports:
+      - '18083:8083'
+    networks:
+      - novareport
+    depends_on:
+      - accounts-service
+
+  reporter-service:
+    image: davidandreasson/novareport-reporter-service:${TAG:-latest}
+    environment:
+      SPRING_PROFILES_ACTIVE: ${REPORTER_PROFILE:-dev}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ISSUER: ${JWT_ISSUER:-accounts-service}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      SUBS_BASE_URL: ${SUBS_BASE_URL:-http://subscriptions-service:8080}
+      NOTIF_BASE_URL: ${NOTIF_BASE_URL:-http://notifications-service:8083}
+      RSS_FEEDS: ${RSS_FEEDS:-https://cointelegraph.com/rss}
+      REPORTER_FAKE_AI: ${REPORTER_FAKE_AI:-false}
+      REPORTER_DEDUP_WINDOW_HOURS: ${REPORTER_DEDUP_WINDOW_HOURS:-48}
+      ONEMIN_API_KEY: ${ONEMIN_API_KEY:-}
+      ONEMIN_MODEL: ${ONEMIN_MODEL:-gpt-4o-mini}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-*}
+    ports:
+      - '18082:8080'
+    volumes:
+      - reporter-h2:/app/data/h2/reporter-service
+    networks:
+      - novareport
+    depends_on:
+      - accounts-service
+      - subscriptions-service
+      - notifications-service
+
+  frontend:
+    image: davidandreasson/novareport-frontend:${TAG:-latest}
+    ports:
+      - '15173:80'
+    networks:
+      - novareport
+    depends_on:
+      - accounts-service
+      - subscriptions-service
+      - payments-xmr-service
+
+networks:
+  novareport:
+    driver: bridge
+
+volumes:
+  reporter-h2:
