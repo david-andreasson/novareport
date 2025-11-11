@@ -12,6 +12,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * AI summarizer implementation using 1min.ai API.
@@ -87,9 +88,9 @@ public class OneMinAiSummarizerService implements DailyReportService.AiSummarize
         log.debug("Calling 1min.ai API with model: {}", model);
 
         Map<String, Object> response = webClient.post()
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(Objects.requireNonNull(MediaType.APPLICATION_JSON))
                 .header("API-KEY", apiKey)
-                .bodyValue(request)
+                .bodyValue(Objects.requireNonNull(request))
                 .retrieve()
                 .bodyToMono(Map.class)
                 .block();

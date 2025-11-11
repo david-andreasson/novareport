@@ -3,11 +3,14 @@ package com.novareport.subscriptions_service.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.NonNull;
 import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+
+import java.util.Objects;
 
 import java.util.Arrays;
 import java.util.List;
@@ -30,8 +33,8 @@ public class CorsConfig {
     }
 
     @Bean
-    public CorsFilter corsFilter(CorsConfigurationSource corsConfigurationSource) {
-        return new CorsFilter(corsConfigurationSource);
+    public CorsFilter corsFilter(@NonNull CorsConfigurationSource corsConfigurationSource) {
+        return new CorsFilter(Objects.requireNonNull(corsConfigurationSource));
     }
 
     private void applyAllowedOrigins(CorsConfiguration configuration, String rawOrigins) {

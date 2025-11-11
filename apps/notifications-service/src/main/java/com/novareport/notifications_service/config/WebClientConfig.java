@@ -10,6 +10,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 
 import java.time.Duration;
+import java.util.Objects;
 
 @Configuration
 public class WebClientConfig {
@@ -19,9 +20,9 @@ public class WebClientConfig {
         @Value("${webclient.timeout.connect:5}") long connectTimeoutSeconds,
         @Value("${webclient.timeout.read:10}") long readTimeoutSeconds
     ) {
-        HttpClient httpClient = HttpClient.create()
+        HttpClient httpClient = Objects.requireNonNull(HttpClient.create()
             .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) Duration.ofSeconds(connectTimeoutSeconds).toMillis())
-            .responseTimeout(Duration.ofSeconds(readTimeoutSeconds));
+            .responseTimeout(Duration.ofSeconds(readTimeoutSeconds)));
 
         return WebClient.builder()
             .clientConnector(new ReactorClientHttpConnector(httpClient))

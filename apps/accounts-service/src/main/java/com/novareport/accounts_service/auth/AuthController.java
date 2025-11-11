@@ -9,6 +9,8 @@ import com.novareport.accounts_service.auth.dto.RegisterRequest;
 import com.novareport.accounts_service.common.exception.EmailAlreadyExistsException;
 import com.novareport.accounts_service.common.exception.InvalidCredentialsException;
 import com.novareport.accounts_service.security.JwtService;
+
+import java.util.Objects;
 import com.novareport.accounts_service.settings.UserSettings;
 import com.novareport.accounts_service.settings.UserSettingsRepository;
 import com.novareport.accounts_service.user.User;
@@ -76,26 +78,26 @@ public class AuthController {
 
     @NonNull
     private User createUser(RegisterRequest req) {
-        return User.builder()
+        return Objects.requireNonNull(User.builder()
                 .email(req.email())
                 .passwordHash(encoder.encode(req.password()))
                 .firstName(req.firstName())
                 .lastName(req.lastName())
-                .build();
+                .build());
     }
 
     @NonNull
     private UserSettings createDefaultSettings(User user) {
-        return UserSettings.builder()
+        return Objects.requireNonNull(UserSettings.builder()
                 .user(user)
-                .build();
+                .build());
     }
 
     @NonNull
     private ActivityLog createActivityLog(User user, ActivityEventType event) {
-        return ActivityLog.builder()
+        return Objects.requireNonNull(ActivityLog.builder()
                 .user(user)
                 .event(event)
-                .build();
+                .build());
     }
 }

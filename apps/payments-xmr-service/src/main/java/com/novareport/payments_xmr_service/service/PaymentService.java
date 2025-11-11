@@ -5,8 +5,6 @@ import com.novareport.payments_xmr_service.domain.PaymentRepository;
 import com.novareport.payments_xmr_service.domain.PaymentStatus;
 import com.novareport.payments_xmr_service.dto.CreatePaymentResponse;
 import com.novareport.payments_xmr_service.dto.PaymentStatusResponse;
-import com.novareport.payments_xmr_service.service.InvalidPaymentStateException;
-import com.novareport.payments_xmr_service.service.PaymentNotFoundException;
 import com.novareport.payments_xmr_service.util.LogSanitizer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,6 +51,7 @@ public class PaymentService {
                 .build();
 
         Payment savedPayment = paymentRepository.save(payment);
+        assert savedPayment != null : "Saved payment should never be null";
 
         log.info("Created payment {} with address {}", savedPayment.getId(), paymentAddress);
 
@@ -95,13 +94,14 @@ public class PaymentService {
         }
 
         payment.confirm();
-        Payment confirmedPayment = paymentRepository.save(payment);
+        Payment savedPayment = paymentRepository.save(payment);
+        assert savedPayment != null : "Saved payment should never be null";
 
         log.info("Payment {} confirmed, publishing event for subscription activation", LogSanitizer.sanitize(paymentId));
 
         // Publish event that will be handled after transaction commit
         // This ensures subscription activation happens outside the transaction boundary
-        eventPublisher.publishPaymentConfirmed(confirmedPayment);
+        eventPublisher.publishPaymentConfirmed(savedPayment);
     }
 
     private String generateFakeMoneroAddress() {

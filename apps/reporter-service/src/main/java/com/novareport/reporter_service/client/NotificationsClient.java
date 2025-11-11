@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import java.util.Objects;
 
 @Component
 public class NotificationsClient {
@@ -26,7 +27,7 @@ public class NotificationsClient {
             .uri(baseUrl + "/api/v1/internal/notifications/report-ready")
             .header("X-INTERNAL-KEY", internalKey)
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-            .bodyValue(payload)
+            .bodyValue(Objects.requireNonNull(payload))
             .retrieve()
             .bodyToMono(Void.class)
             .doOnSuccess(unused -> log.info("Sent report-ready notification for {}", payload.reportDate()))
