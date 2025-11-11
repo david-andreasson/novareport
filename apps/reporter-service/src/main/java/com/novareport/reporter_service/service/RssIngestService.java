@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
+
 import reactor.core.publisher.Flux;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
@@ -117,12 +118,14 @@ public class RssIngestService {
         );
     }
 
+    @SuppressWarnings("null")
     private Flux<Tuple2<String, SyndFeed>> fetchFeed(String url) {
         return webClient
             .get()
             .uri(url)
             .retrieve()
             .bodyToMono(String.class)
+            .filter(xml -> xml != null)
             .doOnError(ex -> log.warn("Failed to fetch RSS feed {}: {}", url, ex.getMessage()))
             .flatMapMany(xml -> parseFeed(url, xml))
             .map(feed -> Tuples.of(url, feed));

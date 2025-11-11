@@ -31,7 +31,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AccountsException.class)
     public ProblemDetail handleAccountsException(AccountsException ex) {
-        ProblemDetail detail = ProblemDetail.forStatus(ex.getStatus());
+        ProblemDetail detail = ProblemDetail.forStatus(HttpStatus.valueOf(ex.getStatus().value()));
         detail.setTitle(ex.getClass().getSimpleName());
         detail.setDetail(ex.getMessage());
         return detail;
