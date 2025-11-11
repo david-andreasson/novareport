@@ -3,6 +3,8 @@ package com.novareport.accounts_service.user;
 import com.novareport.accounts_service.settings.UserSettingsRepository;
 import com.novareport.accounts_service.settings.dto.UpdateSettingsRequest;
 import com.novareport.accounts_service.user.dto.UserProfileResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -15,12 +17,14 @@ import java.util.Objects;
 
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "User Profile", description = "User profile and settings management")
 public class UserController {
 
     private final UserRepository users;
     private final UserSettingsRepository settings;
 
     @GetMapping("/me")
+    @Operation(summary = "Get current user profile", description = "Returns the authenticated user's profile information")
     public UserProfileResponse me(Authentication auth) {
         var user = users.findByEmail(auth.getName())
             .orElseThrow(() -> new java.util.NoSuchElementException("User not found with email: " + auth.getName()));
@@ -28,6 +32,7 @@ public class UserController {
     }
 
     @PutMapping("/me/settings")
+    @Operation(summary = "Update user settings", description = "Updates the authenticated user's settings")
     public void updateSettings(Authentication auth, @Valid @RequestBody UpdateSettingsRequest req) {
         var user = users.findByEmail(auth.getName())
             .orElseThrow(() -> new java.util.NoSuchElementException("User not found with email: " + auth.getName()));

@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -43,6 +45,11 @@ public class SubscriptionsClient {
         }
     }
 
+    @Retryable(
+        retryFor = {org.springframework.web.client.RestClientException.class},
+        maxAttempts = 3,
+        backoff = @Backoff(delay = 1000, multiplier = 2.0, maxDelay = 10000)
+    )
     public void activateSubscription(UUID userId, String plan, int durationDays) {
         // SSRF protection: Validate base URL to prevent attacks
         validateBaseUrl(subscriptionsBaseUrl);
