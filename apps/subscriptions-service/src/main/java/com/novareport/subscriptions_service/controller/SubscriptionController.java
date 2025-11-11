@@ -4,6 +4,8 @@ import com.novareport.subscriptions_service.domain.Subscription;
 import com.novareport.subscriptions_service.dto.HasAccessResponse;
 import com.novareport.subscriptions_service.dto.SubscriptionResponse;
 import com.novareport.subscriptions_service.service.SubscriptionService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/subscriptions/me")
+@Tag(name = "Subscriptions", description = "User subscription management")
 public class SubscriptionController {
 
     private final SubscriptionService subscriptionService;
@@ -27,6 +30,7 @@ public class SubscriptionController {
     }
 
     @GetMapping("/has-access")
+    @Operation(summary = "Check subscription access", description = "Returns whether the user has active subscription access")
     public ResponseEntity<HasAccessResponse> hasAccess(HttpServletRequest request) {
         UUID userId = resolveUserId(request);
         boolean hasAccess = subscriptionService.hasAccess(userId, Instant.now());
@@ -34,6 +38,7 @@ public class SubscriptionController {
     }
 
     @GetMapping
+    @Operation(summary = "Get active subscription", description = "Returns the user's active subscription if exists")
     public ResponseEntity<SubscriptionResponse> getActiveSubscription(HttpServletRequest request) {
         UUID userId = resolveUserId(request);
         Optional<Subscription> subscription = subscriptionService.findActiveSubscription(userId, Instant.now());

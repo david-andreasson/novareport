@@ -13,6 +13,8 @@ import com.novareport.accounts_service.settings.UserSettings;
 import com.novareport.accounts_service.settings.UserSettingsRepository;
 import com.novareport.accounts_service.user.User;
 import com.novareport.accounts_service.user.UserRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
+@Tag(name = "Authentication", description = "User registration and login")
 public class AuthController {
 
     private final UserRepository users;
@@ -40,6 +43,7 @@ public class AuthController {
     @ResponseStatus(HttpStatus.CREATED)
     @Transactional
     @NonNull
+    @Operation(summary = "Register new user", description = "Creates a new user account and returns JWT token")
     public AuthResponse register(@Valid @RequestBody RegisterRequest req) {
         if (users.existsByEmail(req.email())) {
             throw new EmailAlreadyExistsException(req.email());
@@ -55,6 +59,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
+    @Operation(summary = "User login", description = "Authenticates user and returns JWT token")
     public AuthResponse login(@Valid @RequestBody LoginRequest req) {
         User user = users.findByEmail(req.email())
             .orElseThrow(() -> InvalidCredentialsException.invalidCredentials());
