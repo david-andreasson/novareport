@@ -3,9 +3,11 @@ package com.novareport.accounts_service.user;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.PostLoad;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -17,6 +19,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.UuidGenerator;
+import org.springframework.data.domain.Persistable;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -29,7 +32,7 @@ import java.util.UUID;
 @ToString(exclude = "passwordHash")
 @Entity
 @Table(name = "users")
-public class User {
+public class User implements Persistable<UUID> {
     @Id
     @UuidGenerator
     private UUID id;
@@ -68,15 +71,35 @@ public class User {
     @Column(nullable = false)
     private Instant updatedAt;
 
+    @Builder.Default
+    @Transient
+    private boolean isNew = true;
+
     @PrePersist
     void onCreate() {
         Instant now = Instant.now();
         createdAt = now;
         updatedAt = now;
+        isNew = false;
     }
 
     @PreUpdate
     void onUpdate() {
         updatedAt = Instant.now();
+    }
+
+    @Override
+    public UUID getId() {
+        return id;
+    }
+
+    @Override
+    public boolean isNew() {
+        return isNew || createdAt == null;
+    }
+
+    @PostLoad
+    void markLoaded() {
+        this.isNew = false;
     }
 }
