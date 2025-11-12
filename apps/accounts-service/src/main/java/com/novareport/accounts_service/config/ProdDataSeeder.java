@@ -49,6 +49,11 @@ public class ProdDataSeeder implements CommandLineRunner {
     }
 
     private void seedUser(UUID id, String email, String firstName, String lastName) {
+        if (users.existsById(id)) {
+            log.info("Prod test user {} already exists, skipping", email);
+            return;
+        }
+        
         User user = users.findByEmail(email).orElseGet(() -> {
             log.info("Seeding prod test user {}", email);
             User created = Objects.requireNonNull(User.builder()
