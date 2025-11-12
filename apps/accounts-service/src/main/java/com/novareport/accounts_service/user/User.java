@@ -18,7 +18,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.annotations.UuidGenerator;
 import org.springframework.data.domain.Persistable;
 
 import java.time.Instant;
@@ -34,7 +33,6 @@ import java.util.UUID;
 @Table(name = "users")
 public class User implements Persistable<UUID> {
     @Id
-    @UuidGenerator
     private UUID id;
 
     @Email
