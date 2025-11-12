@@ -109,14 +109,14 @@ services:
       DB_USER: ${NOTIFICATIONS_DB_USER:-notifications_user}
       DB_PASSWORD: ${NOTIFICATIONS_DB_PASSWORD}
     ports:
-      - '18083:8083'
+      - '18083:8080'
     networks:
       - novareport
     depends_on:
       - accounts-service
       - postgres
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -130,7 +130,7 @@ services:
       JWT_ISSUER: ${JWT_ISSUER:-accounts-service}
       INTERNAL_API_KEY: ${INTERNAL_API_KEY}
       SUBS_BASE_URL: ${SUBS_BASE_URL:-http://subscriptions-service:8080}
-      NOTIF_BASE_URL: ${NOTIF_BASE_URL:-http://notifications-service:8083}
+      NOTIF_BASE_URL: ${NOTIF_BASE_URL:-http://notifications-service:8080}
       RSS_FEEDS: ${RSS_FEEDS:-https://cointelegraph.com/rss}
       REPORTER_FAKE_AI: ${REPORTER_FAKE_AI:-false}
       REPORTER_DEDUP_WINDOW_HOURS: ${REPORTER_DEDUP_WINDOW_HOURS:-48}
