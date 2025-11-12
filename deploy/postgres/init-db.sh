@@ -10,6 +10,8 @@ create_role() {
     BEGIN
       IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '${role}') THEN
         CREATE ROLE ${role} WITH LOGIN PASSWORD '${password}';
+      ELSE
+        ALTER ROLE ${role} WITH PASSWORD '${password}';
       END IF;
     END
     $$;
