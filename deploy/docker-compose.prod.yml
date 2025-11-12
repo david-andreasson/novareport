@@ -30,7 +30,7 @@ services:
   accounts-service:
     image: davidandreasson/novareport-accounts-service:${TAG:-latest}
     environment:
-      SPRING_PROFILES_ACTIVE: ${ACCOUNTS_PROFILE:-dev}
+      SPRING_PROFILES_ACTIVE: ${ACCOUNTS_PROFILE:-prod}
       JWT_SECRET: ${JWT_SECRET}
       JWT_ISSUER: ${JWT_ISSUER:-accounts-service}
       JWT_ACCESS_TOKEN_MINUTES: ${JWT_ACCESS_TOKEN_MINUTES:-30}
@@ -56,11 +56,11 @@ services:
   subscriptions-service:
     image: davidandreasson/novareport-subscriptions-service:${TAG:-latest}
     environment:
-      SPRING_PROFILES_ACTIVE: ${SUBSCRIPTIONS_PROFILE:-dev}
+      SPRING_PROFILES_ACTIVE: ${SUBSCRIPTIONS_PROFILE:-prod}
       JWT_SECRET: ${JWT_SECRET}
       JWT_ISSUER: ${JWT_ISSUER:-accounts-service}
       INTERNAL_API_KEY: ${INTERNAL_API_KEY}
-      SUBS_FAKE_ALL_ACTIVE: ${SUBS_FAKE_ALL_ACTIVE:-true}
+      SUBS_FAKE_ALL_ACTIVE: ${SUBS_FAKE_ALL_ACTIVE:-false}
       JWT_ACCESS_TOKEN_MINUTES: ${JWT_ACCESS_TOKEN_MINUTES:-30}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-*}
       DB_HOST: postgres
@@ -85,7 +85,7 @@ services:
   payments-xmr-service:
     image: davidandreasson/novareport-payments-xmr-service:${TAG:-latest}
     environment:
-      SPRING_PROFILES_ACTIVE: ${PAYMENTS_PROFILE:-dev}
+      SPRING_PROFILES_ACTIVE: ${PAYMENTS_PROFILE:-prod}
       JWT_SECRET: ${JWT_SECRET}
       JWT_ISSUER: ${JWT_ISSUER:-accounts-service}
       INTERNAL_API_KEY: ${INTERNAL_API_KEY}
@@ -113,7 +113,7 @@ services:
   notifications-service:
     image: davidandreasson/novareport-notifications-service:${TAG:-latest}
     environment:
-      SPRING_PROFILES_ACTIVE: ${NOTIFICATIONS_PROFILE:-dev}
+      SPRING_PROFILES_ACTIVE: ${NOTIFICATIONS_PROFILE:-prod}
       JWT_SECRET: ${JWT_SECRET}
       JWT_ISSUER: ${JWT_ISSUER:-accounts-service}
       JWT_ACCESS_TOKEN_MINUTES: ${JWT_ACCESS_TOKEN_MINUTES:-30}
@@ -141,7 +141,7 @@ services:
   reporter-service:
     image: davidandreasson/novareport-reporter-service:${TAG:-latest}
     environment:
-      SPRING_PROFILES_ACTIVE: ${REPORTER_PROFILE:-dev}
+      SPRING_PROFILES_ACTIVE: ${REPORTER_PROFILE:-prod}
       JWT_SECRET: ${JWT_SECRET}
       JWT_ISSUER: ${JWT_ISSUER:-accounts-service}
       INTERNAL_API_KEY: ${INTERNAL_API_KEY}
