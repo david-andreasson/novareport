@@ -4,18 +4,17 @@ set -euo pipefail
 create_role() {
   local role=$1
   local password=$2
-  psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
-    DO
-    $$
-    BEGIN
-      IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '${role}') THEN
-        CREATE ROLE ${role} WITH LOGIN PASSWORD '${password}';
-      ELSE
-        ALTER ROLE ${role} WITH PASSWORD '${password}';
-      END IF;
-    END
-    $$;
-EOSQL
+  
+  # Check if role exists
+  local role_exists=$(psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" -tAc "SELECT 1 FROM pg_roles WHERE rolname='${role}'")
+  
+  if [ -z "$role_exists" ]; then
+    # Create new role
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" -c "CREATE ROLE ${role} WITH LOGIN PASSWORD '${password}';"
+  else
+    # Update existing role password
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" -c "ALTER ROLE ${role} WITH PASSWORD '${password}';"
+  fi
 }
 
 create_database() {
