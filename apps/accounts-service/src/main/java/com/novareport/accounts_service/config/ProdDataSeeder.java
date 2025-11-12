@@ -49,30 +49,25 @@ public class ProdDataSeeder implements CommandLineRunner {
     }
 
     private void seedUser(UUID id, String email, String firstName, String lastName) {
-        if (users.existsById(id)) {
+        if (users.existsById(id) || users.findByEmail(email).isPresent()) {
             log.info("Prod test user {} already exists, skipping", email);
             return;
         }
         
-        User user = users.findByEmail(email).orElseGet(() -> {
-            log.info("Seeding prod test user {}", email);
-            User created = Objects.requireNonNull(User.builder()
-                .id(id)
-                .email(email)
-                .passwordHash(passwordEncoder.encode(SEEDED_PASSWORD))
-                .firstName(firstName)
-                .lastName(lastName)
-                .build());
-            return users.save(created);
-        });
+        log.info("Seeding prod test user {}", email);
+        User user = Objects.requireNonNull(User.builder()
+            .id(id)
+            .email(email)
+            .passwordHash(passwordEncoder.encode(SEEDED_PASSWORD))
+            .firstName(firstName)
+            .lastName(lastName)
+            .build());
+        user = users.save(user);
 
-        UUID userId = Objects.requireNonNull(user.getId(), "Seeded user must have id");
-        if (!settings.existsById(userId)) {
-            log.info("Seeding settings for prod test user {}", email);
-            UserSettings createdSettings = Objects.requireNonNull(UserSettings.builder()
-                .user(user)
-                .build());
-            settings.save(createdSettings);
-        }
+        log.info("Seeding settings for prod test user {}", email);
+        UserSettings createdSettings = Objects.requireNonNull(UserSettings.builder()
+            .user(user)
+            .build());
+        settings.save(createdSettings);
     }
 }
