@@ -2,20 +2,6 @@ import { useEffect, useState } from 'react'
 import type { ChangeEvent, FormEvent, JSX } from 'react'
 import './App.css'
 
-// API calls now use relative URLs that are proxied by Nginx
-// Runtime config is loaded from /config.js
-declare global {
-  interface Window {
-    APP_CONFIG?: {
-      INTERNAL_API_KEY?: string
-    }
-  }
-}
-
-const INTERNAL_API_KEY = window.APP_CONFIG?.INTERNAL_API_KEY ?? ''
-
-const FOUR_HOURS_MS = 4 * 60 * 60 * 1000
-
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 type View = 'login' | 'register' | 'profile' | 'settings' | 'report' | 'subscribe'
@@ -114,7 +100,6 @@ function App() {
     locale: 'sv-SE',
     timezone: 'Europe/Stockholm',
     marketingOptIn: false,
-    twoFactorEnabled: false,
   })
   const [message, setMessage] = useState<Message | null>(null)
   const [loading, setLoading] = useState<View | null>(null)
@@ -132,8 +117,6 @@ function App() {
     selectedPlan: null,
     payment: null,
   })
-
-  const isLoadingReport = reportState.phase === 'loading'
 
   const passwordPolicyRegex = /^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,}$/
   const meetsPasswordPolicy = passwordPolicyRegex.test(registerForm.password)
@@ -222,68 +205,6 @@ function App() {
     return (await response.json()) as DailyReport
   }
 
-  const isReportFresh = (report: DailyReport | null) => {
-    if (!report?.createdAt) {
-      return false
-    }
-    const createdAt = new Date(report.createdAt)
-    if (Number.isNaN(createdAt.getTime())) {
-      return false
-    }
-    return Date.now() - createdAt.getTime() <= FOUR_HOURS_MS
-  }
-
-  const triggerIngest = async () => {
-    const response = await fetch('/api/reporter/ingest-now', {
-      method: 'POST',
-      headers: {
-        'X-INTERNAL-KEY': INTERNAL_API_KEY,
-      },
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(errorText || 'Kunde inte hämta nyhetsdata inför rapportbygget.')
-    }
-  }
-
-  const triggerReportBuild = async (date: string) => {
-    const response = await fetch(
-      `/api/reporter/build-report?date=${date}`,
-      {
-        method: 'POST',
-        headers: {
-          'X-INTERNAL-KEY': INTERNAL_API_KEY,
-        },
-      },
-    )
-
-    if (!response.ok && response.status !== 202) {
-      const errorText = await response.text()
-      throw new Error(errorText || 'Kunde inte trigga rapportbygge.')
-    }
-  }
-
-  const pollForNewReport = async (previousReportId?: string) => {
-    const attempts = 6
-    for (let i = 0; i < attempts; i += 1) {
-      await delay(i === 0 ? 1000 : 1500)
-      try {
-        const candidate = await getLatestReport()
-        if (!candidate) {
-          continue
-        }
-        if (!previousReportId || candidate.reportId !== previousReportId || isReportFresh(candidate)) {
-          return candidate
-        }
-      } catch (error) {
-        if (error instanceof Error && error.message.includes('Logga in igen')) {
-          throw error
-        }
-      }
-    }
-    return null
-  }
 
   const handleLoginSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -399,7 +320,7 @@ function App() {
       setSettingsForm((prev) => ({ ...prev, [field]: value }))
     }
 
-  const handleSettingsCheckbox = (field: 'marketingOptIn' | 'twoFactorEnabled') =>
+  const handleSettingsCheckbox = (field: 'marketingOptIn') =>
     (event: ChangeEvent<HTMLInputElement>) => {
       const { checked } = event.target
       setSettingsForm((prev) => ({ ...prev, [field]: checked }))
@@ -421,7 +342,7 @@ function App() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(settingsForm),
+        body: JSON.stringify({ ...settingsForm, twoFactorEnabled: false }),
       })
 
       if (!response.ok) {
@@ -457,42 +378,6 @@ function App() {
         return
       }
       setReportState({ phase: 'success', report: data })
-    } catch (error) {
-      const text = error instanceof Error ? error.message : 'Okänt fel'
-      setReportState({ phase: 'error', report: null, error: text })
-    }
-  }
-
-  const handleEnsureFreshReport = async () => {
-    if (!token) {
-      setReportState({ phase: 'error', report: null, error: 'Logga in för att se rapporten.' })
-      return
-    }
-
-    setReportState({ phase: 'loading', report: null })
-    try {
-      const current = await getLatestReport()
-      if (current && isReportFresh(current)) {
-        setReportState({ phase: 'success', report: current })
-        return
-      }
-
-      if (!INTERNAL_API_KEY) {
-        throw new Error('Intern API-nyckel saknas. Sätt VITE_INTERNAL_API_KEY i frontendens miljövariabler.')
-      }
-
-      await triggerIngest()
-
-      const today = new Date().toISOString().slice(0, 10)
-      await triggerReportBuild(today)
-
-      const refreshed = await pollForNewReport(current?.reportId)
-      if (refreshed) {
-        setReportState({ phase: 'success', report: refreshed })
-        return
-      }
-
-      throw new Error('Rapporten kunde inte hämtas efter byggförsök. Försök igen om en stund.')
     } catch (error) {
       const text = error instanceof Error ? error.message : 'Okänt fel'
       setReportState({ phase: 'error', report: null, error: text })
@@ -953,16 +838,6 @@ function App() {
               />
               <span>Ta emot nyheter och uppdateringar</span>
             </label>
-            <label className="checkbox-row">
-              <input
-                type="checkbox"
-                name="settingsTwoFactor"
-                checked={settingsForm.twoFactorEnabled}
-                onChange={handleSettingsCheckbox('twoFactorEnabled')}
-                disabled={!token || loading === 'settings'}
-              />
-              <span>Aktivera tvåfaktorsautentisering</span>
-            </label>
             <button className="pill-button" type="submit" disabled={!token || loading === 'settings'}>
               {loading === 'settings' ? 'Sparar…' : 'Spara inställningar'}
             </button>
@@ -974,7 +849,7 @@ function App() {
     case 'report':
       panelContent = (
         <>
-          <h2>Senaste rapport (temporär vy)</h2>
+          <h2>Senaste rapport</h2>
           <p className="auth-note">
             Visar resultatet från reporter-service. Kräver aktiv prenumeration.
           </p>
@@ -999,25 +874,7 @@ function App() {
               <section className="report-summary">
                 {renderReportSummary(reportState.report.summary)}
               </section>
-              <div className="report-actions">
-                {!isReportFresh(reportState.report) && (
-                  <p className="auth-note">Rapporten är äldre än 4 timmar. Klicka för att skapa en ny.</p>
-                )}
-                <button
-                  className="pill-button"
-                  type="button"
-                  onClick={() => void handleEnsureFreshReport()}
-                  disabled={isLoadingReport}
-                >
-                  {isReportFresh(reportState.report) ? 'Visa senaste igen' : 'Skapa ny rapport'}
-                </button>
-              </div>
             </article>
-          )}
-          {token && reportState.phase !== 'loading' && reportState.phase !== 'success' && (
-            <button className="pill-button" type="button" onClick={() => void handleEnsureFreshReport()}>
-              Skapa eller uppdatera rapport
-            </button>
           )}
           {!token && <p className="auth-note">Logga in för att kunna läsa rapporten.</p>}
         </>
@@ -1212,15 +1069,9 @@ function App() {
             className={`${view === 'report' ? 'active' : ''}`}
             onClick={() => handleChangeView('report')}
           >
-            Rapport (test)
+            Rapport
           </button>
         </nav>
-        {token && (
-          <div className="auth-token">
-            <span>Bearer-token:</span>
-            <code>{token}</code>
-          </div>
-        )}
       </aside>
 
       <main className="auth-content">

@@ -11,12 +11,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Objects;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping({"/api/accounts", ""})
 @Tag(name = "User Profile", description = "User profile and settings management")
 public class UserController {
 
