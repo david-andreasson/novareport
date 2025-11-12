@@ -1,9 +1,7 @@
 package com.novareport.reporter_service.config;
 
-import com.novareport.reporter_service.security.InternalApiKeyFilter;
 import com.novareport.reporter_service.security.JwtAuthenticationFilter;
 import com.novareport.reporter_service.security.JwtService;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -23,10 +21,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(
         HttpSecurity http,
-        JwtAuthenticationFilter jwtAuthenticationFilter,
-        @Value("${internal.api-key:}") String internalApiKey
+        JwtAuthenticationFilter jwtAuthenticationFilter
     ) throws Exception {
-        InternalApiKeyFilter internalFilter = new InternalApiKeyFilter(internalApiKey);
         return http
             .cors(cors -> {})
             .csrf(csrf -> csrf.disable())
@@ -42,13 +38,11 @@ public class SecurityConfig {
                     "/swagger-resources/**",
                     "/v3/api-docs",
                     "/v3/api-docs/**",
-                    "/error",
-                    "/api/v1/internal/**"
+                    "/error"
                 ).permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(internalFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
             .build();
     }

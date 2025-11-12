@@ -11,18 +11,15 @@ public class ReporterCoordinator {
     private final RssIngestService rssIngestService;
     private final DailyReportService dailyReportService;
     private final ReportNotificationPublisher notificationPublisher;
-    private final ReporterStatusService reporterStatusService;
 
     public ReporterCoordinator(
         RssIngestService rssIngestService,
         DailyReportService dailyReportService,
-        ReportNotificationPublisher notificationPublisher,
-        ReporterStatusService reporterStatusService
+        ReportNotificationPublisher notificationPublisher
     ) {
         this.rssIngestService = rssIngestService;
         this.dailyReportService = dailyReportService;
         this.notificationPublisher = notificationPublisher;
-        this.reporterStatusService = reporterStatusService;
     }
 
     public RssIngestService.IngestResult ingestNow() {
@@ -35,11 +32,4 @@ public class ReporterCoordinator {
         return report;
     }
 
-    public void notifyReportReady(LocalDate date) {
-        notificationPublisher.publish(date);
-    }
-
-    public ReporterStatus status() {
-        return reporterStatusService.status();
-    }
 }
