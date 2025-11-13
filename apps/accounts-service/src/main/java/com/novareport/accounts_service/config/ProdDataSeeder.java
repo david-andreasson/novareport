@@ -1,16 +1,12 @@
 package com.novareport.accounts_service.config;
 
-import com.novareport.accounts_service.settings.UserSettings;
-import com.novareport.accounts_service.settings.UserSettingsRepository;
-import com.novareport.accounts_service.user.User;
-import com.novareport.accounts_service.user.UserRepository;
-import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -28,8 +24,7 @@ public class ProdDataSeeder implements CommandLineRunner {
     private static final String NO_PLAN_USER_EMAIL = "noplan.user@example.com";
     private static final String SEEDED_PASSWORD = "Password123!";
 
-    private final UserRepository users;
-    private final UserSettingsRepository settings;
+    private final JdbcTemplate jdbcTemplate;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -49,29 +44,38 @@ public class ProdDataSeeder implements CommandLineRunner {
     }
 
     private void seedUser(UUID id, String email, String firstName, String lastName) {
-        User user = users.findById(id)
-            .orElseGet(() -> users.findByEmail(email)
-                .orElseGet(() -> {
-                    log.info("Seeding prod test user {}", email);
-                    User toCreate = Objects.requireNonNull(User.builder()
-                        .id(id)
-                        .email(email)
-                        .passwordHash(passwordEncoder.encode(SEEDED_PASSWORD))
-                        .firstName(firstName)
-                        .lastName(lastName)
-                        .build());
-                    return users.save(toCreate);
-                }));
+        String passwordHash = passwordEncoder.encode(SEEDED_PASSWORD);
 
-        if (settings.existsById(user.getId())) {
-            log.info("Prod settings for user {} already exist, skipping", email);
-            return;
+        int affected = jdbcTemplate.update(
+            """
+            INSERT INTO users (id, email, password_hash, first_name, last_name, role, is_active, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, 'USER', TRUE, NOW(), NOW())
+            ON CONFLICT (id) DO UPDATE
+              SET email = EXCLUDED.email,
+                  password_hash = EXCLUDED.password_hash,
+                  first_name = EXCLUDED.first_name,
+                  last_name = EXCLUDED.last_name,
+                  updated_at = NOW()
+            """,
+            id,
+            email,
+            passwordHash,
+            firstName,
+            lastName
+        );
+
+        if (affected > 0) {
+            log.info("Ensured prod test user {} exists", email);
         }
 
-        log.info("Seeding settings for prod test user {}", email);
-        UserSettings createdSettings = Objects.requireNonNull(UserSettings.builder()
-            .user(user)
-            .build());
-        settings.save(createdSettings);
+        jdbcTemplate.update(
+            """
+            INSERT INTO user_settings (user_id, locale, timezone, marketing_opt_in, two_factor_enabled)
+            VALUES (?, 'sv-SE', 'Europe/Stockholm', FALSE, FALSE)
+            ON CONFLICT (user_id) DO UPDATE
+              SET updated_at = NOW()
+            """,
+            id
+        );
     }
 }
