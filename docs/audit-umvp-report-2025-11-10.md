@@ -306,7 +306,7 @@ Den faktiska implementationen matchar nära den avsedda arkitekturen. Förvänta
 1. Lägg till unit-tester för alla serviceklasser - sikta på minst 80% kodtäckning
 2. Lägg till integrationstester för alla controllers med MockMvc eller WebTestClient
 3. ✅ Konfigurera health checks i docker-compose.prod.yml för alla tjänster
-4. Migrera från H2 till PostgreSQL för produktionsdatapersistering
+4. ✅Migrera från H2 till PostgreSQL för produktionsdatapersistering
 5. ✅ Lägg till omfattande GlobalExceptionHandler till subscriptions-service och notifications-service
 
 **Prioritet 2 (Hög - Gör snart):**
@@ -321,7 +321,7 @@ Den faktiska implementationen matchar nära den avsedda arkitekturen. Förvänta
 12. ✅ Implementera retry-logik med exponentiell backoff för inter-service-anrop
 13. ✅ Lägg till correlation IDs till alla logguttalanden för distribuerad tracing
 14. Skapa omfattande README med setup-, deployment- och API-dokumentation
-15. Lägg till databasmigrationsskript med Flyway för alla tjänster
+15. ✅ Lägg till databasmigrationsskript med Flyway för alla tjänster
 
 ---
 
