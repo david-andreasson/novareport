@@ -75,6 +75,9 @@ public class User implements Persistable<UUID> {
 
     @PrePersist
     void onCreate() {
+        if (id == null) {
+            id = UUID.randomUUID();
+        }
         Instant now = Instant.now();
         createdAt = now;
         updatedAt = now;
