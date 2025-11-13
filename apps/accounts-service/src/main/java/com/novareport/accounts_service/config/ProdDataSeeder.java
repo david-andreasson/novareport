@@ -49,20 +49,24 @@ public class ProdDataSeeder implements CommandLineRunner {
     }
 
     private void seedUser(UUID id, String email, String firstName, String lastName) {
-        if (users.existsById(id) || users.findByEmail(email).isPresent()) {
-            log.info("Prod test user {} already exists, skipping", email);
+        User user = users.findById(id)
+            .orElseGet(() -> users.findByEmail(email)
+                .orElseGet(() -> {
+                    log.info("Seeding prod test user {}", email);
+                    User toCreate = Objects.requireNonNull(User.builder()
+                        .id(id)
+                        .email(email)
+                        .passwordHash(passwordEncoder.encode(SEEDED_PASSWORD))
+                        .firstName(firstName)
+                        .lastName(lastName)
+                        .build());
+                    return users.save(toCreate);
+                }));
+
+        if (settings.existsById(user.getId())) {
+            log.info("Prod settings for user {} already exist, skipping", email);
             return;
         }
-        
-        log.info("Seeding prod test user {}", email);
-        User user = Objects.requireNonNull(User.builder()
-            .id(id)
-            .email(email)
-            .passwordHash(passwordEncoder.encode(SEEDED_PASSWORD))
-            .firstName(firstName)
-            .lastName(lastName)
-            .build());
-        user = users.save(user);
 
         log.info("Seeding settings for prod test user {}", email);
         UserSettings createdSettings = Objects.requireNonNull(UserSettings.builder()
