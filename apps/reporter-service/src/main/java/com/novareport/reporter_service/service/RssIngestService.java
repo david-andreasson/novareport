@@ -137,7 +137,9 @@ public class RssIngestService {
     }
 
     private Flux<SyndFeed> parseFeed(String url, String xml) {
-        try (XmlReader reader = new XmlReader(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)))) {
+        String sanitized = sanitizeXml(xml);
+
+        try (XmlReader reader = new XmlReader(new ByteArrayInputStream(sanitized.getBytes(StandardCharsets.UTF_8)))) {
             SyndFeed feed = new SyndFeedInput().build(reader);
             int entries = feed.getEntries() == null ? 0 : feed.getEntries().size();
             if (entries == 0) {
@@ -150,6 +152,18 @@ public class RssIngestService {
             log.warn("Failed to parse RSS feed {}: {}", url, ex.getMessage());
             return Flux.empty();
         }
+    }
+
+    private String sanitizeXml(String xml) {
+        if (xml == null) {
+            return "";
+        }
+
+        String sanitized = xml.stripLeading();
+        if (sanitized.startsWith("\uFEFF")) {
+            sanitized = sanitized.substring(1);
+        }
+        return sanitized;
     }
 
     private NewsItem toNewsItem(SyndFeed feed, String feedUrl, SyndEntry entry) {
