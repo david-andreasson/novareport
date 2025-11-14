@@ -131,7 +131,7 @@ services:
       INTERNAL_API_KEY: ${INTERNAL_API_KEY}
       SUBS_BASE_URL: ${SUBS_BASE_URL:-http://subscriptions-service:8080}
       NOTIF_BASE_URL: ${NOTIF_BASE_URL:-http://notifications-service:8080}
-      RSS_FEEDS: ${RSS_FEEDS:-https://cointelegraph.com/rss}
+      RSS_FEEDS: ${RSS_FEEDS:-https://cointelegraph.com/rss,https://decrypt.co/feed,https://www.coindesk.com/arc/outboundfeeds/rss/,https://www.reddit.com/r/CryptoCurrency/.rss}
       REPORTER_FAKE_AI: ${REPORTER_FAKE_AI:-false}
       REPORTER_DEDUP_WINDOW_HOURS: ${REPORTER_DEDUP_WINDOW_HOURS:-48}
       REPORTER_STARTUP_GENERATE_REPORT: "true"
