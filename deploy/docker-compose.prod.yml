@@ -124,6 +124,9 @@ services:
 
   reporter-service:
     image: davidandreasson/novareport-reporter-service:${TAG:-latest}
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
     environment:
       SPRING_PROFILES_ACTIVE: ${REPORTER_PROFILE:-prod}
       JWT_SECRET: ${JWT_SECRET}
