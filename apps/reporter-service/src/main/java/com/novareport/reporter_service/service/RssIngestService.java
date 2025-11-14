@@ -120,20 +120,31 @@ public class RssIngestService {
 
     @SuppressWarnings("null")
     private Flux<Tuple2<String, SyndFeed>> fetchFeed(String url) {
+        log.info("Fetching RSS feed {}", url);
+
         return webClient
             .get()
             .uri(url)
             .retrieve()
             .bodyToMono(String.class)
             .filter(xml -> xml != null)
-            .doOnError(ex -> log.warn("Failed to fetch RSS feed {}: {}", url, ex.getMessage()))
             .flatMapMany(xml -> parseFeed(url, xml))
+            .onErrorResume(ex -> {
+                log.warn("Failed to fetch RSS feed {}: {}", url, ex.getMessage());
+                return Flux.empty();
+            })
             .map(feed -> Tuples.of(url, feed));
     }
 
     private Flux<SyndFeed> parseFeed(String url, String xml) {
         try (XmlReader reader = new XmlReader(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)))) {
             SyndFeed feed = new SyndFeedInput().build(reader);
+            int entries = feed.getEntries() == null ? 0 : feed.getEntries().size();
+            if (entries == 0) {
+                log.info("RSS feed {} parsed successfully but contained no entries", url);
+            } else {
+                log.info("RSS feed {} parsed successfully with {} entries", url, entries);
+            }
             return Flux.just(feed);
         } catch (Exception ex) {
             log.warn("Failed to parse RSS feed {}: {}", url, ex.getMessage());
