@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.time.LocalDate;
@@ -51,20 +52,45 @@ public class OneMinAiSummarizerService implements DailyReportService.AiSummarize
 
         log.info("Generating AI summary for {} with {} headlines using model {}", date, headlines.size(), model);
 
-        try {
-            String prompt = buildPrompt(date, headlines);
-            String summary = callOneMinAi(prompt);
-            log.info("Successfully generated AI summary with {} characters", summary.length());
-            return summary;
+        String prompt = buildPrompt(date, headlines);
 
-        } catch (WebClientResponseException e) {
-            log.error("1min.ai API error: status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString(), e);
-            return buildFallbackSummary(date, headlines, "API error: " + e.getMessage());
+        int maxAttempts = 3;
+        long delayMillis = 1000L;
 
-        } catch (Exception e) {
-            log.error("Failed to generate AI summary", e);
-            return buildFallbackSummary(date, headlines, "Error: " + e.getMessage());
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                if (attempt > 1) {
+                    log.info("Retrying 1min.ai call (attempt {}/{})", attempt, maxAttempts);
+                }
+
+                String summary = callOneMinAi(prompt);
+                log.info("Successfully generated AI summary with {} characters on attempt {}", summary.length(), attempt);
+                return summary;
+
+            } catch (WebClientResponseException e) {
+                log.error("1min.ai API error on attempt {}/{}: status={}, body={}",
+                        attempt, maxAttempts, e.getStatusCode(), e.getResponseBodyAsString(), e);
+
+            } catch (WebClientRequestException e) {
+                log.error("1min.ai request error on attempt {}/{}: {}", attempt, maxAttempts, e.getMessage(), e);
+
+            } catch (Exception e) {
+                log.error("Unexpected error while generating AI summary on attempt {}/{}", attempt, maxAttempts, e);
+            }
+
+            if (attempt < maxAttempts) {
+                try {
+                    Thread.sleep(delayMillis);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+                delayMillis *= 2;
+            }
         }
+
+        log.warn("Falling back to non-AI summary after {} failed attempts to reach 1min.ai", maxAttempts);
+        return buildFallbackSummary(date, headlines, "Service unavailable after multiple attempts");
     }
 
     @SuppressWarnings("unchecked")
@@ -188,7 +214,7 @@ public class OneMinAiSummarizerService implements DailyReportService.AiSummarize
     private String buildFallbackSummary(LocalDate date, List<String> headlines, String errorMessage) {
         StringBuilder sb = new StringBuilder();
         sb.append("# Cryptocurrency Market Report - ").append(date).append("\n\n");
-        sb.append("*Note: AI summarization temporarily unavailable (").append(errorMessage).append(")*\n\n");
+        sb.append("*Note: AI summarization temporarily unavailable due to a temporary connectivity issue.*\n\n");
         sb.append("## Key Headlines\n\n");
 
         for (String headline : headlines) {

@@ -82,7 +82,7 @@ public class DailyReportService {
         List<NewsItem> recentItems = newsItemRepository.findTop10ByPublishedAtAfterOrderByPublishedAtDesc(threshold);
         if (recentItems.isEmpty()) {
             log.warn("No news items found within {} hours for report {}", window.toHours(), reportDate);
-            return "No news items available.";
+            return "No news items available. This may be due to temporary issues reaching external news sources.";
         }
 
         List<String> headlines = recentItems.stream()
