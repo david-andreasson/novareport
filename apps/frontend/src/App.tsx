@@ -83,6 +83,11 @@ const formatDateTime = (iso: string) =>
     timeStyle: 'short',
   })
 
+const formatReportTimestamp = (report: DailyReport) => {
+  const iso = report.updatedAt ?? report.createdAt ?? report.reportDate
+  return formatDateTime(iso)
+}
+
 function App() {
   const [view, setView] = useState<View>('login')
   const [loginForm, setLoginForm] = useState({ email: '', password: '' })
@@ -864,12 +869,10 @@ function App() {
                   <span className="chip">Senaste rapport</span>
                   <h3>{new Date(reportState.report.reportDate).toLocaleDateString('sv-SE')}</h3>
                 </div>
-                {reportState.report.createdAt && (
-                  <div className="report-meta">
-                    <span>Skapad</span>
-                    <strong>{new Date(reportState.report.createdAt).toLocaleString('sv-SE')}</strong>
-                  </div>
-                )}
+                <div className="report-meta">
+                  <span>Skapad</span>
+                  <strong>{formatReportTimestamp(reportState.report)}</strong>
+                </div>
               </header>
               <section className="report-summary">
                 {renderReportSummary(reportState.report.summary)}
