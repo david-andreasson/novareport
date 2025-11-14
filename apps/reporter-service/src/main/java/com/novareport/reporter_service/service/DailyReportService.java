@@ -71,6 +71,7 @@ public class DailyReportService {
 
         String summary = generateSummary(reportDate);
         report.setSummary(summary);
+        report.setCreatedAt(Instant.now());
         DailyReport saved = dailyReportRepository.save(report);
         log.info("Built report for {} with summary length {} chars", reportDate, summary.length());
         return saved;
