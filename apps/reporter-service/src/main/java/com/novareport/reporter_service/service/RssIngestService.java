@@ -10,6 +10,7 @@ import com.rometools.rome.io.XmlReader;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -125,6 +126,7 @@ public class RssIngestService {
         return webClient
             .get()
             .uri(url)
+            .header(HttpHeaders.USER_AGENT, "NovaReportReporter/1.0 (+https://novareport.com)")
             .retrieve()
             .bodyToMono(String.class)
             .filter(xml -> xml != null)
@@ -138,6 +140,12 @@ public class RssIngestService {
 
     private Flux<SyndFeed> parseFeed(String url, String xml) {
         String sanitized = sanitizeXml(xml);
+        String preview = sanitized.length() > 200 ? sanitized.substring(0, 200) + "..." : sanitized;
+
+        if (!sanitized.trim().startsWith("<")) {
+            log.warn("RSS feed {} did not start with XML markup. Preview: {}", url, preview.replaceAll("\\s+", " "));
+            return Flux.empty();
+        }
 
         try (XmlReader reader = new XmlReader(new ByteArrayInputStream(sanitized.getBytes(StandardCharsets.UTF_8)))) {
             SyndFeed feed = new SyndFeedInput().build(reader);
@@ -149,7 +157,7 @@ public class RssIngestService {
             }
             return Flux.just(feed);
         } catch (Exception ex) {
-            log.warn("Failed to parse RSS feed {}: {}", url, ex.getMessage());
+            log.warn("Failed to parse RSS feed {}: {}. Preview: {}", url, ex.getMessage(), preview.replaceAll("\\s+", " "));
             return Flux.empty();
         }
     }
