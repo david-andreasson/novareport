@@ -12,7 +12,8 @@ import java.util.List;
 public record ReporterProperties(
     @DefaultValue("") List<String> rssFeeds,
     @DefaultValue("true") boolean fakeAi,
-    @DurationUnit(ChronoUnit.HOURS) @DefaultValue("PT48H") Duration dedupWindowHours
+    @DurationUnit(ChronoUnit.HOURS) @DefaultValue("PT48H") Duration dedupWindowHours,
+    @DefaultValue("false") boolean startupGenerateReport
 ) {
     public List<String> rssFeeds() {
         return this.rssFeeds == null || this.rssFeeds.isEmpty()
