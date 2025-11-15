@@ -11,6 +11,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -132,6 +133,7 @@ public class RssIngestService {
             .get()
             .uri(url)
             .header(HttpHeaders.USER_AGENT, "NovaReportReporter/1.0 (+https://novareport.com)")
+            .accept(MediaType.APPLICATION_RSS_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_ATOM_XML)
             .retrieve()
             .bodyToMono(String.class)
             .retryWhen(Retry
