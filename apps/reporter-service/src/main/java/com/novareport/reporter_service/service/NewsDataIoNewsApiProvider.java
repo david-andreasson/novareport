@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -72,6 +73,10 @@ public class NewsDataIoNewsApiProvider implements NewsApiProvider {
 
             log.info("NewsData.io returned {} articles", items.size());
             return items;
+        } catch (WebClientResponseException ex) {
+            String body = ex.getResponseBodyAsString();
+            log.warn("Failed to fetch news from NewsData.io: status={} body={}", ex.getStatusCode().value(), body);
+            return List.of();
         } catch (Exception ex) {
             log.warn("Failed to fetch news from NewsData.io: {}", ex.getMessage());
             return List.of();
