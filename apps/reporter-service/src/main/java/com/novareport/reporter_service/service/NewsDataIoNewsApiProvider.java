@@ -48,11 +48,9 @@ public class NewsDataIoNewsApiProvider implements NewsApiProvider {
         }
 
         String baseUrl = properties.resolvedBaseUrl();
-        int timeframe = properties.resolvedTimeframeHours();
 
         String url = baseUrl + "/crypto?apikey=" + URLEncoder.encode(apiKey, StandardCharsets.UTF_8)
-            + "&language=en"
-            + "&timeframe=" + timeframe;
+            + "&language=en";
 
         try {
             NewsDataResponse response = webClient
