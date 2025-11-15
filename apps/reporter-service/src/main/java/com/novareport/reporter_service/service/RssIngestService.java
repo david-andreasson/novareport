@@ -14,13 +14,16 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
 
 import reactor.core.publisher.Flux;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
+import reactor.util.retry.Retry;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -121,6 +124,8 @@ public class RssIngestService {
 
     @SuppressWarnings("null")
     private Flux<Tuple2<String, SyndFeed>> fetchFeed(String url) {
+        long maxRetries = 2L;
+        long totalAttempts = maxRetries + 1L;
         log.info("Fetching RSS feed {}", url);
 
         return webClient
@@ -129,10 +134,23 @@ public class RssIngestService {
             .header(HttpHeaders.USER_AGENT, "NovaReportReporter/1.0 (+https://novareport.com)")
             .retrieve()
             .bodyToMono(String.class)
+            .retryWhen(Retry
+                .backoff(maxRetries, Duration.ofSeconds(1))
+                .filter(ex -> ex instanceof WebClientRequestException)
+                .doBeforeRetry(retrySignal -> {
+                    Throwable failure = retrySignal.failure();
+                    long attempt = retrySignal.totalRetries() + 1L;
+                    log.warn("Retrying RSS feed fetch {} (attempt {}/{}) due to: {}",
+                        url,
+                        attempt,
+                        totalAttempts,
+                        failure != null ? failure.getMessage() : "unknown error");
+                })
+                .onRetryExhaustedThrow((spec, signal) -> signal.failure()))
             .filter(xml -> xml != null)
             .flatMapMany(xml -> parseFeed(url, xml))
             .onErrorResume(ex -> {
-                log.warn("Failed to fetch RSS feed {}: {}", url, ex.getMessage());
+                log.warn("Failed to fetch RSS feed {} after {} attempts: {}", url, totalAttempts, ex.getMessage());
                 return Flux.empty();
             })
             .map(feed -> Tuples.of(url, feed));
