@@ -21,6 +21,7 @@ public class WebClientConfig {
         @Value("${webclient.timeout.read:10}") long readTimeoutSeconds
     ) {
         HttpClient httpClient = Objects.requireNonNull(HttpClient.create()
+            .followRedirect(true)
             .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) Duration.ofSeconds(connectTimeoutSeconds).toMillis())
             .responseTimeout(Duration.ofSeconds(readTimeoutSeconds)));
 
