@@ -132,7 +132,7 @@ public class RssIngestService {
         return webClient
             .get()
             .uri(url)
-            .header(HttpHeaders.USER_AGENT, "NovaReportReporter/1.0 (+https://novareport.com)")
+            .header(HttpHeaders.USER_AGENT, "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36")
             .accept(MediaType.APPLICATION_RSS_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_ATOM_XML)
             .retrieve()
             .bodyToMono(String.class)
@@ -159,11 +159,27 @@ public class RssIngestService {
     }
 
     private Flux<SyndFeed> parseFeed(String url, String xml) {
-        String sanitized = sanitizeXml(xml);
+        String raw = xml == null ? "" : xml;
+        String sanitized = sanitizeXml(raw);
         String preview = sanitized.length() > 200 ? sanitized.substring(0, 200) + "..." : sanitized;
 
         if (!sanitized.trim().startsWith("<")) {
-            log.warn("RSS feed {} did not start with XML markup. Preview: {}", url, preview.replaceAll("\\s+", " "));
+            String[] lines = raw.split("\\R", 6);
+            int maxLines = Math.min(5, lines.length);
+            StringBuilder firstLinesBuilder = new StringBuilder();
+            for (int i = 0; i < maxLines; i++) {
+                if (i > 0) {
+                    firstLinesBuilder.append("\\n");
+                }
+                firstLinesBuilder.append(lines[i]);
+            }
+            String firstLines = firstLinesBuilder.toString();
+            log.warn(
+                "RSS feed {} did not start with XML markup. First {} line(s): {}",
+                url,
+                maxLines,
+                firstLines
+            );
             return Flux.empty();
         }
 
