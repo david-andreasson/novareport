@@ -43,6 +43,12 @@ public class Payment {
     @Column(name = "duration_days", nullable = false)
     private Integer durationDays;
 
+    @Column(name = "wallet_account_index")
+    private Integer walletAccountIndex;
+
+    @Column(name = "wallet_subaddress_index")
+    private Integer walletSubaddressIndex;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     @Builder.Default
