@@ -8,6 +8,7 @@ import com.novareport.payments_xmr_service.dto.PaymentStatusResponse;
 import com.novareport.payments_xmr_service.util.LogSanitizer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,14 +33,30 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final PaymentEventPublisher eventPublisher;
+    private final MoneroWalletClient moneroWalletClient;
+
+    @Value("${payments.fake-mode:true}")
+    private boolean fakeMode;
 
     @Transactional
     public CreatePaymentResponse createPayment(UUID userId, String plan, BigDecimal amountXmr) {
         log.info("Creating payment for user {} with plan {} and amount {}", LogSanitizer.sanitize(userId), LogSanitizer.sanitize(plan), LogSanitizer.sanitize(amountXmr));
 
-        // Validate plan early to fail fast before any database operations
         int durationDays = calculateDurationDays(plan);
-        String paymentAddress = generateFakeMoneroAddress();
+
+        String paymentAddress;
+        Integer walletAccountIndex = null;
+        Integer walletSubaddressIndex = null;
+
+        if (fakeMode) {
+            paymentAddress = generateFakeMoneroAddress();
+        } else {
+            int accountIndex = 0;
+            MoneroWalletClient.MoneroSubaddress subaddress = moneroWalletClient.createSubaddress(accountIndex, "novareport-" + userId);
+            paymentAddress = subaddress.address();
+            walletAccountIndex = subaddress.accountIndex();
+            walletSubaddressIndex = subaddress.subaddressIndex();
+        }
 
         Payment payment = Payment.builder()
                 .userId(userId)
@@ -47,6 +64,8 @@ public class PaymentService {
                 .amountXmr(amountXmr)
                 .plan(plan)
                 .durationDays(durationDays)
+                .walletAccountIndex(walletAccountIndex)
+                .walletSubaddressIndex(walletSubaddressIndex)
                 .status(PaymentStatus.PENDING)
                 .build();
 
@@ -55,7 +74,6 @@ public class PaymentService {
 
         log.info("Created payment {} with address {}", savedPayment.getId(), paymentAddress);
 
-        // Calculate expiry time for response (24 hours from now)
         Instant expiresAt = Instant.now().plus(PAYMENT_EXPIRY_HOURS, ChronoUnit.HOURS);
 
         return new CreatePaymentResponse(
