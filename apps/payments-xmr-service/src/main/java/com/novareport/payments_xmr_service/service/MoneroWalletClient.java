@@ -56,33 +56,39 @@ public class MoneroWalletClient {
 
     public BigDecimal getConfirmedBalanceForSubaddress(int accountIndex, int subaddressIndex) {
         Map<String, Object> params = new HashMap<>();
+        params.put("in", Boolean.TRUE);
         params.put("account_index", accountIndex);
-        params.put("address_indices", List.of(subaddressIndex));
+        params.put("subaddr_indices", List.of(subaddressIndex));
 
-        Map<String, Object> result = invokeRpc("get_balance", params);
-        Object perSubaddressValue = result.get("per_subaddress");
-        if (!(perSubaddressValue instanceof List<?> perSubaddressList)) {
+        Map<String, Object> result = invokeRpc("get_transfers", params);
+        Object inTransfersValue = result.get("in");
+        if (!(inTransfersValue instanceof List<?> inTransfers)) {
             return BigDecimal.ZERO;
         }
 
-        for (Object entry : perSubaddressList) {
+        BigDecimal totalAtomic = BigDecimal.ZERO;
+        for (Object entry : inTransfers) {
             if (!(entry instanceof Map<?, ?> map)) {
                 continue;
             }
-            Object indexValue = map.get("address_index");
-            Object unlockedBalanceValue = map.get("unlocked_balance");
-            if (!(indexValue instanceof Number index) || !(unlockedBalanceValue instanceof Number unlockedBalance)) {
+            Object confirmationsValue = map.get("confirmations");
+            Object amountValue = map.get("amount");
+            if (!(confirmationsValue instanceof Number confirmations) || !(amountValue instanceof Number amount)) {
                 continue;
             }
-            if (index.intValue() != subaddressIndex) {
+            if (confirmations.longValue() < minConfirmations) {
                 continue;
             }
 
-            BigDecimal atomic = new BigDecimal(unlockedBalance.toString());
-            return atomic.movePointLeft(12).setScale(12, RoundingMode.DOWN);
+            BigDecimal atomic = new BigDecimal(amount.toString());
+            totalAtomic = totalAtomic.add(atomic);
         }
 
-        return BigDecimal.ZERO;
+        if (totalAtomic.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+
+        return totalAtomic.movePointLeft(12).setScale(12, RoundingMode.DOWN);
     }
 
     public int getMinConfirmations() {
