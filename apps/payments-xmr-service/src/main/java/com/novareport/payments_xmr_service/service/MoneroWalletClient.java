@@ -96,7 +96,9 @@ public class MoneroWalletClient {
             if (walletRpcUrl == null || walletRpcUrl.isBlank()) {
                 throw new IllegalStateException("Monero wallet RPC URL is not configured");
             }
+            log.info("Calling Monero wallet RPC. url={}, method={}, request={}", walletRpcUrl, method, request);
             response = restTemplate.postForObject(walletRpcUrl, request, Map.class);
+            log.info("Monero wallet RPC raw response for method {}: {}", method, response);
         } catch (RestClientException e) {
             throw new IllegalStateException("Failed to call Monero wallet RPC", e);
         }
@@ -107,7 +109,9 @@ public class MoneroWalletClient {
 
         Object errorValue = response.get("error");
         if (errorValue instanceof Map<?, ?> errorMap) {
+            Object code = errorMap.get("code");
             Object message = errorMap.get("message");
+            log.error("Monero wallet RPC returned error. method={}, code={}, message={}, response={}", method, code, message, response);
             throw new IllegalStateException("Monero wallet RPC error: " + message);
         }
 
