@@ -981,28 +981,10 @@ function App() {
                   <p className="auth-note">QR-kod kan inte genereras just nu.</p>
                 )}
               </div>
-              <div className="payment-test-info">
-                <p className="auth-note">
-                  <strong>För testning:</strong> Bekräfta betalningen manuellt med PowerShell:
-                </p>
-                <code className="payment-test-command">
-                  .\confirm-payment.ps1 -PaymentId {paymentState.payment?.paymentId}
-                </code>
-                <button
-                  className="copy-button copy-button--small"
-                  type="button"
-                  onClick={() => {
-                    if (paymentState.payment?.paymentId) {
-                      void navigator.clipboard.writeText(
-                        `.\\confirm-payment.ps1 -PaymentId ${paymentState.payment.paymentId}`
-                      )
-                      setMessage({ scope: 'subscribe', status: 'success', text: 'Kommando kopierat!' })
-                    }
-                  }}
-                >
-                  Kopiera kommando
-                </button>
-              </div>
+              <p className="auth-note">
+                Betalningen bekräftas automatiskt när din transaktion fått tillräckligt många
+                konfirmationer i Monero-nätverket. Det kan ta upp till cirka 20 minuter.
+              </p>
               {paymentState.payment?.expiresAt && (
                 <p className="payment-expiry">
                   Betalningen går ut:{' '}
