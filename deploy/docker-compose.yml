@@ -66,12 +66,30 @@ services:
       JWT_ISSUER: accounts-service
       INTERNAL_API_KEY: dev-change-me
       SUBSCRIPTIONS_BASE_URL: http://subscriptions-service:8080
+      MONERO_WALLET_RPC_URL: http://monero-wallet-rpc:18082/json_rpc
     ports:
       - '8084:8084'
     networks:
       - novareport
     depends_on:
       - subscriptions-service
+
+  monero-wallet-rpc:
+    image: monero-project/monero:latest
+    command: >
+      monero-wallet-rpc
+        --stagenet
+        --rpc-bind-ip=0.0.0.0
+        --rpc-bind-port=18082
+        --daemon-address=${MONERO_DAEMON_ADDRESS}
+        --wallet-file=/wallet/${MONERO_WALLET_NAME}
+        --password=${MONERO_WALLET_PASSWORD}
+        --disable-rpc-login
+        --confirm-external-bind
+    volumes:
+      - monero-wallet-data:/wallet
+    networks:
+      - novareport
 
   notifications-service:
     build:
@@ -116,3 +134,4 @@ networks:
 
 volumes:
   reporter-h2:
+  monero-wallet-data:
