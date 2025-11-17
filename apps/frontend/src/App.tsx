@@ -435,7 +435,7 @@ function App() {
     setMessage(null)
 
     try {
-      const amountXmr = plan === 'monthly' ? '0.05' : '0.50'
+      const amountXmr = '0.01'
       const response = await fetch('/api/payments/create', {
         method: 'POST',
         headers: {
@@ -894,7 +894,7 @@ function App() {
               <div className="plan-card">
                 <h3>Månad</h3>
                 <div className="plan-price">
-                  <span className="price-amount">0.05</span>
+                  <span className="price-amount">0.01</span>
                   <span className="price-currency">XMR</span>
                 </div>
                 <p className="plan-description">Tillgång i 30 dagar</p>
