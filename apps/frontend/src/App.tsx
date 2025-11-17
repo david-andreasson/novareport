@@ -883,7 +883,22 @@ function App() {
         </>
       )
       break
-    case 'subscribe':
+    case 'subscribe': {
+      const hasPaymentDetails =
+        (paymentState.phase === 'pending' || paymentState.phase === 'polling') &&
+        paymentState.payment
+
+      let paymentMoneroUri: string | null = null
+      let paymentQrUrl: string | null = null
+
+      if (hasPaymentDetails && paymentState.payment) {
+        const { paymentAddress, amountXmr } = paymentState.payment
+        paymentMoneroUri = `monero:${paymentAddress}?tx_amount=${amountXmr}`
+        paymentQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
+          paymentMoneroUri,
+        )}`
+      }
+
       panelContent = (
         <>
           <h2>Prenumerera</h2>
@@ -950,7 +965,21 @@ function App() {
                 </button>
               </div>
               <div className="payment-qr">
-                <p className="auth-note">QR-kod kommer här (TODO)</p>
+                {paymentQrUrl && paymentMoneroUri ? (
+                  <>
+                    <img
+                      src={paymentQrUrl}
+                      alt="Monero QR-kod för betalning"
+                      className="payment-qr-image"
+                    />
+                    <p className="auth-note">
+                      Skanna QR-koden i din Monero-plånbok eller{' '}
+                      <a href={paymentMoneroUri}>öppna betalning direkt</a>.
+                    </p>
+                  </>
+                ) : (
+                  <p className="auth-note">QR-kod kan inte genereras just nu.</p>
+                )}
               </div>
               <div className="payment-test-info">
                 <p className="auth-note">
@@ -1022,6 +1051,7 @@ function App() {
         </>
       )
       break
+    }
   }
 
   return (
