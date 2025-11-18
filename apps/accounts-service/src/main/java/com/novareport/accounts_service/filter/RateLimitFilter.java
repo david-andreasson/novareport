@@ -27,7 +27,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         
         String path = request.getRequestURI();
-        if (path.startsWith("/auth/login") || path.startsWith("/auth/register")) {
+        if (isAuthRateLimitedPath(path)) {
             String clientIp = getClientIP(request);
             Bucket bucket = rateLimitBuckets.computeIfAbsent(clientIp, k -> rateLimitingConfig.createBucket());
 
@@ -35,12 +35,19 @@ public class RateLimitFilter extends OncePerRequestFilter {
                 filterChain.doFilter(request, response);
             } else {
                 response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
-                response.setContentType("application/json");
-                response.getWriter().write("{\"error\":\"Too many requests. Please try again later.\"}");
+                response.setContentType("text/plain;charset=UTF-8");
+                response.getWriter().write("För många inloggningsförsök. Vänta en stund och försök igen.");
             }
         } else {
             filterChain.doFilter(request, response);
         }
+    }
+
+    private boolean isAuthRateLimitedPath(String path) {
+        return path.startsWith("/auth/login")
+                || path.startsWith("/auth/register")
+                || path.startsWith("/api/accounts/auth/login")
+                || path.startsWith("/api/accounts/auth/register");
     }
 
     private String getClientIP(HttpServletRequest request) {
