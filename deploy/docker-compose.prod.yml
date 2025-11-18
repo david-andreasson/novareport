@@ -81,6 +81,7 @@ services:
       DB_USER: ${PAYMENTS_DB_USER:-payments_xmr_user}
       DB_PASSWORD: ${PAYMENTS_DB_PASSWORD}
       MONERO_WALLET_RPC_URL: http://monero-wallet-rpc:18082/json_rpc
+      MONERO_MIN_CONFIRMATIONS: ${MONERO_MIN_CONFIRMATIONS:-1}
     ports:
       - '18084:8084'
     networks:
