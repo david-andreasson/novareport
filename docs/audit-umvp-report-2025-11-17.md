@@ -215,7 +215,7 @@ Missing or limited:
 3. ✅ Strama åt CORS för produktionsmiljö och dokumentera rekommenderade värden (klar 2025-11-18).
 4. ✅ Standardisera JWT-hantering (antingen genom gemensam modul eller dokumenterad konvention) (klar 2025-11-18).
 5. ✅ Lägg till skydd mot brute-force på login, t.ex. rate limiting eller kontolåsning (klar 2025-11-18).
-6. Inför enkla metrics och exponera dem via Actuator för att kunna följa nyckelflöden.
+6. ✅ Inför enkla metrics och exponera dem via Actuator för att kunna följa nyckelflöden (klar 2025-11-18).
 7. Dela upp `App.tsx` i mindre komponenter och introducera några centrala UI-tester.
 8. Dokumentera produktionskonfiguration (hemligheter, interna nycklar, Monero-noder) i `docs/`.
 9. ✅ Lägg till korrelations-ID i loggar så att en begäran kan följas mellan tjänster (klar 2025-11-18).

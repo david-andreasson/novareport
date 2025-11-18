@@ -15,6 +15,8 @@ import com.novareport.accounts_service.settings.UserSettings;
 import com.novareport.accounts_service.settings.UserSettingsRepository;
 import com.novareport.accounts_service.user.User;
 import com.novareport.accounts_service.user.UserRepository;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.transaction.Transactional;
@@ -40,6 +42,7 @@ public class AuthController {
     private final ActivityLogRepository activity;
     private final PasswordEncoder encoder;
     private final JwtService jwt;
+    private final MeterRegistry meterRegistry;
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
@@ -63,17 +66,38 @@ public class AuthController {
     @PostMapping("/login")
     @Operation(summary = "User login", description = "Authenticates user and returns JWT token")
     public AuthResponse login(@Valid @RequestBody LoginRequest req) {
-        User user = users.findByEmail(req.email())
-            .orElseThrow(() -> InvalidCredentialsException.invalidCredentials());
-        boolean validPassword = encoder.matches(req.password(), user.getPasswordHash());
-        boolean activeAccount = user.getIsActive();
-        if (!validPassword || !activeAccount) {
-            throw InvalidCredentialsException.invalidCredentials();
+        Timer.Sample sample = Timer.start(meterRegistry);
+        String outcome = "error";
+        try {
+            User user = users.findByEmail(req.email())
+                .orElseThrow(() -> InvalidCredentialsException.invalidCredentials());
+            boolean validPassword = encoder.matches(req.password(), user.getPasswordHash());
+            boolean activeAccount = user.getIsActive();
+            if (!validPassword || !activeAccount) {
+                outcome = "invalid_credentials";
+                throw InvalidCredentialsException.invalidCredentials();
+            }
+            ActivityLog loginLog = createActivityLog(user, ActivityEventType.LOGIN);
+            activity.save(loginLog);
+            String token = jwt.createAccessToken(user.getId(), user.getEmail(), user.getRole());
+            outcome = "success";
+            return new AuthResponse(token);
+        } catch (InvalidCredentialsException ex) {
+            if (!"invalid_credentials".equals(outcome)) {
+                outcome = "invalid_credentials";
+            }
+            throw ex;
+        } catch (RuntimeException ex) {
+            outcome = "error";
+            throw ex;
+        } finally {
+            meterRegistry.counter("nova_auth_logins_total", "outcome", outcome).increment();
+            sample.stop(
+                Timer.builder("nova_auth_login_latency_seconds")
+                    .tag("outcome", outcome)
+                    .register(meterRegistry)
+            );
         }
-        ActivityLog loginLog = createActivityLog(user, ActivityEventType.LOGIN);
-        activity.save(loginLog);
-        String token = jwt.createAccessToken(user.getId(), user.getEmail(), user.getRole());
-        return new AuthResponse(token);
     }
 
     @NonNull

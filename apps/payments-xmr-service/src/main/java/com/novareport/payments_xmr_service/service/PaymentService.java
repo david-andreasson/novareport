@@ -6,6 +6,8 @@ import com.novareport.payments_xmr_service.domain.PaymentStatus;
 import com.novareport.payments_xmr_service.dto.CreatePaymentResponse;
 import com.novareport.payments_xmr_service.dto.PaymentStatusResponse;
 import com.novareport.payments_xmr_service.util.LogSanitizer;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,6 +16,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
@@ -34,54 +37,75 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final PaymentEventPublisher eventPublisher;
     private final MoneroWalletClient moneroWalletClient;
+    private final MeterRegistry meterRegistry;
 
     @Value("${payments.fake-mode:true}")
     private boolean fakeMode;
 
     @Transactional
     public CreatePaymentResponse createPayment(UUID userId, String plan, BigDecimal amountXmr) {
-        log.info("Creating payment for user {} with plan {} and amount {}", LogSanitizer.sanitize(userId), LogSanitizer.sanitize(plan), LogSanitizer.sanitize(amountXmr));
+        Timer.Sample sample = Timer.start(meterRegistry);
+        String outcome = "error";
+        String planTag = plan != null ? plan : "unknown";
+        try {
+            log.info("Creating payment for user {} with plan {} and amount {}", LogSanitizer.sanitize(userId), LogSanitizer.sanitize(plan), LogSanitizer.sanitize(amountXmr));
 
-        int durationDays = calculateDurationDays(plan);
+            int durationDays = calculateDurationDays(plan);
 
-        String paymentAddress;
-        Integer walletAccountIndex = null;
-        Integer walletSubaddressIndex = null;
+            String paymentAddress;
+            Integer walletAccountIndex = null;
+            Integer walletSubaddressIndex = null;
 
-        if (fakeMode) {
-            paymentAddress = generateFakeMoneroAddress();
-        } else {
-            int accountIndex = 0;
-            MoneroWalletClient.MoneroSubaddress subaddress = moneroWalletClient.createSubaddress(accountIndex, "novareport-" + userId);
-            paymentAddress = subaddress.address();
-            walletAccountIndex = subaddress.accountIndex();
-            walletSubaddressIndex = subaddress.subaddressIndex();
+            if (fakeMode) {
+                paymentAddress = generateFakeMoneroAddress();
+            } else {
+                int accountIndex = 0;
+                MoneroWalletClient.MoneroSubaddress subaddress = moneroWalletClient.createSubaddress(accountIndex, "novareport-" + userId);
+                paymentAddress = subaddress.address();
+                walletAccountIndex = subaddress.accountIndex();
+                walletSubaddressIndex = subaddress.subaddressIndex();
+            }
+
+            Payment payment = Payment.builder()
+                    .userId(userId)
+                    .paymentAddress(paymentAddress)
+                    .amountXmr(amountXmr)
+                    .plan(plan)
+                    .durationDays(durationDays)
+                    .walletAccountIndex(walletAccountIndex)
+                    .walletSubaddressIndex(walletSubaddressIndex)
+                    .status(PaymentStatus.PENDING)
+                    .build();
+
+            Payment savedPayment = paymentRepository.save(payment);
+            assert savedPayment != null : "Saved payment should never be null";
+
+            log.info("Created payment {} with address {}", savedPayment.getId(), paymentAddress);
+
+            Instant expiresAt = Instant.now().plus(PAYMENT_EXPIRY_HOURS, ChronoUnit.HOURS);
+
+            outcome = "success";
+            return new CreatePaymentResponse(
+                    savedPayment.getId(),
+                    paymentAddress,
+                    amountXmr,
+                    expiresAt
+            );
+        } catch (RuntimeException ex) {
+            outcome = "error";
+            throw ex;
+        } finally {
+            meterRegistry.counter("nova_payments_created_total",
+                    "outcome", outcome,
+                    "plan", planTag
+            ).increment();
+            sample.stop(
+                    Timer.builder("nova_payments_create_latency_seconds")
+                            .tag("outcome", outcome)
+                            .tag("plan", planTag)
+                            .register(meterRegistry)
+            );
         }
-
-        Payment payment = Payment.builder()
-                .userId(userId)
-                .paymentAddress(paymentAddress)
-                .amountXmr(amountXmr)
-                .plan(plan)
-                .durationDays(durationDays)
-                .walletAccountIndex(walletAccountIndex)
-                .walletSubaddressIndex(walletSubaddressIndex)
-                .status(PaymentStatus.PENDING)
-                .build();
-
-        Payment savedPayment = paymentRepository.save(payment);
-        assert savedPayment != null : "Saved payment should never be null";
-
-        log.info("Created payment {} with address {}", savedPayment.getId(), paymentAddress);
-
-        Instant expiresAt = Instant.now().plus(PAYMENT_EXPIRY_HOURS, ChronoUnit.HOURS);
-
-        return new CreatePaymentResponse(
-                savedPayment.getId(),
-                paymentAddress,
-                amountXmr,
-                expiresAt
-        );
     }
 
     @Transactional(readOnly = true)
@@ -101,25 +125,63 @@ public class PaymentService {
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void confirmPayment(UUID paymentId) {
-        log.info("Confirming payment {}", LogSanitizer.sanitize(paymentId));
+        Timer.Sample sample = Timer.start(meterRegistry);
+        String outcome = "error";
+        String planTag = "unknown";
+        Payment payment = null;
+        Payment savedPayment = null;
+        try {
+            log.info("Confirming payment {}", LogSanitizer.sanitize(paymentId));
 
-        Payment payment = paymentRepository.findByIdWithLock(paymentId)
-                .orElseThrow(() -> new PaymentNotFoundException("Payment not found"));
+            payment = paymentRepository.findByIdWithLock(paymentId)
+                    .orElseThrow(() -> new PaymentNotFoundException("Payment not found"));
 
-        if (!payment.isPending()) {
-            log.warn("Payment {} is not pending, current status: {}", LogSanitizer.sanitize(paymentId), LogSanitizer.sanitize(payment.getStatus()));
-            throw new InvalidPaymentStateException("Payment is not in pending state");
+            if (payment.getPlan() != null) {
+                planTag = payment.getPlan();
+            }
+
+            if (!payment.isPending()) {
+                log.warn("Payment {} is not pending, current status: {}", LogSanitizer.sanitize(paymentId), LogSanitizer.sanitize(payment.getStatus()));
+                outcome = "invalid_state";
+                throw new InvalidPaymentStateException("Payment is not in pending state");
+            }
+
+            payment.confirm();
+            savedPayment = paymentRepository.save(payment);
+            assert savedPayment != null : "Saved payment should never be null";
+
+            log.info("Payment {} confirmed, publishing event for subscription activation", LogSanitizer.sanitize(paymentId));
+
+            // Publish event that will be handled after transaction commit
+            // This ensures subscription activation happens outside the transaction boundary
+            eventPublisher.publishPaymentConfirmed(savedPayment);
+            outcome = "success";
+        } catch (RuntimeException ex) {
+            if (!"invalid_state".equals(outcome)) {
+                outcome = "error";
+            }
+            throw ex;
+        } finally {
+            meterRegistry.counter("nova_payments_confirmed_total",
+                    "outcome", outcome,
+                    "plan", planTag
+            ).increment();
+
+            if ("success".equals(outcome) && payment != null && payment.getCreatedAt() != null && payment.getConfirmedAt() != null) {
+                Duration timeToConfirm = Duration.between(payment.getCreatedAt(), payment.getConfirmedAt());
+                Timer.builder("nova_payments_time_to_confirm_seconds")
+                        .tag("plan", planTag)
+                        .register(meterRegistry)
+                        .record(timeToConfirm);
+            }
+
+            sample.stop(
+                    Timer.builder("nova_payments_confirm_latency_seconds")
+                            .tag("outcome", outcome)
+                            .tag("plan", planTag)
+                            .register(meterRegistry)
+            );
         }
-
-        payment.confirm();
-        Payment savedPayment = paymentRepository.save(payment);
-        assert savedPayment != null : "Saved payment should never be null";
-
-        log.info("Payment {} confirmed, publishing event for subscription activation", LogSanitizer.sanitize(paymentId));
-
-        // Publish event that will be handled after transaction commit
-        // This ensures subscription activation happens outside the transaction boundary
-        eventPublisher.publishPaymentConfirmed(savedPayment);
     }
 
     private String generateFakeMoneroAddress() {

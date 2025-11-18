@@ -8,6 +8,8 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,6 +29,7 @@ import java.util.Map;
 public class MoneroWalletClient {
 
     private final RestTemplate restTemplate;
+    private final MeterRegistry meterRegistry;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -99,79 +102,98 @@ public class MoneroWalletClient {
     }
 
     private Map<String, Object> invokeRpc(String method, Map<String, Object> params) {
-        Map<String, Object> request = new HashMap<>();
-        request.put("jsonrpc", "2.0");
-        request.put("id", "0");
-        request.put("method", method);
-        if (params != null && !params.isEmpty()) {
-            request.put("params", params);
-        }
-
-        if (walletRpcUrl == null || walletRpcUrl.isBlank()) {
-            throw new IllegalStateException("Monero wallet RPC URL is not configured");
-        }
-
-        String requestBody;
+        Timer.Sample sample = Timer.start(meterRegistry);
+        String outcome = "error";
         try {
-            requestBody = objectMapper.writeValueAsString(request);
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException("Failed to serialize Monero wallet RPC request", e);
-        }
-
-        log.info("Calling Monero wallet RPC. url={}, method={}, rawRequest={}", walletRpcUrl, method, requestBody);
-
-        String responseBody;
-        try {
-            URL url = new URL(walletRpcUrl);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/json");
-            connection.setDoOutput(true);
-
-            byte[] bytes = requestBody.getBytes(StandardCharsets.UTF_8);
-            connection.setFixedLengthStreamingMode(bytes.length);
-            connection.getOutputStream().write(bytes);
-
-            int status = connection.getResponseCode();
-            InputStream inputStream = status >= 400 ? connection.getErrorStream() : connection.getInputStream();
-            if (inputStream == null) {
-                throw new IllegalStateException("Empty response stream from Monero wallet RPC, HTTP status=" + status);
+            Map<String, Object> request = new HashMap<>();
+            request.put("jsonrpc", "2.0");
+            request.put("id", "0");
+            request.put("method", method);
+            if (params != null && !params.isEmpty()) {
+                request.put("params", params);
             }
-            responseBody = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-        } catch (MalformedURLException e) {
-            throw new IllegalStateException("Invalid Monero wallet RPC URL: " + walletRpcUrl, e);
-        } catch (IOException e) {
-            throw new IllegalStateException("Failed to call Monero wallet RPC", e);
+
+            if (walletRpcUrl == null || walletRpcUrl.isBlank()) {
+                throw new IllegalStateException("Monero wallet RPC URL is not configured");
+            }
+
+            String requestBody;
+            try {
+                requestBody = objectMapper.writeValueAsString(request);
+            } catch (JsonProcessingException e) {
+                throw new IllegalStateException("Failed to serialize Monero wallet RPC request", e);
+            }
+
+            log.info("Calling Monero wallet RPC. url={}, method={}, rawRequest={}", walletRpcUrl, method, requestBody);
+
+            String responseBody;
+            try {
+                URL url = new URL(walletRpcUrl);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("POST");
+                connection.setRequestProperty("Content-Type", "application/json");
+                connection.setDoOutput(true);
+
+                byte[] bytes = requestBody.getBytes(StandardCharsets.UTF_8);
+                connection.setFixedLengthStreamingMode(bytes.length);
+                connection.getOutputStream().write(bytes);
+
+                int status = connection.getResponseCode();
+                InputStream inputStream = status >= 400 ? connection.getErrorStream() : connection.getInputStream();
+                if (inputStream == null) {
+                    throw new IllegalStateException("Empty response stream from Monero wallet RPC, HTTP status=" + status);
+                }
+                responseBody = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+            } catch (MalformedURLException e) {
+                throw new IllegalStateException("Invalid Monero wallet RPC URL: " + walletRpcUrl, e);
+            } catch (IOException e) {
+                throw new IllegalStateException("Failed to call Monero wallet RPC", e);
+            }
+
+            log.info("Monero wallet RPC raw response for method {}: {}", method, responseBody);
+
+            Map<?, ?> response;
+            try {
+                response = objectMapper.readValue(responseBody, Map.class);
+            } catch (IOException e) {
+                throw new IllegalStateException("Failed to parse Monero wallet RPC response", e);
+            }
+
+            if (response == null) {
+                throw new IllegalStateException("Empty response from Monero wallet RPC");
+            }
+
+            Object errorValue = response.get("error");
+            if (errorValue instanceof Map<?, ?> errorMap) {
+                Object code = errorMap.get("code");
+                Object message = errorMap.get("message");
+                log.error("Monero wallet RPC returned error. method={}, code={}, message={}, response={}", method, code, message, responseBody);
+                throw new IllegalStateException("Monero wallet RPC error: " + message);
+            }
+
+            Object resultValue = response.get("result");
+            if (!(resultValue instanceof Map<?, ?>)) {
+                throw new IllegalStateException("Invalid result from Monero wallet RPC");
+            }
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> result = (Map<String, Object>) resultValue;
+            outcome = "success";
+            return result;
+        } catch (RuntimeException ex) {
+            outcome = "error";
+            throw ex;
+        } finally {
+            meterRegistry.counter("nova_monero_rpc_requests_total",
+                    "method", method,
+                    "outcome", outcome
+            ).increment();
+            sample.stop(
+                    Timer.builder("nova_monero_rpc_latency_seconds")
+                            .tag("method", method)
+                            .tag("outcome", outcome)
+                            .register(meterRegistry)
+            );
         }
-
-        log.info("Monero wallet RPC raw response for method {}: {}", method, responseBody);
-
-        Map<?, ?> response;
-        try {
-            response = objectMapper.readValue(responseBody, Map.class);
-        } catch (IOException e) {
-            throw new IllegalStateException("Failed to parse Monero wallet RPC response", e);
-        }
-
-        if (response == null) {
-            throw new IllegalStateException("Empty response from Monero wallet RPC");
-        }
-
-        Object errorValue = response.get("error");
-        if (errorValue instanceof Map<?, ?> errorMap) {
-            Object code = errorMap.get("code");
-            Object message = errorMap.get("message");
-            log.error("Monero wallet RPC returned error. method={}, code={}, message={}, response={}", method, code, message, responseBody);
-            throw new IllegalStateException("Monero wallet RPC error: " + message);
-        }
-
-        Object resultValue = response.get("result");
-        if (!(resultValue instanceof Map<?, ?>)) {
-            throw new IllegalStateException("Invalid result from Monero wallet RPC");
-        }
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> result = (Map<String, Object>) resultValue;
-        return result;
     }
 }
