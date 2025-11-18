@@ -1,6 +1,7 @@
 package com.novareport.reporter_service.client;
 
 import com.novareport.reporter_service.domain.SubscriptionAccessResponse;
+import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -16,10 +17,16 @@ public class SubscriptionsClient {
     }
 
     public Mono<SubscriptionAccessResponse> hasAccess(String baseUrl, String bearerToken) {
+        String correlationId = MDC.get("correlationId");
         return webClient
             .get()
             .uri(baseUrl + "/api/v1/subscriptions/me/has-access")
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + bearerToken)
+            .headers(headers -> {
+                if (correlationId != null && !correlationId.isBlank()) {
+                    headers.set("X-Correlation-ID", correlationId);
+                }
+            })
             .retrieve()
             .bodyToMono(SubscriptionAccessResponse.class);
     }
