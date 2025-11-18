@@ -52,7 +52,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
             try {
-                Claims claims = jwtService.parse(token).getBody();
+                Claims claims = jwtService.parse(token);
                 String subject = claims.getSubject();
                 String role = (String) claims.get("role");
                 Object uidClaim = claims.get("uid");
