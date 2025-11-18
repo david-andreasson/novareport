@@ -1,46 +1,58 @@
 package com.novareport.reporter_service.exception;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 
-@ControllerAdvice
+@RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
-
     @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<ApiError> handleResponseStatus(ResponseStatusException exception) {
-        HttpStatus status = exception.getStatusCode() instanceof HttpStatus httpStatus ? httpStatus : HttpStatus.BAD_REQUEST;
-        ApiError body = new ApiError(status, status.getReasonPhrase(), exception.getReason());
-        return ResponseEntity.status(status).body(body);
+    public ProblemDetail handleResponseStatus(ResponseStatusException exception) {
+        HttpStatus status = exception.getStatusCode() instanceof HttpStatus httpStatus
+                ? httpStatus
+                : HttpStatus.BAD_REQUEST;
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                status,
+                exception.getReason() != null ? exception.getReason() : "Request failed"
+        );
+        problem.setTitle("Request Error");
+        return problem;
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException exception) {
-        String message = exception.getBindingResult().getAllErrors().stream()
-            .findFirst()
-            .map(error -> error.getDefaultMessage() != null ? error.getDefaultMessage() : error.getCode())
-            .orElse("Validation error");
-        ApiError body = new ApiError(HttpStatus.BAD_REQUEST, "Validation error", message);
-        return ResponseEntity.badRequest().body(body);
+    public ProblemDetail handleValidation(MethodArgumentNotValidException exception) {
+        String detail = exception.getBindingResult().getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("Validation failed");
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, detail);
+        problem.setTitle("Validation Failed");
+        return problem;
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ApiError> handleIllegalArgument(IllegalArgumentException exception) {
-        ApiError body = new ApiError(HttpStatus.BAD_REQUEST, "Bad request", exception.getMessage());
-        return ResponseEntity.badRequest().body(body);
+    public ProblemDetail handleIllegalArgument(IllegalArgumentException exception) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
+        problem.setTitle("Invalid Request");
+        return problem;
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiError> handleUnknown(Exception exception) {
+    public ProblemDetail handleUnknown(Exception exception) {
         log.error("Unexpected error", exception);
-        ApiError body = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, "Internal error", "Something went wrong");
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "An unexpected error occurred"
+        );
+        problem.setTitle("Internal Server Error");
+        return problem;
     }
 }

@@ -3,6 +3,7 @@ package com.novareport.payments_xmr_service.service;
 import com.novareport.payments_xmr_service.dto.ActivateSubscriptionRequest;
 import com.novareport.payments_xmr_service.util.LogSanitizer;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -69,6 +70,10 @@ public class SubscriptionsClient {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.set("X-INTERNAL-KEY", internalApiKey);
+            String correlationId = MDC.get("correlationId");
+            if (correlationId != null && !correlationId.isBlank()) {
+                headers.set("X-Correlation-ID", correlationId);
+            }
             HttpEntity<ActivateSubscriptionRequest> entity = new HttpEntity<>(request, headers);
             
             var response = restTemplate.exchange(url, HttpMethod.POST, entity, Void.class);
