@@ -1,7 +1,6 @@
 package com.novareport.accounts_service.security;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -41,7 +40,12 @@ public class JwtService {
                 .compact();
     }
 
-    public Jws<Claims> parse(String token) {
-        return Jwts.parserBuilder().setSigningKey(key).requireIssuer(issuer).build().parseClaimsJws(token);
+    public Claims parse(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .requireIssuer(issuer)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 }

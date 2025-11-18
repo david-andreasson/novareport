@@ -123,7 +123,7 @@ Missing or limited:
 1. ✅ Introduce a shared error handling strategy using `@ControllerAdvice` and RFC 7807 Problem Details for public APIs (implemented 2025-11-18).
 2. Add basic unit tests for critical flows in `accounts-service`, `subscriptions-service`, `payments-xmr-service`, and `reporter-service`.
 3. ✅ Tighten CORS configurations to known frontend origins for production deployments (implemented 2025-11-18).
-4. Centralize JWT handling patterns or document them clearly to avoid divergence between services.
+4. ✅ Centralize JWT handling patterns or document them clearly to avoid divergence between services (implemented 2025-11-18).
 5. Add rate limiting/brute-force protection or account lockout on `/auth/login`.
 6. Implement minimal metrics (e.g., request counts, payment confirmations, report generations) and expose via Actuator.
 7. Improve frontend structure by splitting `App.tsx` into smaller view components and adding a few key UI tests.
@@ -213,7 +213,7 @@ Missing or limited:
 1. ✅ Inför central felhantering och Problem Details för externa API:er (klar 2025-11-18).
 2. Lägg till grundläggande enhetstester för auth, prenumerationer, betalningar och rapporter.
 3. ✅ Strama åt CORS för produktionsmiljö och dokumentera rekommenderade värden (klar 2025-11-18).
-4. Standardisera JWT-hantering (antingen genom gemensam modul eller dokumenterad konvention).
+4. ✅ Standardisera JWT-hantering (antingen genom gemensam modul eller dokumenterad konvention) (klar 2025-11-18).
 5. Lägg till skydd mot brute-force på login, t.ex. rate limiting eller kontolåsning.
 6. Inför enkla metrics och exponera dem via Actuator för att kunna följa nyckelflöden.
 7. Dela upp `App.tsx` i mindre komponenter och introducera några centrala UI-tester.
