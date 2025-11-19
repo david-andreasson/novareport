@@ -6,6 +6,7 @@ import com.novareport.notifications_service.dto.ReportReadyNotificationRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Optional;
 
@@ -13,9 +14,14 @@ import java.util.Optional;
 public class NotificationReportService {
 
     private final NotificationReportRepository repository;
+    private final DiscordReportService discordReportService;
 
-    public NotificationReportService(NotificationReportRepository repository) {
+    public NotificationReportService(
+        NotificationReportRepository repository,
+        DiscordReportService discordReportService
+    ) {
         this.repository = repository;
+        this.discordReportService = discordReportService;
     }
 
     @Transactional
@@ -27,7 +33,15 @@ public class NotificationReportService {
         report.setReportDate(request.reportDate());
         report.setSummary(request.summary());
 
-        return repository.save(report);
+        NotificationReport saved = repository.save(report);
+
+        boolean sent = discordReportService.sendDailyReport(saved);
+        if (sent) {
+            saved.setDiscordSentAt(Instant.now());
+            saved = repository.save(saved);
+        }
+
+        return saved;
     }
 
     @Transactional(readOnly = true)
