@@ -38,5 +38,7 @@ public class UserSettings {
     @Builder.Default
     private Boolean marketingOptIn = false;
     @Builder.Default
+    private Boolean reportEmailOptIn = false;
+    @Builder.Default
     private Boolean twoFactorEnabled = false;
 }

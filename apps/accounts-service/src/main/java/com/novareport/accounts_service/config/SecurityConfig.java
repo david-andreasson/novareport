@@ -1,7 +1,9 @@
 package com.novareport.accounts_service.config;
 
+import com.novareport.accounts_service.security.InternalApiKeyFilter;
 import com.novareport.accounts_service.security.JwtAuthenticationFilter;
 import com.novareport.accounts_service.security.JwtService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,9 +18,13 @@ import org.springframework.web.cors.CorsConfigurationSource;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http,
-                                          JwtAuthenticationFilter jwtAuthenticationFilter,
-                                          CorsConfigurationSource corsConfigurationSource) throws Exception {
+    public SecurityFilterChain filterChain(
+        HttpSecurity http,
+        JwtAuthenticationFilter jwtAuthenticationFilter,
+        @Value("${internal.api-key:}") String internalApiKey,
+        CorsConfigurationSource corsConfigurationSource
+    ) throws Exception {
+        InternalApiKeyFilter internalFilter = new InternalApiKeyFilter(internalApiKey);
         return http
             .cors(cors -> cors.configurationSource(corsConfigurationSource))
             .csrf(csrf -> csrf.disable())
@@ -34,10 +40,12 @@ public class SecurityConfig {
                     "/swagger-resources/**",
                     "/v3/api-docs",
                     "/v3/api-docs/**",
-                    "/error"
+                    "/error",
+                    "/api/accounts/internal/**"
                 ).permitAll()
                 .anyRequest().authenticated()
             )
+            .addFilterBefore(internalFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
             .build();
     }

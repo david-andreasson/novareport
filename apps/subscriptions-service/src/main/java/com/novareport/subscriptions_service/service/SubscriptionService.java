@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -103,6 +104,15 @@ public class SubscriptionService {
                             .register(meterRegistry)
             );
         }
+    }
+
+    @Transactional(readOnly = true)
+    public List<UUID> findActiveUserIds(Instant now) {
+        return repository.findDistinctUserIdByStatusAndStartAtLessThanEqualAndEndAtGreaterThanEqual(
+            SubscriptionStatus.ACTIVE,
+            now,
+            now
+        );
     }
 
     @Transactional

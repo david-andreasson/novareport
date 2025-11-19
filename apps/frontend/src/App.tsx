@@ -105,6 +105,7 @@ function App() {
     locale: 'sv-SE',
     timezone: 'Europe/Stockholm',
     marketingOptIn: false,
+    reportEmailOptIn: false,
   })
   const [message, setMessage] = useState<Message | null>(null)
   const [loading, setLoading] = useState<View | null>(null)
@@ -325,7 +326,7 @@ function App() {
       setSettingsForm((prev) => ({ ...prev, [field]: value }))
     }
 
-  const handleSettingsCheckbox = (field: 'marketingOptIn') =>
+  const handleSettingsCheckbox = (field: 'marketingOptIn' | 'reportEmailOptIn') =>
     (event: ChangeEvent<HTMLInputElement>) => {
       const { checked } = event.target
       setSettingsForm((prev) => ({ ...prev, [field]: checked }))
@@ -842,6 +843,16 @@ function App() {
                 disabled={!token || loading === 'settings'}
               />
               <span>Ta emot nyheter och uppdateringar</span>
+            </label>
+            <label className="checkbox-row">
+              <input
+                type="checkbox"
+                name="settingsReportEmail"
+                checked={settingsForm.reportEmailOptIn}
+                onChange={handleSettingsCheckbox('reportEmailOptIn')}
+                disabled={!token || loading === 'settings'}
+              />
+              <span>Ta emot daglig rapport via e-post</span>
             </label>
             <button className="pill-button" type="submit" disabled={!token || loading === 'settings'}>
               {loading === 'settings' ? 'Sparar…' : 'Spara inställningar'}
