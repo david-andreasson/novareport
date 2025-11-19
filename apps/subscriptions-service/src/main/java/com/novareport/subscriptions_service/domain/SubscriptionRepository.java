@@ -1,6 +1,8 @@
 package com.novareport.subscriptions_service.domain;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
 import java.util.List;
@@ -23,9 +25,10 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
         Instant endAt
     );
 
+    @Query("select distinct s.userId from Subscription s where s.status = :status and s.startAt <= :startAt and s.endAt >= :endAt")
     List<UUID> findDistinctUserIdByStatusAndStartAtLessThanEqualAndEndAtGreaterThanEqual(
-        SubscriptionStatus status,
-        Instant startAt,
-        Instant endAt
+        @Param("status") SubscriptionStatus status,
+        @Param("startAt") Instant startAt,
+        @Param("endAt") Instant endAt
     );
 }
