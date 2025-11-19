@@ -6,6 +6,7 @@ import com.novareport.notifications_service.dto.ReportReadyNotificationRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 @Service
@@ -32,5 +33,15 @@ public class NotificationReportService {
     @Transactional(readOnly = true)
     public Optional<NotificationReport> findLatest() {
         return repository.findTop1ByOrderByReportDateDesc();
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<NotificationReport> findByReportDate(LocalDate date) {
+        return repository.findByReportDate(date);
+    }
+
+    @Transactional
+    public NotificationReport save(NotificationReport report) {
+        return repository.save(report);
     }
 }

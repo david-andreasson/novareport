@@ -43,6 +43,7 @@ public class UserController {
         s.setLocale(req.locale());
         s.setTimezone(req.timezone());
         s.setMarketingOptIn(Boolean.TRUE.equals(req.marketingOptIn()));
+        s.setReportEmailOptIn(Boolean.TRUE.equals(req.reportEmailOptIn()));
         s.setTwoFactorEnabled(Boolean.TRUE.equals(req.twoFactorEnabled()));
         settings.save(s);
     }

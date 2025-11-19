@@ -45,6 +45,15 @@ public class NotificationReport {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @Column(name = "email_sent_at")
+    private Instant emailSentAt;
+
+    @Column(name = "discord_sent_at")
+    private Instant discordSentAt;
+
+    @Column(name = "telegram_sent_at")
+    private Instant telegramSentAt;
+
     @PrePersist
     void onCreate() {
         Instant now = Instant.now();

@@ -11,6 +11,7 @@ public record UpdateSettingsRequest(
         @Pattern(regexp = "^[A-Za-z]+/[A-Za-z_]+$", message = "Invalid timezone format. Use IANA Time Zone identifier, e.g., 'Europe/Stockholm'.")
         String timezone,
         Boolean marketingOptIn,
+        Boolean reportEmailOptIn,
         Boolean twoFactorEnabled
 ) {
 }
