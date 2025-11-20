@@ -436,35 +436,37 @@ function App() {
         flushList()
 
         const level = headingMatch[1].length
-        const text = headingMatch[2].trim()
+        const rawText = headingMatch[2].trim()
+        // Remove leading numeric prefixes like "1. ", "2) " to avoid cluttered headings
+        const cleanedText = rawText.replace(/^[0-9]+[.)]\s*/, '') || rawText
 
         let heading: JSX.Element
         switch (level) {
           case 1:
             heading = (
               <h1 key={`h-${elements.length}`} className="report-summary__heading report-summary__heading--h1">
-                {text}
+                {cleanedText}
               </h1>
             )
             break
           case 2:
             heading = (
               <h2 key={`h-${elements.length}`} className="report-summary__heading report-summary__heading--h2">
-                {text}
+                {cleanedText}
               </h2>
             )
             break
           case 3:
             heading = (
               <h3 key={`h-${elements.length}`} className="report-summary__heading report-summary__heading--h3">
-                {text}
+                {cleanedText}
               </h3>
             )
             break
           default:
             heading = (
               <h4 key={`h-${elements.length}`} className="report-summary__heading report-summary__heading--h4">
-                {text}
+                {cleanedText}
               </h4>
             )
             break
