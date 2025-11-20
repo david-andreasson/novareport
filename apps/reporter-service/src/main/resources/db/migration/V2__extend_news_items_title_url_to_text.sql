@@ -1,0 +1,3 @@
+ALTER TABLE news_items
+    ALTER COLUMN url TYPE TEXT,
+    ALTER COLUMN title TYPE TEXT;
