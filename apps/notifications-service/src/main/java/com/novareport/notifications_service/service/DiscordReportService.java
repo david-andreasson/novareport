@@ -58,7 +58,7 @@ public class DiscordReportService {
 
     private Map<String, Object> buildEmbedPayload(LocalDate date, String summary) {
         String full = summary != null ? summary.trim() : "";
-        String mainTitle = "Nova Report – Daily report " + date;
+        String mainTitle = "Nova Report – 4 Hour Report " + date;
 
         List<Map<String, Object>> embeds = new ArrayList<>();
 
@@ -203,6 +203,8 @@ public class DiscordReportService {
             if (trimmedLeading.startsWith("#")) {
                 // Remove leading '#' characters and following single space
                 String headingText = trimmedLeading.replaceFirst("^#+\\s*", "").trim();
+                // Remove leading numeric prefixes like "1. ", "2) " to avoid clutter in headings
+                headingText = headingText.replaceFirst("^[0-9]+[.)]\\s*", "").trim();
                 if (!headingText.isEmpty()) {
                     sb.append("**").append(headingText).append("**");
                 }
