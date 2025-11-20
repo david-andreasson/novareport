@@ -105,7 +105,7 @@ body {
 }
 
 .auth-panel {
-  width: min(420px, 100%);
+  width: min(880px, 100%);
   background: #fbfcff;
   border-radius: 18px;
   border: 1px solid rgba(78, 95, 145, 0.16);
