@@ -68,7 +68,7 @@ public class DiscordReportService {
 
         if (sections.isEmpty()) {
             // Fallback: single embed with truncated full text
-            String desc = truncate(full, maxDescriptionLength);
+            String desc = truncate(stripMarkdownHeadings(full), maxDescriptionLength);
             Map<String, Object> embed = Map.of(
                 "title", mainTitle,
                 "description", desc
@@ -77,7 +77,7 @@ public class DiscordReportService {
         } else {
             for (int i = 0; i < sections.size() && i < 4; i++) {
                 Section section = sections.get(i);
-                String desc = truncate(section.body(), maxDescriptionLength);
+                String desc = truncate(stripMarkdownHeadings(section.body()), maxDescriptionLength);
                 String embedTitle = i == 0 ? mainTitle : section.title();
 
                 Map<String, Object> embed = Map.of(
@@ -129,11 +129,34 @@ public class DiscordReportService {
 
         for (int i = 0; i < positions.size(); i++) {
             HeadingPos current = positions.get(i);
-            int start = (i == 0 && current.index() > 0) ? 0 : current.index();
-            int end = (i + 1 < positions.size()) ? positions.get(i + 1).index() : full.length();
 
-            if (start >= 0 && start < end && end <= full.length()) {
-                String part = full.substring(start, end).trim();
+            // Find the start index of the heading and then the end of its line
+            int headingIndex = current.index();
+
+            // Find the end of the heading line (newline after the heading)
+            int headingLineEnd = full.indexOf('\n', headingIndex);
+            if (headingLineEnd < 0) {
+                headingLineEnd = headingIndex + current.title().length();
+            } else {
+                headingLineEnd += 1; // move past the newline
+            }
+
+            // Body starts after the heading line
+            int bodyStart = headingLineEnd;
+
+            // Section ends at the start of the next heading line
+            int end;
+            if (i + 1 < positions.size()) {
+                HeadingPos next = positions.get(i + 1);
+                int nextHeadingIndex = next.index();
+                int nextLineStart = lastIndexOfNewline(full, nextHeadingIndex);
+                end = nextLineStart;
+            } else {
+                end = full.length();
+            }
+
+            if (bodyStart >= 0 && bodyStart < end && end <= full.length()) {
+                String part = full.substring(bodyStart, end).trim();
                 if (!part.isEmpty()) {
                     sections.add(new Section(current.title(), part));
                 }
@@ -145,6 +168,39 @@ public class DiscordReportService {
 
     private int indexOfIgnoreCase(String text, String search) {
         return text.toLowerCase().indexOf(search.toLowerCase());
+    }
+
+    private int lastIndexOfNewline(String text, int beforeIndex) {
+        if (beforeIndex <= 0) {
+            return 0;
+        }
+        int idx = text.lastIndexOf('\n', beforeIndex - 1);
+        return idx >= 0 ? idx + 1 : 0;
+    }
+
+    private String stripMarkdownHeadings(String text) {
+        if (text == null || text.isBlank()) {
+            return "";
+        }
+
+        String[] lines = text.split("\n");
+        StringBuilder sb = new StringBuilder();
+
+        for (String line : lines) {
+            String trimmed = line.stripLeading();
+            if (trimmed.startsWith("#")) {
+                // Remove leading '#' characters and following single space
+                trimmed = trimmed.replaceFirst("^#+\\s*", "");
+            }
+            if (!trimmed.isEmpty()) {
+                if (!sb.isEmpty()) {
+                    sb.append('\n');
+                }
+                sb.append(trimmed);
+            }
+        }
+
+        return sb.toString();
     }
 
     private record HeadingPos(String title, int index) { }

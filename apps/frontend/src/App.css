@@ -205,6 +205,34 @@ body {
   color: #6a738a;
 }
 
+.report-summary__heading {
+  margin: 0;
+}
+
+.report-summary__heading--h1 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.report-summary__heading--h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.report-summary__heading--h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.report-summary__heading--h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #111827;
+}
+
 .report-actions {
   display: flex;
   justify-content: flex-end;

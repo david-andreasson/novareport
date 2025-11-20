@@ -391,39 +391,113 @@ function App() {
   }
 
   const renderReportSummary = (summary: string) => {
-    const lines = summary
-      .split('\n')
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0)
+    const rawLines = summary.split('\n')
 
-    if (lines.length === 0) {
+    const elements: JSX.Element[] = []
+    let paragraphLines: string[] = []
+    let listItems: string[] | null = null
+
+    const flushParagraph = () => {
+      if (paragraphLines.length > 0) {
+        elements.push(
+          <p key={`p-${elements.length}`} className="report-summary__paragraph">
+            {paragraphLines.join(' ')}
+          </p>,
+        )
+        paragraphLines = []
+      }
+    }
+
+    const flushList = () => {
+      if (listItems && listItems.length > 0) {
+        elements.push(
+          <ul key={`ul-${elements.length}`} className="report-summary__list">
+            {listItems.map((item, index) => (
+              <li key={index}>{item}</li>
+            ))}
+          </ul>,
+        )
+        listItems = null
+      }
+    }
+
+    for (let i = 0; i < rawLines.length; i++) {
+      const line = rawLines[i].trim()
+
+      if (line.length === 0) {
+        flushParagraph()
+        flushList()
+        continue
+      }
+
+      const headingMatch = line.match(/^(#{1,6})\s+(.*)$/)
+      if (headingMatch) {
+        flushParagraph()
+        flushList()
+
+        const level = headingMatch[1].length
+        const text = headingMatch[2].trim()
+
+        let heading: JSX.Element
+        switch (level) {
+          case 1:
+            heading = (
+              <h1 key={`h-${elements.length}`} className="report-summary__heading report-summary__heading--h1">
+                {text}
+              </h1>
+            )
+            break
+          case 2:
+            heading = (
+              <h2 key={`h-${elements.length}`} className="report-summary__heading report-summary__heading--h2">
+                {text}
+              </h2>
+            )
+            break
+          case 3:
+            heading = (
+              <h3 key={`h-${elements.length}`} className="report-summary__heading report-summary__heading--h3">
+                {text}
+              </h3>
+            )
+            break
+          default:
+            heading = (
+              <h4 key={`h-${elements.length}`} className="report-summary__heading report-summary__heading--h4">
+                {text}
+              </h4>
+            )
+            break
+        }
+
+        elements.push(heading)
+        continue
+      }
+
+      if (line.startsWith('- ')) {
+        flushParagraph()
+        if (!listItems) {
+          listItems = []
+        }
+        listItems.push(line.replace(/^-\s*/, ''))
+        continue
+      }
+
+      if (listItems) {
+        flushList()
+      }
+
+      paragraphLines.push(line)
+    }
+
+    flushParagraph()
+    flushList()
+
+    if (elements.length === 0) {
       return <p className="report-summary__empty">Ingen sammanfattning tillgänglig.</p>
     }
 
-    const lead = lines[0].startsWith('- ') ? null : lines[0]
-    const remainder = lead ? lines.slice(1) : lines
-    const bullets = remainder
-      .filter((line) => line.startsWith('- '))
-      .map((line) => line.replace(/^-\s*/, ''))
-    const paragraphs = remainder.filter((line) => !line.startsWith('- '))
-
-    return (
-      <>
-        {lead && <p className="report-summary__lead">{lead}</p>}
-        {bullets.length > 0 && (
-          <ul className="report-summary__list">
-            {bullets.map((item, index) => (
-              <li key={index}>{item}</li>
-            ))}
-          </ul>
-        )}
-        {paragraphs.map((text, index) => (
-          <p key={`p-${index}`} className="report-summary__paragraph">
-            {text}
-          </p>
-        ))}
-      </>
-    )
+    return <>{elements}</>
   }
 
   const handleSelectPlan = async (plan: 'monthly' | 'yearly') => {
