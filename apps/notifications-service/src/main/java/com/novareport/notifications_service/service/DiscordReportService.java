@@ -10,6 +10,8 @@ import org.springframework.util.StringUtils;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class DiscordReportService {
@@ -40,10 +42,10 @@ public class DiscordReportService {
             return false;
         }
 
-        String message = buildMessage(report.getReportDate(), report.getSummary());
+        Map<String, Object> payload = buildEmbedPayload(report.getReportDate(), report.getSummary());
 
         try {
-            discordClient.sendMessage(webhookUrl, message)
+            discordClient.sendPayload(webhookUrl, payload)
                 .timeout(Duration.ofSeconds(5))
                 .block();
             return true;
@@ -53,33 +55,26 @@ public class DiscordReportService {
         }
     }
 
-    private String buildMessage(LocalDate date, String summary) {
+    private Map<String, Object> buildEmbedPayload(LocalDate date, String summary) {
         String title = "Nova Report – Daily report " + date;
-        String separator = "\n\n";
-
-        // Discord max content length is 2000 characters.
-        int maxLength = 2000;
-
-        StringBuilder sb = new StringBuilder();
-        sb.append(title);
-
-        int remaining = maxLength - sb.length() - separator.length();
-        if (remaining <= 0) {
-            // Extremely unlikely, but guard just in case title is already too long.
-            return sb.substring(0, Math.min(maxLength, sb.length()));
-        }
 
         String effectiveSummary = summary != null ? summary : "";
-        if (effectiveSummary.length() > remaining) {
-            // Leave room for ellipsis when truncating.
-            int cut = Math.max(0, remaining - 3);
+
+        // Discord embed description max length is 4096 characters.
+        int maxDescriptionLength = 4096;
+        if (effectiveSummary.length() > maxDescriptionLength) {
+            int cut = Math.max(0, maxDescriptionLength - 3);
             effectiveSummary = effectiveSummary.substring(0, cut) + "...";
         }
 
-        sb.append(separator).append(effectiveSummary);
-        if (sb.length() > maxLength) {
-            return sb.substring(0, maxLength);
-        }
-        return sb.toString();
+        Map<String, Object> embed = Map.of(
+            "title", title,
+            "description", effectiveSummary
+        );
+
+        return Map.of(
+            "content", "",
+            "embeds", List.of(embed)
+        );
     }
 }
