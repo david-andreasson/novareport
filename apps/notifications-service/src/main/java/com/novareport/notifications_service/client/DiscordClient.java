@@ -10,6 +10,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
+import java.util.Map;
 
 @Component
 public class DiscordClient {
@@ -28,6 +29,10 @@ public class DiscordClient {
 
         String correlationId = MDC.get("correlationId");
 
+        log.debug("Sending Discord message with length={} chars", content.length());
+
+        Map<String, Object> body = Map.of("content", content);
+
         return webClient
             .post()
             .uri(webhookUrl)
@@ -37,14 +42,18 @@ public class DiscordClient {
                     headers.set("X-Correlation-ID", correlationId);
                 }
             })
-            .bodyValue("{" + "\"content\": " + toJsonString(content) + "}")
-            .retrieve()
-            .bodyToMono(Void.class)
-            .doOnSuccess(unused -> log.info("Sent Discord message"))
-            .doOnError(ex -> log.warn("Failed to send Discord message: {}", ex.getMessage()));
-    }
-
-    private String toJsonString(String value) {
-        return "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
+            .bodyValue(body)
+            .exchangeToMono(response -> {
+                if (response.statusCode().is2xxSuccessful()) {
+                    return response.bodyToMono(Void.class)
+                        .doOnSuccess(unused -> log.info("Sent Discord message, status={}", response.statusCode()));
+                }
+                return response.bodyToMono(String.class)
+                    .defaultIfEmpty("")
+                    .flatMap(errorBody -> {
+                        log.warn("Failed to send Discord message, status={}, body={}", response.statusCode(), errorBody);
+                        return Mono.error(new IllegalStateException("Discord webhook returned " + response.statusCode()));
+                    });
+            });
     }
 }
