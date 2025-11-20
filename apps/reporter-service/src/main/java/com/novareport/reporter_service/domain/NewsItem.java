@@ -33,10 +33,10 @@ public class NewsItem {
     @Column(nullable = false, length = 150)
     private String source;
 
-    @Column(nullable = false, length = 512)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String url;
 
-    @Column(nullable = false, length = 512)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String title;
 
     @Column(name = "published_at", nullable = false)
