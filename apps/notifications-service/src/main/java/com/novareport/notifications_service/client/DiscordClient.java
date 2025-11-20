@@ -24,14 +24,18 @@ public class DiscordClient {
     }
 
     public Mono<Void> sendMessage(String webhookUrl, String content) {
-        Objects.requireNonNull(webhookUrl, "webhookUrl must not be null");
         Objects.requireNonNull(content, "content must not be null");
+        Map<String, Object> body = Map.of("content", content);
+        return sendPayload(webhookUrl, body);
+    }
+
+    public Mono<Void> sendPayload(String webhookUrl, Map<String, Object> body) {
+        Objects.requireNonNull(webhookUrl, "webhookUrl must not be null");
+        Objects.requireNonNull(body, "body must not be null");
 
         String correlationId = MDC.get("correlationId");
 
-        log.debug("Sending Discord message with length={} chars", content.length());
-
-        Map<String, Object> body = Map.of("content", content);
+        log.debug("Sending Discord payload with keys={}", body.keySet());
 
         return webClient
             .post()
