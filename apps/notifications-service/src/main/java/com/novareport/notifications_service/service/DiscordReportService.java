@@ -114,11 +114,24 @@ public class DiscordReportService {
         String[] titles = {"Executive Summary", "Key Developments", "Market Trends", "Outlook"};
         List<HeadingPos> positions = new ArrayList<>();
 
-        for (String heading : titles) {
-            int idx = indexOfIgnoreCase(full, heading);
-            if (idx >= 0) {
-                positions.add(new HeadingPos(heading, idx));
+        // Scan the text line by line and only treat lines that are real headings
+        // (e.g. "## Market Trends") as section boundaries. This avoids matching
+        // words like "Outlook" when they appear inside normal paragraphs.
+        String[] lines = full.split("\n");
+        int offset = 0; // character index of the current line start in `full`
+
+        for (String line : lines) {
+            String trimmed = line.stripLeading();
+
+            for (String heading : titles) {
+                if (isSectionHeadingLine(trimmed, heading)) {
+                    positions.add(new HeadingPos(heading, offset));
+                    break;
+                }
             }
+
+            // +1 to account for the newline that was removed by split("\n")
+            offset += line.length() + 1;
         }
 
         if (positions.isEmpty()) {
@@ -130,13 +143,12 @@ public class DiscordReportService {
         for (int i = 0; i < positions.size(); i++) {
             HeadingPos current = positions.get(i);
 
-            // Find the start index of the heading and then the end of its line
             int headingIndex = current.index();
 
             // Find the end of the heading line (newline after the heading)
             int headingLineEnd = full.indexOf('\n', headingIndex);
             if (headingLineEnd < 0) {
-                headingLineEnd = headingIndex + current.title().length();
+                headingLineEnd = full.length();
             } else {
                 headingLineEnd += 1; // move past the newline
             }
@@ -144,16 +156,8 @@ public class DiscordReportService {
             // Body starts after the heading line
             int bodyStart = headingLineEnd;
 
-            // Section ends at the start of the next heading line
-            int end;
-            if (i + 1 < positions.size()) {
-                HeadingPos next = positions.get(i + 1);
-                int nextHeadingIndex = next.index();
-                int nextLineStart = lastIndexOfNewline(full, nextHeadingIndex);
-                end = nextLineStart;
-            } else {
-                end = full.length();
-            }
+            // Section ends at the start of the next heading line (its line start)
+            int end = (i + 1 < positions.size()) ? positions.get(i + 1).index() : full.length();
 
             if (bodyStart >= 0 && bodyStart < end && end <= full.length()) {
                 String part = full.substring(bodyStart, end).trim();
@@ -166,16 +170,23 @@ public class DiscordReportService {
         return sections;
     }
 
-    private int indexOfIgnoreCase(String text, String search) {
-        return text.toLowerCase().indexOf(search.toLowerCase());
-    }
-
-    private int lastIndexOfNewline(String text, int beforeIndex) {
-        if (beforeIndex <= 0) {
-            return 0;
+    private boolean isSectionHeadingLine(String trimmedLine, String heading) {
+        if (trimmedLine == null || trimmedLine.isEmpty()) {
+            return false;
         }
-        int idx = text.lastIndexOf('\n', beforeIndex - 1);
-        return idx >= 0 ? idx + 1 : 0;
+
+        String normalized = trimmedLine;
+        if (normalized.startsWith("#")) {
+            // Remove leading '#' markers and any following whitespace
+            normalized = normalized.replaceFirst("^#+\\s*", "");
+        }
+        // Remove leading numbering like "1. ", "2) " etc
+        normalized = normalized.replaceFirst("^[0-9]+[.)]\\s*", "");
+
+        // Remove trailing colon or dashes ("Market Trends:", "Market Trends -")
+        normalized = normalized.replaceFirst("[:\\-–]+\\s*$", "");
+
+        return normalized.equalsIgnoreCase(heading);
     }
 
     private String stripMarkdownHeadings(String text) {
