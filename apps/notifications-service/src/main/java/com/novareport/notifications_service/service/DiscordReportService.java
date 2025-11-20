@@ -187,20 +187,23 @@ public class DiscordReportService {
         StringBuilder sb = new StringBuilder();
 
         for (String line : lines) {
-            String trimmed = line.stripLeading();
-            if (trimmed.startsWith("#")) {
+            String trimmedLeading = line.stripLeading();
+
+            if (trimmedLeading.startsWith("#")) {
                 // Remove leading '#' characters and following single space
-                trimmed = trimmed.replaceFirst("^#+\\s*", "");
-            }
-            if (!trimmed.isEmpty()) {
-                if (!sb.isEmpty()) {
-                    sb.append('\n');
+                String headingText = trimmedLeading.replaceFirst("^#+\\s*", "").trim();
+                if (!headingText.isEmpty()) {
+                    sb.append("**").append(headingText).append("**");
                 }
-                sb.append(trimmed);
+            } else {
+                // Preserve original non-heading lines (minus trailing spaces) to keep line breaks
+                sb.append(line.stripTrailing());
             }
+
+            sb.append('\n');
         }
 
-        return sb.toString();
+        return sb.toString().trim();
     }
 
     private record HeadingPos(String title, int index) { }
