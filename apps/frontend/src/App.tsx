@@ -390,6 +390,21 @@ function App() {
     }
   }
 
+  const renderInlineMarkdown = (text: string): (string | JSX.Element)[] => {
+    const parts = text.split(/(\*\*[^*]+\*\*)/)
+    return parts.map((part, index) => {
+      const boldMatch = part.match(/^\*\*([^*]+)\*\*$/)
+      if (boldMatch) {
+        return (
+          <strong key={index}>
+            {boldMatch[1]}
+          </strong>
+        )
+      }
+      return part
+    })
+  }
+
   const renderReportSummary = (summary: string) => {
     const rawLines = summary.split('\n')
 
@@ -399,9 +414,10 @@ function App() {
 
     const flushParagraph = () => {
       if (paragraphLines.length > 0) {
+        const text = paragraphLines.join(' ')
         elements.push(
           <p key={`p-${elements.length}`} className="report-summary__paragraph">
-            {paragraphLines.join(' ')}
+            {renderInlineMarkdown(text)}
           </p>,
         )
         paragraphLines = []
@@ -413,7 +429,7 @@ function App() {
         elements.push(
           <ul key={`ul-${elements.length}`} className="report-summary__list">
             {listItems.map((item, index) => (
-              <li key={index}>{item}</li>
+              <li key={index}>{renderInlineMarkdown(item)}</li>
             ))}
           </ul>,
         )
@@ -471,6 +487,28 @@ function App() {
             )
             break
         }
+
+        elements.push(heading)
+        continue
+      }
+
+      // Lines that are only bold markdown ("**Heading**") – treat as headings too
+      const boldLineMatch = line.match(/^\*\*(.+)\*\*$/)
+      if (boldLineMatch) {
+        flushParagraph()
+        flushList()
+
+        const rawText = boldLineMatch[1].trim()
+        const cleanedText = rawText.replace(/^[0-9]+[.)]\s*/, '') || rawText
+
+        const heading = (
+          <h2
+            key={`h-${elements.length}`}
+            className="report-summary__heading report-summary__heading--h2"
+          >
+            {cleanedText}
+          </h2>
+        )
 
         elements.push(heading)
         continue
