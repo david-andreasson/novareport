@@ -1,7 +1,7 @@
 # NovaReport MMP Checklist
  
-- [ ] Implement Discord notifications
-- [ ] Add completed documentation
+- [x] Implement Discord notifications
+- [x ] Add completed documentation
 - [ ] Add tests with 80% coverage
 - [ ] Frontend polish
 - [ ] Report polish

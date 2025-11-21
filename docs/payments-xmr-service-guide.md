@@ -1,9 +1,22 @@
 # Guide: Bygg payments-xmr-service (Enkel version)
 
+Det här dokumentet är mina egna anteckningar om hur jag tänker kring och har byggt `payments-xmr-service`.
+
 **Datum:** 2024-11-06  
 **Syfte:** Skapa en fungerande betalningsservice för Monero (XMR) som aktiverar prenumerationer
 
 ---
+
+## Nuvarande läge & driftsättning
+
+NovaReport kör idag riktiga Monero-betalningar mot en `monero-wallet-rpc` på **stagenet**.
+
+- I driftmiljöer (prod/stage) är `payments.fake-mode` normalt satt till `false`, vilket innebär att tjänsten använder riktiga subadresser från plånboken via `MoneroWalletClient`.
+- En bakgrundsjobb (`PaymentMonitorService`) övervakar pending-betalningar och bekräftar dem automatiskt när den bekräftade balansen når beloppet `amountXmr` (med ett minsta antal konfirmationer).
+- Monero-plånboken konfigureras via properties:
+  - `monero.wallet-rpc-url` (env `MONERO_WALLET_RPC_URL`, t.ex. `http://monero-wallet-rpc:18082/json_rpc`)
+  - `monero.min-confirmations` (env `MONERO_MIN_CONFIRMATIONS`, default 10)
+- Dev-/testmiljöer kan fortfarande använda **fake-läge** (`payments.fake-mode=true`) för att slippa köra en riktig wallet lokalt. Docker Compose-exemplet i `deploy/docker-compose.yml` kör en stagenet-wallet via `monero-wallet-rpc`.
 
 ## Översikt – Vad ska tjänsten göra?
 
@@ -23,23 +36,23 @@
 
 ---
 
-## Enkel version – Vad vi bygger först
+## Enkel version – Fake-läge för lokal utveckling
 
-För att göra det enkelt i första skedet ska vi **INTE** integrera med riktiga Monero-noder eller plånböcker. Istället bygger vi en **simulerad** betalningsservice som:
+För att göra det enkelt vid lokal utveckling kan tjänsten köras i **fake-läge**. I detta läge använder jag en **simulerad** betalningsservice som:
 
-- Skapar "fake" betalningsadresser
-- Låter dig manuellt markera en betalning som "betald" via ett internt API
+- Skapar "fake" betalningsadresser (genererade strängar som liknar riktiga adresser)
+- Låter mig manuellt markera en betalning som "betald" via ett internt API
 - Aktiverar prenumerationen när betalningen är markerad som betald
 
-Detta gör att du kan testa hela flödet utan att behöva sätta upp Monero-infrastruktur.
+Detta gör att jag kan testa hela flödet utan att behöva sätta upp Monero-infrastruktur. I drift används istället real-läget med riktig Monero-wallet på stagenet, se avsnittet "Nuvarande läge & driftsättning" ovan.
 
 ---
 
-## Vad tjänsten behöver innehålla
+## Vad jag har byggt in i tjänsten
 
 ### 1. Databas (H2 för utveckling)
 
-Tjänsten behöver spara information om betalningar. Vi behöver en tabell som heter `payments` med följande kolumner:
+Tjänsten behöver spara information om betalningar. Jag använder en tabell som heter `payments` med följande kolumner:
 
 - `id` – Unikt ID för betalningen (UUID)
 - `user_id` – Vilket användar-ID som ska få prenumerationen (UUID)
@@ -71,7 +84,7 @@ Tjänsten behöver tre endpoints:
 
 #### C. Bekräfta betalning manuellt (internt endpoint)
 - **Sökväg:** `POST /api/v1/internal/payments/{paymentId}/confirm`
-- **Vem anropar:** Du själv (för testning) eller en admin
+- **Vem anropar:** Jag själv (för testning)
 - **Input:** Betalnings-ID och intern API-nyckel
 - **Output:** Bekräftelse att betalningen är godkänd
 - **Vad händer:** 
@@ -102,7 +115,7 @@ När `subscriptions-service` tar emot detta anrop skapar den en aktiv prenumerat
 
 ## Filstruktur för payments-xmr-service
 
-Här är vilka filer du behöver skapa:
+Här är ungefär den filstruktur jag har för tjänsten:
 
 ```
 apps/payments-xmr-service/
@@ -135,7 +148,7 @@ apps/payments-xmr-service/
 
 ---
 
-## Steg-för-steg: Vad du ska göra
+## Steg-för-steg: Hur jag har implementerat tjänsten
 
 ### Steg 1: Skapa databasmodellen
 
@@ -154,9 +167,9 @@ En enkel enum med tre värden: `PENDING`, `CONFIRMED`, `FAILED`
 
 **Fil:** `PaymentRepository.java`
 
-Ett interface som ärver från `JpaRepository<Payment, UUID>`. Spring skapar automatiskt metoderna åt dig.
+Ett interface som ärver från `JpaRepository<Payment, UUID>`. Spring skapar automatiskt standardmetoderna åt mig.
 
-Du behöver lägga till en metod:
+Här har jag lagt till en metod:
 ```java
 Optional<Payment> findByIdAndUserId(UUID id, UUID userId);
 ```
@@ -264,7 +277,7 @@ Denna klass använder WebClient för att göra HTTP-anrop till subscriptions-ser
 
 ### Steg 7: Konfigurera application-dev.properties
 
-Lägg till:
+Så här såg min `application-dev.properties` ut när jag körde med H2 lokalt:
 ```properties
 server.port=8084
 
@@ -310,7 +323,7 @@ CREATE INDEX idx_payments_status ON payments(status);
 
 ### Steg 9: Uppdatera docker-compose.yml
 
-Lägg till payments-xmr-service i `deploy/docker-compose.yml`:
+Så här såg min dev-version av `deploy/docker-compose.yml` ut när jag la till payments-xmr-service:
 
 ```yaml
 payments-xmr-service:
@@ -333,7 +346,7 @@ payments-xmr-service:
 
 ---
 
-## Hur du testar flödet
+## Hur jag testade flödet lokalt i början
 
 ### 1. Starta alla tjänster
 ```bash
@@ -353,7 +366,7 @@ curl -X POST http://localhost:8080/auth/register \
   }'
 ```
 
-Du får tillbaka en JWT-token. Spara den.
+Jag får tillbaka en JWT-token som jag sparar till nästa steg.
 
 ### 3. Skapa en betalning
 ```bash
@@ -366,7 +379,7 @@ curl -X POST http://localhost:8084/api/v1/payments/create \
   }'
 ```
 
-Du får tillbaka ett paymentId och en paymentAddress.
+Jag får tillbaka ett `paymentId` och en `paymentAddress`.
 
 ### 4. Bekräfta betalningen manuellt (simulera att användaren betalat)
 ```bash
@@ -380,7 +393,7 @@ curl -X GET http://localhost:8081/api/v1/subscriptions/me/has-access \
   -H "Authorization: Bearer DIN_JWT_TOKEN"
 ```
 
-Du ska få tillbaka `{"hasAccess": true}`
+Svaret ska bli `{"hasAccess": true}`
 
 ### 6. Testa att hämta en rapport
 ```bash
@@ -388,31 +401,28 @@ curl -X GET http://localhost:8082/api/v1/reports/latest \
   -H "Authorization: Bearer DIN_JWT_TOKEN"
 ```
 
-Nu ska du kunna se rapporter eftersom du har en aktiv prenumeration!
+Nu kan jag se rapporter eftersom jag har en aktiv prenumeration.
 
 ---
 
 ## Sammanfattning
 
-**Vad vi byggt:**
-- En betalningsservice som skapar fake Monero-adresser
-- Ett sätt att manuellt bekräfta betalningar
+**Vad jag har byggt i payments-xmr-service:**
+- En betalningsservice som kan skapa antingen "fake" Monero-adresser (fake-läge) eller riktiga subadresser via `monero-wallet-rpc` (real-läge på stagenet)
+- Ett sätt att manuellt bekräfta betalningar (främst användbart i fake-läge eller för admin-/felsökningsflöden)
+- Automatisk betalningsövervakning i real-läge via `PaymentMonitorService`, som läser bekräftade inkommande transaktioner från Monero-wallet och bekräftar betalningar när beloppet är uppnått
 - Integration med subscriptions-service för att aktivera prenumerationer
 - Komplett flöde från betalning till aktiv prenumeration
 
-**Vad som INTE ingår än:**
-- Riktig Monero-integration (monero-wallet-rpc)
-- Automatisk betalningsövervakning
+**Vad som INTE ingår än (i skrivande stund):**
 - Återbetalningar
-- Betalningshistorik för användaren
+- Betalningshistorik för användaren (t.ex. lista alla betalningar i frontend)
 
-**Nästa steg (framtida förbättringar):**
-1. Integrera med monero-wallet-rpc för riktiga betalningar
-2. Lägg till en bakgrundsjobb som kollar efter inkommande betalningar
+**Genomförda steg (från min ursprungliga plan):**
+1. Integrera med monero-wallet-rpc för riktiga betalningar (klar – se avsnittet om MoneroWalletClient och real-läge ovan)
+2. Lägg till bakgrundsjobb som kollar efter inkommande betalningar (klar – `PaymentMonitorService` körs periodiskt och använder `monero.get_transfers`)
+
+**Nästa steg (framtida förbättringar som jag kan göra senare):**
 3. Lägg till endpoint för att lista användarens betalningar
 4. Lägg till webhook för att notifiera frontend när betalning är klar
-5. Lägg till tester för PaymentService och controllers
-
----
-
-**Lycka till med implementationen!** 🚀
+5. Lägg till fler tester för PaymentService, PaymentMonitorService och controllers

@@ -1,7 +1,7 @@
 # Nova Report - Project Roadmap
 
 **Skapad:** 2025-11-09  
-**Senast uppdaterad:** 2025-11-10  
+**Senast uppdaterad:** 2025-11-21  
 **Status:** Pågående (MVP-demo klar)  
 **Mål:** Komplett fungerande mikroservice-arkitektur för AI-genererade kryptorapporter
 
@@ -12,16 +12,16 @@
 ### ✅ Färdiga tjänster
 - **accounts-service** – Registrering, login, JWT ✅
 - **subscriptions-service** – Prenumerationshantering ✅
-- **payments-xmr-service** – Fake Monero-betalningar ✅ (intern bekräftelse via script)
-- **reporter-service** – RSS ingest, schemalagd generering och 1min.ai-integration ✅
+- **payments-xmr-service** – Monero-betalningar via monero-wallet-rpc på stagenet ✅ (automatisk monitor + intern confirm-endpoint vid behov)
+- **reporter-service** – RSS ingest, schemalagd generering var 4:e timme och 1min.ai-integration ✅
 - **frontend** – Komplett MVP med prenumerationsflöde och rapportvy ✅
 
 ### ⚠️ Kvarstående kritiska brister
-1. **Notifieringar saknas** – Ingen email/Discord-distribution än
-2. **Fake Monero-backend** – Ingen riktig blockchain-integration
+1. **Notifieringar i produktion** – Email/Discord finns implementerat men saknar ännu användarpreferenser, bättre felhantering och övervakning
+2. **Monero mainnet & drift** – Betalningar körs på stagenet; switch till mainnet, fee/ekonomihantering och drifthärdning återstår
 3. **Testtäckning ≈ 0%** – Kräver automatiska tester och regressioner
 4. **Secrets & säkerhet** – API-nycklar och interna nycklar ligger i miljövariabler/konfig
-5. **Observability** – Ingen övervakning, loggaggregat eller larm
+5. **Observability** – Ingen central övervakning, loggaggregat eller larm
 
 ---
 
@@ -292,6 +292,8 @@ curl -X POST http://localhost:8082/api/v1/internal/reporter/build-report \
 
 ## 🎯 PRIO 2: Gör notifieringar riktiga (1 vecka)
 
+**Status:** Genomfört – email- och Discord-notiser är implementerade i `notifications-service`. Nedan beskrivs den ursprungliga designskissen (kan användas som referens, men koden följer inte exakt dessa exempel).
+
 ### 2.1 Email-integration
 **Vad som behövs:**
 - [ ] Spring Mail dependency
@@ -325,9 +327,9 @@ public class EmailNotificationService {
 
 ### 2.2 Discord-integration
 **Vad som behövs:**
-- [ ] Discord webhook URL
-- [ ] DiscordNotificationService
-- [ ] Format rapport som Discord embed
+- [x] Discord webhook URL
+- [x] DiscordNotificationService
+- [x] Format rapport som Discord embed
 
 **Implementering:**
 ```java
@@ -356,7 +358,7 @@ public class DiscordNotificationService {
 
 ---
 
-## 🎯 PRIO 3: Lägg till tester (2 veckor)
+## PRIO 3: Lägg till tester (2 veckor)
 
 ### Tester per tjänst
 
@@ -384,19 +386,19 @@ public class DiscordNotificationService {
 - [ ] Scheduler tests
 
 **notifications-service:**
-- [ ] Email sending tests
-- [ ] Discord webhook tests
+- [x] Email sending tests
+- [x] Discord webhook tests
 
 **Estimerad tid:** 40-60 timmar totalt
 
 ---
 
-## 🎯 PRIO 4: Produktionsgör (2-3 veckor)
+## PRIO 4: Produktionsgör (2-3 veckor)
 
-### 4.1 Riktig Monero-integration
-- [ ] Integrera monero-wallet-rpc
-- [ ] Automatisk betalningsövervakning
-- [ ] Docker setup för monerod + wallet
+### 4.1 Monero i produktion
+- [x] Integrera monero-wallet-rpc (stagenet)
+- [x] Automatisk betalningsövervakning (PaymentMonitorService)
+- [ ] Docker setup/dokumentation för monerod + wallet i produktion/mainnet
 
 **Estimerad tid:** 8-12 timmar
 
@@ -431,21 +433,21 @@ public class DiscordNotificationService {
 
 ---
 
-## 📅 Tidslinje
+## Tidslinje
 
 ### Vecka 1-2: MVP - Gör det användbart
-- [x] Frontend betalningssida (4-6h) ✅ **KLAR 2025-11-09**
-- [x] Reporter scheduler (2-3h) ✅ **KLAR 2025-11-09**
-- [x] 1min.ai integration (6-8h) ✅ **KLAR 2025-11-09**
-- [x] Manuell testning av hela flödet (4h) ✅ **KLAR 2025-11-10**
+- [x] Frontend betalningssida (4-6h) 
+- [x] Reporter scheduler (2-3h) 
+- [x] 1min.ai integration (6-8h) 
+- [x] Manuell testning av hela flödet (4h) 
 
 **Mål:** Användare kan köpa prenumeration och få AI-genererade rapporter var 4:e timme
 
 ---
 
 ### Vecka 3-4: Gör det komplett
-- [ ] Email notiser (4-6h)
-- [ ] Discord notiser (2-3h)
+- [x] Email notiser (4-6h)
+- [x] Discord notiser (2-3h)
 - [ ] Tester för alla tjänster (40-60h)
 - [ ] Subscription management (cancel, renew) (8h)
 
@@ -454,7 +456,7 @@ public class DiscordNotificationService {
 ---
 
 ### Vecka 5-7: Produktionsgör
-- [ ] Riktig Monero (8-12h)
+- [ ] Monero mainnet & driftsättning (8-12h)
 - [ ] Säkerhet (8-10h)
 - [ ] Monitoring (8-10h)
 - [ ] PostgreSQL (6-8h)
@@ -493,8 +495,8 @@ public class DiscordNotificationService {
 - Inga tester i någon tjänst
 - Hårdkodade secrets överallt
 - H2-databas (inte production-ready)
-- Fake Monero-adresser
-- Ingen monitoring
+- Monero körs på stagenet (mainnet-setup och ekonomi återstår)
+- Ingen central monitoring
 - Ingen backup-strategi
 
 ---

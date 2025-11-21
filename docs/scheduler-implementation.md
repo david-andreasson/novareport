@@ -1,5 +1,7 @@
 # Scheduler Implementation - COMPLETED ✅
 
+Det här dokumentet är mina egna anteckningar om hur jag har implementerat schemaläggningen i `reporter-service`.
+
 **Datum:** 2024-11-09  
 **Status:** ✅ KLAR OCH TESTAD
 
@@ -140,7 +142,7 @@ Invoke-RestMethod -Uri "http://localhost:8082/api/v1/internal/reporter/build-rep
 docker-compose logs -f reporter-service | Select-String "scheduled report"
 ```
 
-Du ska se:
+När allt fungerar som jag tänkt mig ser loggarna ungefär ut så här:
 ```
 === Starting scheduled report generation ===
 RSS ingest complete - Attempted: X, Stored: Y, Duplicates: Z
@@ -154,7 +156,7 @@ Report generated successfully - ID: abc-123, Summary length: 1234 chars
 
 ### Ändra schema
 
-Om du vill ändra schemat, uppdatera cron-uttrycket i `ScheduledReportGenerator.java`:
+Om jag vill ändra schemat uppdaterar jag cron-uttrycket i `ScheduledReportGenerator.java`:
 
 ```java
 // Nuvarande: Var 4:e timme
