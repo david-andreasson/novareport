@@ -1,34 +1,34 @@
-# JWT Conventions for Nova Report
+# JWT-konventioner för NovaReport
 
-This document defines how JSON Web Tokens (JWT) are issued and validated across all Nova Report backend services.
+Det här dokumentet är mina egna anteckningar om hur JSON Web Tokens (JWT) utfärdas och valideras i backend-tjänsterna i NovaReport.
 
-## 1. Environment Variables
+## 1. Miljövariabler
 
-All services share the same JWT-related configuration, provided via environment variables:
+Alla tjänster delar samma JWT-relaterade konfiguration via miljövariabler:
 
-- `JWT_SECRET` – Symmetric signing key used for HS256.
-- `JWT_ISSUER` – Expected issuer for all access tokens (currently `accounts-service`).
-- `JWT_ACCESS_TOKEN_MINUTES` – Access token lifetime in minutes (e.g. `30`).
+- `JWT_SECRET` – symmetrisk nyckel som används för HS256-signering.
+- `JWT_ISSUER` – förväntad issuer för alla access tokens (just nu `accounts-service`).
+- `JWT_ACCESS_TOKEN_MINUTES` – livslängd för access tokens i minuter (t.ex. `30`).
 
-Spring properties mapping:
+Spring-properties:
 
 - `jwt.secret = ${JWT_SECRET}`
 - `jwt.issuer = ${JWT_ISSUER}`
 - `jwt.access-token-minutes = ${JWT_ACCESS_TOKEN_MINUTES}`
 
-## 2. Access Token Format
+## 2. Format på access tokens
 
-All access tokens share the same structure:
+Alla access tokens följer samma struktur:
 
-- **Algorithm**: `HS256`
-- **Issuer (`iss`)**: value of `JWT_ISSUER` (e.g. `accounts-service`)
-- **Subject (`sub`)**: user email address
+- **Algoritm**: `HS256`
+- **Issuer (`iss`)**: värdet från `JWT_ISSUER` (t.ex. `accounts-service`)
+- **Subject (`sub`)**: användarens e-postadress
 - **Claims**:
-  - `uid` – user ID as a UUID string
-  - `role` – user role, e.g. `USER` or `ADMIN`
+  - `uid` – användarens ID som UUID-sträng
+  - `role` – användarroll, t.ex. `USER` eller `ADMIN`
 - **Expiration (`exp`)**: `now + JWT_ACCESS_TOKEN_MINUTES`
 
-Example payload (illustrative only):
+Exempel på payload (endast illustrativt):
 
 ```json
 {
@@ -41,68 +41,68 @@ Example payload (illustrative only):
 }
 ```
 
-## 3. Authorization Header
+## 3. Authorization-header
 
-Clients and internal services send access tokens using the HTTP Authorization header:
+Klienter och interna tjänster skickar access tokens i HTTP Authorization-headern:
 
 - `Authorization: Bearer <access_token>`
 
-No other authentication headers should be used for JWT authentication.
+Jag använder inga andra headers för JWT-autentisering.
 
-## 4. Issuing Tokens
+## 4. Utfärda tokens
 
-### Responsibility
+### Ansvar
 
-- **accounts-service** is the single source of truth for issuing user access tokens.
-- Other services should not mint user access tokens in normal flows.
+- **accounts-service** är single source of truth för att utfärda access tokens till användare.
+- Andra tjänster ska inte skapa egna användartokens i normala flöden.
 
 ### Implementation
 
-`accounts-service` uses `JwtService.createAccessToken(UUID userId, String email, String role)` with the conventions above:
+I `accounts-service` använder jag `JwtService.createAccessToken(UUID userId, String email, String role)` med konventionerna ovan:
 
 - `sub` = `email`
 - `uid` = `userId.toString()`
-- `role` = role string
+- `role` = roll-strängen
 
-The resulting token is returned to the frontend on successful login/registration.
+Resultatet skickas tillbaka till frontenden vid lyckad login/registrering.
 
-## 5. Validating Tokens
+## 5. Validera tokens
 
-All backend services validate access tokens using the same rules:
+Alla backend-tjänster validerar access tokens med samma regler:
 
-1. **Signature**
-   - Verify HS256 signature with `JWT_SECRET`.
+1. **Signatur**
+   - Verifiera HS256-signaturen med `JWT_SECRET`.
 2. **Issuer**
-   - Require `iss == JWT_ISSUER`.
+   - Kräv att `iss == JWT_ISSUER`.
 3. **Expiration**
-   - Reject tokens where `exp` is in the past.
+   - Avvisa tokens där `exp` ligger i det förflutna.
 4. **Claims**
-   - Expect `uid` and `role` claims to be present when user context is needed.
+   - Förvänta att `uid` och `role` finns när jag behöver användarkontext.
 
-In practice this is implemented via each service's `JwtService.parse(...)` or equivalent method, which:
+I praktiken gör jag detta via varje tjänsts `JwtService.parse(...)` eller motsvarande metod, som:
 
-- Uses `jwt.secret` to configure the signing key.
-- Calls `requireIssuer(jwt.issuer)` during parsing.
+- Använder `jwt.secret` för att konfigurera signeringsnyckeln.
+- Anropar `requireIssuer(jwt.issuer)` vid parsing.
 
-The `payments-xmr-service` `JwtService` uses the newer JJWT API (`verifyWith(...).parseSignedClaims(...)`), but the semantics (key + issuer + expiry) are identical.
+`JwtService` i `payments-xmr-service` använder den nyare JJWT-API:n (`verifyWith(...).parseSignedClaims(...)`), men semantiken (nyckel + issuer + expiry) är densamma.
 
-## 6. Using Claims in Services
+## 6. Använda claims i tjänsterna
 
-When a service needs the current user ID or role, it should:
+När en tjänst behöver aktuellt user-id eller roll gör jag så här:
 
-- Extract the token from the `Authorization` header.
-- Delegate to its local `JwtService` to validate and parse the token.
-- Read claims from the resulting `Claims` object, e.g.:
-  - `uid` → user ID (UUID as string)
-  - `role` → user role
+- Plockar ut token från `Authorization`-headern.
+- Låter den lokala `JwtService` validera och parsa token.
+- Läser claims från `Claims`-objektet, t.ex.:
+  - `uid` → user-id (UUID som sträng)
+  - `role` → användarroll
 
-No service should depend on additional custom claims without updating this document.
+Ingen tjänst bör börja förlita sig på nya egna claims utan att jag uppdaterar det här dokumentet.
 
-## 7. Future Improvements
+## 7. Framtida förbättringar
 
-If the project grows, JWT handling can be further standardized by introducing a small shared library, for example:
+Om projektet skulle växa kan jag standardisera JWT-hanteringen ytterligare genom ett litet shared library, t.ex.:
 
-- `JwtTokenFactory` – issues tokens given `userId`, `email`, `role`, `secret`, `issuer`, and `ttl`.
-- `JwtTokenParser` – validates and parses tokens, enforcing the conventions in this document.
+- `JwtTokenFactory` – utfärdar tokens givet `userId`, `email`, `role`, `secret`, `issuer` och `ttl`.
+- `JwtTokenParser` – validerar och parsar tokens och ser till att konventionerna i det här dokumentet följs.
 
-For the UMVP, the documented conventions above are sufficient as long as all services keep their `JwtService` implementations aligned with this specification.
+För UMVP:en räcker det med konventionerna ovan, så länge jag håller `JwtService`-implementationerna i tjänsterna i linje med den här specen.

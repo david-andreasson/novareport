@@ -1,71 +1,72 @@
-# Observability & Tracing in Nova Report
+# Observability & tracing i NovaReport
 
-This document summarizes how observability and basic request tracing are implemented in the Nova Report UMVP.
+Det här dokumentet är mina egna anteckningar om hur jag har satt upp observability och enkel request-tracing i UMVP-versionen av NovaReport.
 
-## Goals
+## Mål
 
-- Make it easy to follow a single request across services via logs.
-- Provide consistent error responses to clients.
-- Expose basic health information for operations and Docker orchestration.
+- Göra det enkelt för mig att följa ett enskilt anrop genom flera tjänster via loggar.
+- Ge konsekventa fel-svar till klienter.
+- Exponera grundläggande hälsostatus för drift och Docker-orchestrering.
 
 ## Correlation IDs
 
-### Overview
+### Översikt
 
-All backend services use a correlation ID to tie together log entries that belong to the same logical request.
+Alla backend-tjänster använder ett korrelations-ID för att knyta ihop loggrader som hör till samma logiska anrop.
 
-- Header name: `X-Correlation-ID`
-- MDC key: `correlationId`
+- Header-namn: `X-Correlation-ID`
+- MDC-nyckel: `correlationId`
 
-### How it works
+### Hur det fungerar
 
-1. **Incoming requests**
-   - Each Spring Boot service has a `CorrelationIdFilter` (a `OncePerRequestFilter`).
-   - The filter reads `X-Correlation-ID` from the incoming HTTP request.
-   - If the header is missing or blank, a new UUID is generated.
-   - The value is written to SLF4J MDC under the key `correlationId`.
-   - The same value is added to the HTTP response header `X-Correlation-ID`.
+1. **Inkommande anrop**
+   - Varje Spring Boot-tjänst har ett `CorrelationIdFilter` (en `OncePerRequestFilter`).
+   - Filtret läser `X-Correlation-ID` från inkommande HTTP-anrop.
+   - Om headern saknas eller är tom genereras ett nytt UUID.
+   - Värdet skrivs till SLF4J MDC under nyckeln `correlationId`.
+   - Samma värde sätts även på HTTP-svaret i headern `X-Correlation-ID`.
 
-2. **Logging configuration**
-   - Each service has a `logback-spring.xml` that includes the MDC key in the log pattern, for example:
-     - `[%X{correlationId}]` is rendered in every log line.
+2. **Loggkonfiguration**
+   - Varje tjänst har en `logback-spring.xml` som inkluderar MDC-nyckeln i loggmönstret, till exempel:
+     - `[%X{correlationId}]` renderas i varje loggrad.
 
-3. **Internal HTTP calls**
-   - When a service calls another internal service, it propagates the current correlation ID:
-     - **reporter-service → subscriptions-service**: `SubscriptionsClient` reads `MDC.get("correlationId")` and sets `X-Correlation-ID` on the outgoing request.
-     - **reporter-service → notifications-service**: `NotificationsClient` does the same when calling `/api/v1/internal/notifications/report-ready`.
-     - **payments-xmr-service → subscriptions-service**: `SubscriptionsClient` includes `X-Correlation-ID` alongside `X-INTERNAL-KEY`.
-   - This means a single user action (e.g. payment confirmation, report generation) can be followed across multiple services using the same correlation ID.
+3. **Interna HTTP-anrop**
+   - När en tjänst anropar en annan intern tjänst propagerras det aktuella korrelations-ID:t:
+     - **reporter-service → subscriptions-service**: `SubscriptionsClient` läser `MDC.get("correlationId")` och sätter `X-Correlation-ID` på det utgående anropet.
+     - **reporter-service → notifications-service**: `NotificationsClient` gör samma sak när den anropar `/api/v1/internal/notifications/report-ready`.
+     - **payments-xmr-service → subscriptions-service**: `SubscriptionsClient` skickar med `X-Correlation-ID` tillsammans med `X-INTERNAL-KEY`.
+   - På så sätt kan jag följa en enskild användarhandling (t.ex. betalningsbekräftelse eller rapportgenerering) genom flera tjänster med samma korrelations-ID.
 
-### How to use it in practice
+### Hur jag använder det i praktiken
 
-- When debugging a flow:
-  1. Take the `X-Correlation-ID` value from a client response or gateway log.
-  2. Search logs in all services for that value.
-  3. Follow the sequence of events end-to-end (accounts → subscriptions → payments → reporter → notifications).
+När jag felsöker ett flöde brukar jag:
 
-## Error Handling with Problem Details
+1. Ta `X-Correlation-ID` från ett klientsvar eller gateway-logg.
+2. Söka efter det värdet i loggarna för alla tjänster.
+3. Följa händelsekedjan end-to-end (accounts → subscriptions → payments → reporter → notifications).
 
-All external APIs now use centralized error handling based on Spring "ProblemDetail" (RFC 7807 style).
+## Felhantering med Problem Details
 
-- Each service has a `GlobalExceptionHandler` annotated with `@RestControllerAdvice`.
-- Typical mappings:
-  - Validation errors (`MethodArgumentNotValidException`) → HTTP 400 with a `Validation Failed` title and detailed field messages.
-  - Domain errors (e.g. invalid payment state, invalid plan, missing payment) → appropriate HTTP status (404, 400, 409) with a specific title.
-  - Generic errors → HTTP 500 with `Internal Server Error` title and a generic detail message.
-- This provides a consistent error format across services and simplifies client handling.
+Alla externa API:er använder centraliserad felhantering baserad på Springs `ProblemDetail` (RFC 7807-stil).
 
-## Health Checks
+- Varje tjänst har en `GlobalExceptionHandler` annoterad med `@RestControllerAdvice`.
+- Typiska mappingar:
+  - Valideringsfel (`MethodArgumentNotValidException`) → HTTP 400 med titeln `Validation Failed` och detaljerade fältfel.
+  - Domänfel (t.ex. ogiltigt betalningstillstånd, ogiltig plan, saknad betalning) → lämplig HTTP-status (404, 400, 409) med en specifik titel.
+  - Generella fel → HTTP 500 med titeln `Internal Server Error` och ett generiskt felmeddelande.
+- Detta ger ett konsekvent felformat mellan tjänsterna och gör det enklare för klienten att hantera fel.
 
-- Spring Boot Actuator health endpoints (`/actuator/health`) are enabled in backend services.
-- Docker Compose and production Compose files wire these health endpoints into container health checks.
-  - This allows the orchestrator to restart unhealthy containers automatically.
+## Hälsokontroller
 
-## Future Improvements
+- Spring Boot Actuator-hälsokontroller (`/actuator/health`) är aktiverade i backend-tjänsterna.
+- Docker Compose och produktions-Compose-filerna kopplar dessa kontroller till container-hälsokontroller.
+  - Det gör att orchestratorn automatiskt kan starta om ohälsosamma containers.
 
-The current UMVP intentionally keeps observability lightweight. Suggested next steps:
+## Framtida förbättringar
 
-- Add basic metrics (request counts, error rates, Monero payment confirmations, report generations) and expose them via Actuator/Prometheus.
-- Introduce a distributed tracing system (e.g. OpenTelemetry, Zipkin, or Jaeger) and propagate trace/span IDs alongside correlation IDs.
-- Standardize structured logging (e.g. JSON logs with common fields) for easier ingestion into log aggregation tools.
-- Document operational playbooks (key rotation, handling Monero node outages, partial service failures) to support production operations.
+I UMVP:en har jag med flit hållit observability ganska enkel. Framöver kan jag bygga vidare med t.ex.:
+
+- Lägga till grundläggande metrics (antal anrop, felrate, bekräftade Monero-betalningar, antal genererade rapporter) och exponera dem via Actuator/Prometheus.
+- Införa ett distribuerat tracing-system (t.ex. OpenTelemetry, Zipkin eller Jaeger) och propagagera trace/span-ID:n tillsammans med korrelations-ID:t.
+- Standardisera strukturerad loggning (t.ex. JSON-loggar med gemensamma fält) för enklare insamling i loggaggregat.
+- Dokumentera operativa "playbooks" (nyckelrotation, hantering av Monero-node-nedtid, delvisa tjänstefel) som stöd för en mer produktionslik drift.

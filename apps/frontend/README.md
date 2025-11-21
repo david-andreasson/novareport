@@ -1,73 +1,94 @@
-# React + TypeScript + Vite
+# NovaReport Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React/TypeScript-frontend för NovaReport-plattformen. Den här appen hanterar:
 
-Currently, two official plugins are available:
+- registrering och login
+- prenumerationsflöde med Monero-betalning
+- visning av senaste AI-genererade kryptorapport
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Frontenden bygger ovanpå **Vite + React + TypeScript** men är anpassad specifikt för NovaReport-backenden.
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Funktioner
 
-## Expanding the ESLint configuration
+- Login/registrering mot `accounts-service`
+- Köpa prenumeration och skapa betalning via `payments-xmr-service`
+- Kontrollera prenumerationsstatus via `subscriptions-service`
+- Hämta och visa senaste rapporten från `reporter-service`/`notifications-service`
+- Visa rapportens sammanfattning med enkel markdown-liknande formattering (rubriker, fetstil)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Utvecklingsmiljö – hur jag körde frontenden lokalt i början
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+Jag har kört väldigt lite ren frontend-utveckling lokalt. Oftast har jag kört hela systemet via Docker på min Ubuntu-server, men i början av projektet startade jag frontenden några gånger lokalt för att testa.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Förutsättningar (när jag kör lokalt)
+
+- Node.js (LTS)
+- npm eller yarn
+
+### Så här körde jag `npm run dev` i början
+
+```bash
+cd apps/frontend
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+När jag kör den så här brukar Vite ligga på `http://localhost:5173`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+För att frontenden ska fungera fullt ut behöver backend-tjänsterna också vara igång. När jag ville spegla den riktiga miljön använde jag `deploy/docker-compose.yml`:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+cd deploy
+docker-compose up --build
 ```
+
+I Compose-filen har jag konfigurerat frontend-bilden med följande build-args (motsvarar `VITE_*`-variabler i Vite):
+
+- `VITE_ACCOUNTS_API_BASE` – bas-URL till accounts-service (t.ex. `http://localhost:8080`)
+- `VITE_SUBS_API_BASE` – bas-URL till subscriptions-service
+- `VITE_NOTIF_API_BASE` – bas-URL till notifications-service
+- `VITE_REPORTER_API_BASE` – bas-URL till reporter-service
+- `VITE_PAYMENTS_API_BASE` – bas-URL till payments-xmr-service
+- `VITE_INTERNAL_API_KEY` – intern nyckel som skickas till interna endpoints där det krävs
+
+Om jag någon gång vill köra frontenden lokalt utan Docker kan jag sätta motsvarande variabler i en `.env`-fil i `apps/frontend/`:
+
+```env
+VITE_ACCOUNTS_API_BASE=http://localhost:8080
+VITE_SUBS_API_BASE=http://localhost:8081
+VITE_NOTIF_API_BASE=http://localhost:8083
+VITE_REPORTER_API_BASE=http://localhost:8082
+VITE_PAYMENTS_API_BASE=http://localhost:8084
+VITE_INTERNAL_API_KEY=dev-change-me
+```
+
+Sedan räcker det att köra `npm run dev` för att frontenden ska använda dessa värden.
+
+---
+
+## Bygga för produktion
+
+I normalfallet byggs frontenden som en Docker-image (se `docker-compose.prod.yml`). Om du vill bygga lokalt:
+
+```bash
+cd apps/frontend
+npm install
+npm run build
+```
+
+Detta genererar en statisk build i `dist/` som kan serveras av valfri HTTP-server.
+
+---
+
+## Lint & kodkvalitet
+
+Nyttiga scripts:
+
+- `npm run lint` – kör ESLint
+- `npm run build` – typecheck + build
+
+Se även `README-CODE-QUALITY.md` i projektroten för generella riktlinjer kring kodkvalitet.

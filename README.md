@@ -1,6 +1,6 @@
 # Nova Report
 
-**Nova Report** is a microservice-based platform that generates **daily AI-driven crypto reports**.  
+**Nova Report** is a microservice-based platform that generates **AI-driven crypto reports every 4 hours**.  
 It collects information from multiple sources — such as market data APIs and news feeds — and summarizes the most relevant events into a clear, neutral daily report.
 
 ---
@@ -24,7 +24,7 @@ Nova Report is designed as a modular system with six main services:
 
 ## 🚀 Features
 
-- AI-generated daily crypto reports  
+- AI-generated crypto reports every 4 hours (6 reports per day)  
 - Secure login and account management  
 - Subscription system with Monero payments  
 - Email and Discord delivery options  
@@ -39,7 +39,7 @@ Nova Report is designed as a modular system with six main services:
 - **Frontend:** React + TypeScript  
 - **Database:** PostgreSQL (H2 for development)  
 - **Containerization:** Docker / Docker Compose  
-- **AI integration:** T.B.D.  
+- **AI integration:** 1min.ai (e.g. gpt-4o-mini) via `OneMinAiSummarizerService`  
 - **Deployment:** Nginx Proxy Manager + Portainer
 
 ---
@@ -60,9 +60,9 @@ The goal of Nova Report is to demonstrate:
 1. User registers and logs in  
 2. User subscribes and pays with Monero  
 3. Payment confirmation activates the subscription  
-4. Reporter service gathers daily crypto data  
-5. AI generates the daily report  
-6. Notifications service sends it via email or Discord  
+4. A scheduler in `reporter-service` runs every 4 hours, ingests crypto news and builds the report  
+5. AI (via 1min.ai) generates the structured report summary  
+6. `notifications-service` sends the report via email and Discord  
 
 ---
 
