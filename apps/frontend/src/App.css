@@ -105,12 +105,16 @@ body {
 }
 
 .auth-panel {
-  width: min(880px, 100%);
+  width: min(420px, 100%);
   background: #fbfcff;
   border-radius: 18px;
   border: 1px solid rgba(78, 95, 145, 0.16);
   padding: 2.5rem 2rem;
   box-shadow: 0 28px 80px rgba(40, 50, 90, 0.12);
+}
+
+.auth-panel--report {
+  width: min(880px, 100%);
 }
 
 .auth-panel h2 {

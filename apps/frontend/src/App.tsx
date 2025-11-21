@@ -1177,7 +1177,11 @@ function App() {
       </aside>
 
       <main className="auth-content">
-        <section className="auth-panel">{panelContent}</section>
+        <section
+          className={`auth-panel ${view === 'report' ? 'auth-panel--report' : ''}`.trim()}
+        >
+          {panelContent}
+        </section>
       </main>
     </div>
   )
