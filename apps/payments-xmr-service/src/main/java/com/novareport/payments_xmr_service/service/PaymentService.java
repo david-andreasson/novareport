@@ -20,7 +20,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
+import java.security.SecureRandom;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +33,7 @@ public class PaymentService {
     
     // Monero address format constants
     private static final String MONERO_ADDRESS_PREFIX = "4";
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final PaymentRepository paymentRepository;
     private final PaymentEventPublisher eventPublisher;
@@ -78,7 +79,6 @@ public class PaymentService {
                     .build();
 
             Payment savedPayment = paymentRepository.save(payment);
-            assert savedPayment != null : "Saved payment should never be null";
 
             log.info("Created payment {} with address {}", savedPayment.getId(), paymentAddress);
 
@@ -148,7 +148,6 @@ public class PaymentService {
 
             payment.confirm();
             savedPayment = paymentRepository.save(payment);
-            assert savedPayment != null : "Saved payment should never be null";
 
             log.info("Payment {} confirmed, publishing event for subscription activation", LogSanitizer.sanitize(paymentId));
 
@@ -188,10 +187,10 @@ public class PaymentService {
         // Real Monero addresses are 95 characters starting with 4
         // Generate exactly 94 random hex characters for better simulation
         // Using ThreadLocalRandom for better performance in simulated context
-        ThreadLocalRandom random = ThreadLocalRandom.current();
         StringBuilder hexString = new StringBuilder(94); // Pre-allocate capacity
         for (int i = 0; i < 47; i++) { // 47 bytes = 94 hex chars
-            hexString.append(String.format("%02x", random.nextInt(256)));
+            int value = SECURE_RANDOM.nextInt(256);
+            hexString.append(String.format("%02x", value));
         }
         return MONERO_ADDRESS_PREFIX + hexString.toString();
     }

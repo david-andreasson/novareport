@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,8 +15,7 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
@@ -28,7 +26,6 @@ import java.util.Map;
 @Slf4j
 public class MoneroWalletClient {
 
-    private final RestTemplate restTemplate;
     private final MeterRegistry meterRegistry;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -38,6 +35,25 @@ public class MoneroWalletClient {
 
     @Value("${monero.min-confirmations:10}")
     private int minConfirmations;
+
+    private void validateWalletRpcUrl(String url) {
+        if (url == null || url.isBlank()) {
+            throw new IllegalStateException("Monero wallet RPC URL is not configured");
+        }
+        try {
+            URI parsed = URI.create(url);
+            String protocol = parsed.getScheme();
+            if (!"http".equals(protocol) && !"https".equals(protocol)) {
+                throw new IllegalStateException("Invalid Monero wallet RPC URL protocol: " + protocol);
+            }
+            String host = parsed.getHost();
+            if (!"localhost".equals(host) && !"127.0.0.1".equals(host) && !"monero-wallet-rpc".equals(host)) {
+                throw new IllegalStateException("Invalid Monero wallet RPC URL host: " + host);
+            }
+        } catch (IllegalArgumentException e) {
+            throw new IllegalStateException("Invalid Monero wallet RPC URL: " + url, e);
+        }
+    }
 
     public MoneroSubaddress createSubaddress(int accountIndex, String label) {
         Map<String, Object> params = new HashMap<>();
@@ -113,9 +129,7 @@ public class MoneroWalletClient {
                 request.put("params", params);
             }
 
-            if (walletRpcUrl == null || walletRpcUrl.isBlank()) {
-                throw new IllegalStateException("Monero wallet RPC URL is not configured");
-            }
+            validateWalletRpcUrl(walletRpcUrl);
 
             String requestBody;
             try {
@@ -128,8 +142,8 @@ public class MoneroWalletClient {
 
             String responseBody;
             try {
-                URL url = new URL(walletRpcUrl);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                URI uri = URI.create(walletRpcUrl);
+                HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
                 connection.setRequestMethod("POST");
                 connection.setRequestProperty("Content-Type", "application/json");
                 connection.setDoOutput(true);
@@ -144,8 +158,6 @@ public class MoneroWalletClient {
                     throw new IllegalStateException("Empty response stream from Monero wallet RPC, HTTP status=" + status);
                 }
                 responseBody = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-            } catch (MalformedURLException e) {
-                throw new IllegalStateException("Invalid Monero wallet RPC URL: " + walletRpcUrl, e);
             } catch (IOException e) {
                 throw new IllegalStateException("Failed to call Monero wallet RPC", e);
             }
