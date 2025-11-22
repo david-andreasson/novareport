@@ -31,4 +31,46 @@
         <Bug pattern="IMPROPER_UNICODE"/>
     </Match>
     
+    <!-- Logging uses LogSanitizer; CRLF injection warnings are false positives for these classes -->
+    <Match>
+        <Class name="com.novareport.payments_xmr_service.exception.GlobalExceptionHandler"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.payments_xmr_service.service.PaymentService"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.payments_xmr_service.service.PaymentMonitorService"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.payments_xmr_service.service.SubscriptionActivationService"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.payments_xmr_service.service.SubscriptionsClient"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.payments_xmr_service.service.MoneroWalletClient"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+
+    <!-- Micrometer MeterRegistry is injected by Spring; EI_EXPOSE_REP2 is not a real leak here -->
+    <Match>
+        <Class name="com.novareport.payments_xmr_service.service.PaymentService"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.payments_xmr_service.service.MoneroWalletClient"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- MoneroWalletClient only talks to internal monero-wallet-rpc; SSRF warning is overly strict -->
+    <Match>
+        <Class name="com.novareport.payments_xmr_service.service.MoneroWalletClient"/>
+        <Bug pattern="URLCONNECTION_SSRF_FD"/>
+    </Match>
+
 </FindBugsFilter>

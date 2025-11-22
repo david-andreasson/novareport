@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -56,6 +57,7 @@ public class NotificationReportService {
 
     @Transactional
     public NotificationReport save(NotificationReport report) {
+        Objects.requireNonNull(report, "report must not be null");
         return repository.save(report);
     }
 }

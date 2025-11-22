@@ -2,7 +2,6 @@ package com.novareport.notifications_service.job;
 
 import com.novareport.notifications_service.client.AccountsClient;
 import com.novareport.notifications_service.client.SubscriptionsClient;
-import com.novareport.notifications_service.domain.NotificationReport;
 import com.novareport.notifications_service.dto.ReportEmailSubscriberResponse;
 import com.novareport.notifications_service.service.NotificationReportService;
 import com.novareport.notifications_service.service.ReportEmailService;

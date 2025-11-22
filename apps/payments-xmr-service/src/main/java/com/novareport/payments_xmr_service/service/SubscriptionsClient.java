@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -53,15 +54,16 @@ public class SubscriptionsClient {
     )
     public void activateSubscription(UUID userId, String plan, int durationDays) {
         // SSRF protection: Validate base URL to prevent attacks
-        validateBaseUrl(subscriptionsBaseUrl);
-        
+        String baseUrl = Objects.requireNonNull(subscriptionsBaseUrl, "Subscriptions base URL is not configured");
+        validateBaseUrl(baseUrl);
+
         ActivateSubscriptionRequest request = new ActivateSubscriptionRequest(
                 userId,
                 plan,
                 durationDays
         );
 
-        String url = UriComponentsBuilder.fromUriString(subscriptionsBaseUrl)
+        String url = UriComponentsBuilder.fromUriString(baseUrl)
                 .path("/api/v1/internal/subscriptions/activate")
                 .toUriString();
 
@@ -75,8 +77,13 @@ public class SubscriptionsClient {
                 headers.set("X-Correlation-ID", correlationId);
             }
             HttpEntity<ActivateSubscriptionRequest> entity = new HttpEntity<>(request, headers);
-            
-            var response = restTemplate.exchange(url, HttpMethod.POST, entity, Void.class);
+
+            var response = restTemplate.exchange(
+                    url,
+                    Objects.requireNonNull(HttpMethod.POST, "HTTP method must not be null"),
+                    entity,
+                    Void.class
+            );
             
             if (!response.getStatusCode().is2xxSuccessful()) {
                 log.error("Failed to activate subscription for user {}. Unexpected response status: {}", 
