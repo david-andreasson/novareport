@@ -21,6 +21,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import java.security.SecureRandom;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -78,7 +79,7 @@ public class PaymentService {
                     .status(PaymentStatus.PENDING)
                     .build();
 
-            Payment savedPayment = paymentRepository.save(payment);
+            Payment savedPayment = Objects.requireNonNull(paymentRepository.save(payment));
 
             log.info("Created payment {} with address {}", savedPayment.getId(), paymentAddress);
 
