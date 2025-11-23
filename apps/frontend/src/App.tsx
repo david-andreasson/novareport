@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react'
 import type { ChangeEvent, FormEvent, JSX } from 'react'
 import './App.css'
+import { LoginPanel } from './components/LoginPanel'
+import { RegisterPanel } from './components/RegisterPanel'
+import { ProfilePanel } from './components/ProfilePanel'
+import { SettingsPanel } from './components/SettingsPanel'
+import { ReportPanel } from './components/ReportPanel'
+import { SubscribePanel } from './components/SubscribePanel'
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -12,7 +18,7 @@ type Message = {
   text: string
 }
 
-type UserProfile = {
+export type UserProfile = {
   id: string
   email: string
   firstName: string
@@ -28,14 +34,14 @@ type SubscriptionDetail = {
   endAt: string
 }
 
-type SubscriptionState = {
+export type SubscriptionState = {
   phase: 'idle' | 'loading' | 'success' | 'error'
   hasAccess: boolean | null
   detail: SubscriptionDetail | null
   error?: string
 }
 
-type DailyReport = {
+export type DailyReport = {
   id?: string
   reportId?: string
   reportDate: string
@@ -44,7 +50,7 @@ type DailyReport = {
   updatedAt?: string
 }
 
-type LatestReportState = {
+export type LatestReportState = {
   phase: 'idle' | 'loading' | 'success' | 'error'
   report: DailyReport | null
   error?: string
@@ -57,14 +63,14 @@ type PaymentInfo = {
   expiresAt: string
 }
 
-type PaymentState = {
+export type PaymentState = {
   phase: 'idle' | 'selecting' | 'pending' | 'polling' | 'confirmed' | 'expired' | 'error'
   selectedPlan: 'monthly' | 'yearly' | null
   payment: PaymentInfo | null
   error?: string
 }
 
-const translateStatus = (status: string) => {
+export const translateStatus = (status: string) => {
   switch (status) {
     case 'ACTIVE':
       return 'Aktiv'
@@ -77,15 +83,165 @@ const translateStatus = (status: string) => {
   }
 }
 
-const formatDateTime = (iso: string) =>
+export const formatDateTime = (iso: string) =>
   new Date(iso).toLocaleString('sv-SE', {
     dateStyle: 'medium',
     timeStyle: 'short',
   })
 
-const formatReportTimestamp = (report: DailyReport) => {
+export const formatReportTimestamp = (report: DailyReport) => {
   const iso = report.updatedAt ?? report.createdAt ?? report.reportDate
   return formatDateTime(iso)
+}
+
+export const renderInlineMarkdown = (text: string): (string | JSX.Element)[] => {
+  const parts = text.split(/(\*\*[^*]+\*\*)/)
+  return parts.map((part, index) => {
+    const boldMatch = part.match(/^\*\*([^*]+)\*\*$/)
+    if (boldMatch) {
+      return (
+        <strong key={index}>
+          {boldMatch[1]}
+        </strong>
+      )
+    }
+    return part
+  })
+}
+
+export const renderReportSummary = (summary: string) => {
+  const rawLines = summary.split('\n')
+
+  const elements: JSX.Element[] = []
+  let paragraphLines: string[] = []
+  let listItems: string[] | null = null
+
+  const flushParagraph = () => {
+    if (paragraphLines.length > 0) {
+      const text = paragraphLines.join(' ')
+      elements.push(
+        <p key={`p-${elements.length}`} className="report-summary__paragraph">
+          {renderInlineMarkdown(text)}
+        </p>,
+      )
+      paragraphLines = []
+    }
+  }
+
+  const flushList = () => {
+    if (listItems && listItems.length > 0) {
+      elements.push(
+        <ul key={`ul-${elements.length}`} className="report-summary__list">
+          {listItems.map((item, index) => (
+            <li key={index}>{renderInlineMarkdown(item)}</li>
+          ))}
+        </ul>,
+      )
+      listItems = null
+    }
+  }
+
+  for (let i = 0; i < rawLines.length; i++) {
+    const line = rawLines[i].trim()
+
+    if (line.length === 0) {
+      flushParagraph()
+      flushList()
+      continue
+    }
+
+    const headingMatch = line.match(/^(#{1,6})\s+(.*)$/)
+    if (headingMatch) {
+      flushParagraph()
+      flushList()
+
+      const level = headingMatch[1].length
+      const rawText = headingMatch[2].trim()
+      // Remove leading numeric prefixes like "1. ", "2) " to avoid cluttered headings
+      const cleanedText = rawText.replace(/^[0-9]+[.)]\s*/, '') || rawText
+
+      let heading: JSX.Element
+      switch (level) {
+        case 1:
+          heading = (
+            <h1 key={`h-${elements.length}`} className="report-summary__heading report-summary__heading--h1">
+              {cleanedText}
+            </h1>
+          )
+          break
+        case 2:
+          heading = (
+            <h2 key={`h-${elements.length}`} className="report-summary__heading report-summary__heading--h2">
+              {cleanedText}
+            </h2>
+          )
+          break
+        case 3:
+          heading = (
+            <h3 key={`h-${elements.length}`} className="report-summary__heading report-summary__heading--h3">
+              {cleanedText}
+            </h3>
+          )
+          break
+        default:
+          heading = (
+            <h4 key={`h-${elements.length}`} className="report-summary__heading report-summary__heading--h4">
+              {cleanedText}
+            </h4>
+          )
+          break
+      }
+
+      elements.push(heading)
+      continue
+    }
+
+    // Lines that are only bold markdown ("**Heading**") – treat as headings too
+    const boldLineMatch = line.match(/^\*\*(.+)\*\*$/)
+    if (boldLineMatch) {
+      flushParagraph()
+      flushList()
+
+      const rawText = boldLineMatch[1].trim()
+      const cleanedText = rawText.replace(/^[0-9]+[.)]\s*/, '') || rawText
+
+      const heading = (
+        <h2
+          key={`h-${elements.length}`}
+          className="report-summary__heading report-summary__heading--h2"
+        >
+          {cleanedText}
+        </h2>
+      )
+
+      elements.push(heading)
+      continue
+    }
+
+    if (line.startsWith('- ')) {
+      flushParagraph()
+      if (!listItems) {
+        listItems = []
+      }
+      listItems.push(line.replace(/^-\s*/, ''))
+      continue
+    }
+
+    if (listItems) {
+      flushList()
+    }
+
+    paragraphLines.push(line)
+  }
+
+  flushParagraph()
+  flushList()
+
+  if (elements.length === 0) {
+    return <p className="report-summary__empty">Ingen sammanfattning tillgänglig.</p>
+  }
+
+  return <>{elements}</>
 }
 
 function App() {
@@ -390,156 +546,6 @@ function App() {
     }
   }
 
-  const renderInlineMarkdown = (text: string): (string | JSX.Element)[] => {
-    const parts = text.split(/(\*\*[^*]+\*\*)/)
-    return parts.map((part, index) => {
-      const boldMatch = part.match(/^\*\*([^*]+)\*\*$/)
-      if (boldMatch) {
-        return (
-          <strong key={index}>
-            {boldMatch[1]}
-          </strong>
-        )
-      }
-      return part
-    })
-  }
-
-  const renderReportSummary = (summary: string) => {
-    const rawLines = summary.split('\n')
-
-    const elements: JSX.Element[] = []
-    let paragraphLines: string[] = []
-    let listItems: string[] | null = null
-
-    const flushParagraph = () => {
-      if (paragraphLines.length > 0) {
-        const text = paragraphLines.join(' ')
-        elements.push(
-          <p key={`p-${elements.length}`} className="report-summary__paragraph">
-            {renderInlineMarkdown(text)}
-          </p>,
-        )
-        paragraphLines = []
-      }
-    }
-
-    const flushList = () => {
-      if (listItems && listItems.length > 0) {
-        elements.push(
-          <ul key={`ul-${elements.length}`} className="report-summary__list">
-            {listItems.map((item, index) => (
-              <li key={index}>{renderInlineMarkdown(item)}</li>
-            ))}
-          </ul>,
-        )
-        listItems = null
-      }
-    }
-
-    for (let i = 0; i < rawLines.length; i++) {
-      const line = rawLines[i].trim()
-
-      if (line.length === 0) {
-        flushParagraph()
-        flushList()
-        continue
-      }
-
-      const headingMatch = line.match(/^(#{1,6})\s+(.*)$/)
-      if (headingMatch) {
-        flushParagraph()
-        flushList()
-
-        const level = headingMatch[1].length
-        const rawText = headingMatch[2].trim()
-        // Remove leading numeric prefixes like "1. ", "2) " to avoid cluttered headings
-        const cleanedText = rawText.replace(/^[0-9]+[.)]\s*/, '') || rawText
-
-        let heading: JSX.Element
-        switch (level) {
-          case 1:
-            heading = (
-              <h1 key={`h-${elements.length}`} className="report-summary__heading report-summary__heading--h1">
-                {cleanedText}
-              </h1>
-            )
-            break
-          case 2:
-            heading = (
-              <h2 key={`h-${elements.length}`} className="report-summary__heading report-summary__heading--h2">
-                {cleanedText}
-              </h2>
-            )
-            break
-          case 3:
-            heading = (
-              <h3 key={`h-${elements.length}`} className="report-summary__heading report-summary__heading--h3">
-                {cleanedText}
-              </h3>
-            )
-            break
-          default:
-            heading = (
-              <h4 key={`h-${elements.length}`} className="report-summary__heading report-summary__heading--h4">
-                {cleanedText}
-              </h4>
-            )
-            break
-        }
-
-        elements.push(heading)
-        continue
-      }
-
-      // Lines that are only bold markdown ("**Heading**") – treat as headings too
-      const boldLineMatch = line.match(/^\*\*(.+)\*\*$/)
-      if (boldLineMatch) {
-        flushParagraph()
-        flushList()
-
-        const rawText = boldLineMatch[1].trim()
-        const cleanedText = rawText.replace(/^[0-9]+[.)]\s*/, '') || rawText
-
-        const heading = (
-          <h2
-            key={`h-${elements.length}`}
-            className="report-summary__heading report-summary__heading--h2"
-          >
-            {cleanedText}
-          </h2>
-        )
-
-        elements.push(heading)
-        continue
-      }
-
-      if (line.startsWith('- ')) {
-        flushParagraph()
-        if (!listItems) {
-          listItems = []
-        }
-        listItems.push(line.replace(/^-\s*/, ''))
-        continue
-      }
-
-      if (listItems) {
-        flushList()
-      }
-
-      paragraphLines.push(line)
-    }
-
-    flushParagraph()
-    flushList()
-
-    if (elements.length === 0) {
-      return <p className="report-summary__empty">Ingen sammanfattning tillgänglig.</p>
-    }
-
-    return <>{elements}</>
-  }
-
   const handleSelectPlan = async (plan: 'monthly' | 'yearly') => {
     if (!token) {
       setMessage({ scope: 'subscribe', status: 'error', text: 'Logga in för att prenumerera.' })
@@ -685,477 +691,83 @@ function App() {
   switch (view) {
     case 'login':
       panelContent = (
-        <>
-          <h2>Logga in</h2>
-          <form className="auth-form" onSubmit={handleLoginSubmit}>
-            <label>
-              E-post
-              <input
-                type="email"
-                name="loginEmail"
-                placeholder="namn@example.com"
-                value={loginForm.email}
-                onChange={(event) => setLoginForm({ ...loginForm, email: event.target.value })}
-                required
-              />
-            </label>
-            <label>
-              Lösenord
-              <input
-                type="password"
-                name="loginPassword"
-                placeholder="••••••"
-                value={loginForm.password}
-                onChange={(event) =>
-                  setLoginForm({ ...loginForm, password: event.target.value })
-                }
-                required
-              />
-            </label>
-            {renderMessage('login')}
-            <button className="pill-button" type="submit" disabled={loading === 'login'}>
-              {loading === 'login' ? 'Arbetar…' : 'Fortsätt'}
-            </button>
-          </form>
-        </>
+        <LoginPanel
+          loginForm={loginForm}
+          onChange={(form) => setLoginForm(form)}
+          onSubmit={handleLoginSubmit}
+          message={renderMessage('login')}
+          isLoading={loading === 'login'}
+        />
       )
       break
     case 'register':
       panelContent = (
-        <>
-          <h2>Skapa konto</h2>
-          <form className="auth-form" onSubmit={handleRegisterSubmit}>
-            <label>
-              Förnamn
-              <input
-                type="text"
-                name="registerFirstName"
-                placeholder="Anna"
-                value={registerForm.firstName}
-                onChange={(event) =>
-                  setRegisterForm({ ...registerForm, firstName: event.target.value })
-                }
-                required
-              />
-            </label>
-            <label>
-              Efternamn
-              <input
-                type="text"
-                name="registerLastName"
-                placeholder="Svensson"
-                value={registerForm.lastName}
-                onChange={(event) =>
-                  setRegisterForm({ ...registerForm, lastName: event.target.value })
-                }
-                required
-              />
-            </label>
-            <label>
-              E-post
-              <input
-                type="email"
-                name="registerEmail"
-                placeholder="namn@example.com"
-                value={registerForm.email}
-                onChange={(event) =>
-                  setRegisterForm({ ...registerForm, email: event.target.value })
-                }
-                required
-              />
-            </label>
-            <label>
-              Lösenord
-              <input
-                type="password"
-                name="registerPassword"
-                placeholder="Minst 8 tecken"
-                value={registerForm.password}
-                onChange={(event) =>
-                  setRegisterForm({ ...registerForm, password: event.target.value })
-                }
-                required
-              />
-            </label>
-            <label>
-              Bekräfta lösenord
-              <input
-                type="password"
-                name="registerConfirmPassword"
-                placeholder="Upprepa lösenord"
-                value={registerForm.confirmPassword}
-                onChange={(event) =>
-                  setRegisterForm({ ...registerForm, confirmPassword: event.target.value })
-                }
-                required
-              />
-            </label>
-            {showPasswordFeedback && (
-              <ul className="password-feedback">
-                <li className={meetsPasswordPolicy ? 'valid' : 'invalid'}>
-                  {meetsPasswordPolicy ? '✓' : '✗'} Uppfyller lösenordskraven (minst 8 tecken, stor bokstav och specialtecken)
-                </li>
-                <li className={passwordsMatch ? 'valid' : 'invalid'}>
-                  {passwordsMatch ? '✓' : '✗'} Lösenorden matchar
-                </li>
-              </ul>
-            )}
-            {renderMessage('register')}
-            <button
-              className="pill-button"
-              type="submit"
-              disabled={
-                loading === 'register' || !meetsPasswordPolicy || !passwordsMatch
-              }
-            >
-              {loading === 'register' ? 'Skapar…' : 'Registrera'}
-            </button>
-          </form>
-        </>
+        <RegisterPanel
+          registerForm={registerForm}
+          onChange={(form) => setRegisterForm(form)}
+          onSubmit={handleRegisterSubmit}
+          showPasswordFeedback={showPasswordFeedback}
+          meetsPasswordPolicy={meetsPasswordPolicy}
+          passwordsMatch={passwordsMatch}
+          message={renderMessage('register')}
+          isLoading={loading === 'register'}
+        />
       )
       break
     case 'profile':
       panelContent = (
-        <>
-          <h2>Min profil</h2>
-          {token ? (
-            <>
-              <div className="panel-actions">
-                <button
-                  className="pill-button"
-                  type="button"
-                  onClick={handleRefreshProfile}
-                  disabled={loading === 'profile'}
-                >
-                  {loading === 'profile' ? 'Hämtar…' : 'Uppdatera profil'}
-                </button>
-              </div>
-              {renderMessage('profile')}
-              {profile ? (
-                <div className="auth-details">
-                  <dl>
-                    <dt>Namn</dt>
-                    <dd>
-                      {profile.firstName} {profile.lastName}
-                    </dd>
-                    <dt>E-post</dt>
-                    <dd>{profile.email}</dd>
-                    <dt>Roll</dt>
-                    <dd>{profile.role}</dd>
-                    <dt>ID</dt>
-                    <dd>{profile.id}</dd>
-                  </dl>
-                </div>
-              ) : (
-                loading === 'profile' ? null : (
-                  <p className="auth-note">Ingen profildata hämtad ännu.</p>
-                )
-              )}
-              <section className="subscription-card">
-                <div
-                  className={`subscription-chip ${
-                    subscriptionState.phase === 'success'
-                      ? subscriptionState.hasAccess
-                        ? 'active'
-                        : 'inactive'
-                      : subscriptionState.phase === 'error'
-                        ? 'error'
-                        : 'pending'
-                  }`}
-                >
-                  Prenumerationsstatus
-                </div>
-
-                {subscriptionState.phase === 'loading' && (
-                  <p className="auth-note">Kontrollerar prenumeration…</p>
-                )}
-
-                {subscriptionState.phase === 'error' && (
-                  <p className="subscription-error">{subscriptionState.error}</p>
-                )}
-
-                {subscriptionState.phase === 'success' && (
-                  subscriptionState.hasAccess ? (
-                    <div className="subscription-meta">
-                      <div>
-                        <span>Plan</span>
-                        <strong>{subscriptionState.detail?.plan ?? 'Okänd'}</strong>
-                      </div>
-                      <div>
-                        <span>Status</span>
-                        <strong>
-                          {subscriptionState.detail
-                            ? translateStatus(subscriptionState.detail.status)
-                            : 'Aktiv'}
-                        </strong>
-                      </div>
-                      {subscriptionState.detail && (
-                        <>
-                          <div>
-                            <span>Startade</span>
-                            <strong>{formatDateTime(subscriptionState.detail.startAt)}</strong>
-                          </div>
-                          <div>
-                            <span>Giltig till</span>
-                            <strong>{formatDateTime(subscriptionState.detail.endAt)}</strong>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="auth-note">Ingen aktiv prenumeration.</p>
-                  )
-                )}
-
-                {subscriptionState.phase === 'idle' && (
-                  <p className="auth-note">Prenumerationsstatus hämtas efter inloggning.</p>
-                )}
-              </section>
-            </>
-          ) : (
-            <p className="auth-note">Logga in för att se din profil.</p>
-          )}
-        </>
+        <ProfilePanel
+          token={token}
+          isLoadingProfile={loading === 'profile'}
+          message={renderMessage('profile')}
+          profile={profile}
+          subscriptionState={subscriptionState}
+          onRefresh={handleRefreshProfile}
+          formatDateTime={formatDateTime}
+          translateStatus={translateStatus}
+        />
       )
       break
     case 'settings':
       panelContent = (
-        <>
-          <h2>Inställningar</h2>
-          {renderMessage('settings')}
-          <form className="auth-form" onSubmit={handleSettingsSubmit}>
-            <label>
-              Språk (locale)
-              <input
-                type="text"
-                name="settingsLocale"
-                placeholder="sv-SE"
-                value={settingsForm.locale}
-                onChange={handleSettingsInput('locale')}
-                disabled={!token || loading === 'settings'}
-                required
-              />
-            </label>
-            <label>
-              Tidszon
-              <input
-                type="text"
-                name="settingsTimezone"
-                placeholder="Europe/Stockholm"
-                value={settingsForm.timezone}
-                onChange={handleSettingsInput('timezone')}
-                disabled={!token || loading === 'settings'}
-                required
-              />
-            </label>
-            <label className="checkbox-row">
-              <input
-                type="checkbox"
-                name="settingsMarketing"
-                checked={settingsForm.marketingOptIn}
-                onChange={handleSettingsCheckbox('marketingOptIn')}
-                disabled={!token || loading === 'settings'}
-              />
-              <span>Ta emot nyheter och uppdateringar</span>
-            </label>
-            <label className="checkbox-row">
-              <input
-                type="checkbox"
-                name="settingsReportEmail"
-                checked={settingsForm.reportEmailOptIn}
-                onChange={handleSettingsCheckbox('reportEmailOptIn')}
-                disabled={!token || loading === 'settings'}
-              />
-              <span>Ta emot daglig rapport via e-post</span>
-            </label>
-            <button className="pill-button" type="submit" disabled={!token || loading === 'settings'}>
-              {loading === 'settings' ? 'Sparar…' : 'Spara inställningar'}
-            </button>
-          </form>
-          {!token && <p className="auth-note">Logga in för att kunna spara.</p>}
-        </>
+        <SettingsPanel
+          token={token}
+          settingsForm={settingsForm}
+          onSubmit={handleSettingsSubmit}
+          onChangeLocale={handleSettingsInput('locale')}
+          onChangeTimezone={handleSettingsInput('timezone')}
+          onToggleMarketing={handleSettingsCheckbox('marketingOptIn')}
+          onToggleReportEmail={handleSettingsCheckbox('reportEmailOptIn')}
+          message={renderMessage('settings')}
+          isLoading={loading === 'settings'}
+        />
       )
       break
     case 'report':
       panelContent = (
-        <>
-          <h2>Senaste rapport</h2>
-          <p className="auth-note">
-            Visar resultatet från reporter-service. Kräver aktiv prenumeration.
-          </p>
-          {reportState.phase === 'loading' && <p className="auth-note">Hämtar rapport…</p>}
-          {reportState.phase === 'error' && (
-            <p className="subscription-error">{reportState.error ?? 'Ett fel inträffade.'}</p>
-          )}
-          {reportState.phase === 'success' && reportState.report && (
-            <article className="report-preview">
-              <header className="report-preview__header">
-                <div>
-                  <span className="chip">Senaste rapport</span>
-                  <h3>{new Date(reportState.report.reportDate).toLocaleDateString('sv-SE')}</h3>
-                </div>
-                <div className="report-meta">
-                  <span>Skapad</span>
-                  <strong>{formatReportTimestamp(reportState.report)}</strong>
-                </div>
-              </header>
-              <section className="report-summary">
-                {renderReportSummary(reportState.report.summary)}
-              </section>
-            </article>
-          )}
-          {!token && <p className="auth-note">Logga in för att kunna läsa rapporten.</p>}
-        </>
+        <ReportPanel
+          token={token}
+          reportState={reportState}
+          formatTimestamp={formatReportTimestamp}
+          renderSummary={renderReportSummary}
+        />
       )
       break
     case 'subscribe': {
-      const hasPaymentDetails =
-        (paymentState.phase === 'pending' || paymentState.phase === 'polling') &&
-        paymentState.payment
-
-      let paymentMoneroUri: string | null = null
-      let paymentQrUrl: string | null = null
-
-      if (hasPaymentDetails && paymentState.payment) {
-        const { paymentAddress, amountXmr } = paymentState.payment
-        paymentMoneroUri = `monero:${paymentAddress}?tx_amount=${amountXmr}`
-        paymentQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
-          paymentMoneroUri,
-        )}`
-      }
-
       panelContent = (
-        <>
-          <h2>Prenumerera</h2>
-          <p className="auth-note">Välj en plan och betala med Monero (XMR)</p>
-          {renderMessage('subscribe')}
-          {paymentState.phase === 'idle' || paymentState.phase === 'selecting' ? (
-            <div className="subscription-plans">
-              <div className="plan-card">
-                <h3>Månad</h3>
-                <div className="plan-price">
-                  <span className="price-amount">0.01</span>
-                  <span className="price-currency">XMR</span>
-                </div>
-                <p className="plan-description">Tillgång i 30 dagar</p>
-                <button
-                  className="pill-button"
-                  type="button"
-                  onClick={() => void handleSelectPlan('monthly')}
-                  disabled={paymentState.phase === 'selecting'}
-                >
-                  Välj månad
-                </button>
-              </div>
-              <div className="plan-card plan-card--featured">
-                <span className="plan-badge">Bäst värde</span>
-                <h3>År</h3>
-                <div className="plan-price">
-                  <span className="price-amount">0.50</span>
-                  <span className="price-currency">XMR</span>
-                </div>
-                <p className="plan-description">Tillgång i 365 dagar</p>
-                <p className="plan-savings">Spara 17% jämfört med månad</p>
-                <button
-                  className="pill-button"
-                  type="button"
-                  onClick={() => void handleSelectPlan('yearly')}
-                  disabled={paymentState.phase === 'selecting'}
-                >
-                  Välj år
-                </button>
-              </div>
-            </div>
-          ) : null}
-          {paymentState.phase === 'pending' || paymentState.phase === 'polling' ? (
-            <div className="payment-details">
-              <h3>Skicka betalning</h3>
-              <p className="auth-note">
-                Skicka exakt <strong>{paymentState.payment?.amountXmr} XMR</strong> till adressen nedan
-              </p>
-              <div className="payment-address">
-                <label>Monero-adress</label>
-                <code className="payment-address-code">{paymentState.payment?.paymentAddress}</code>
-                <button
-                  className="copy-button"
-                  type="button"
-                  onClick={() => {
-                    if (paymentState.payment?.paymentAddress) {
-                      void navigator.clipboard.writeText(paymentState.payment.paymentAddress)
-                      setMessage({ scope: 'subscribe', status: 'success', text: 'Adress kopierad!' })
-                    }
-                  }}
-                >
-                  Kopiera
-                </button>
-              </div>
-              <div className="payment-qr">
-                {paymentQrUrl && paymentMoneroUri ? (
-                  <>
-                    <img
-                      src={paymentQrUrl}
-                      alt="Monero QR-kod för betalning"
-                      className="payment-qr-image"
-                    />
-                    <p className="auth-note">
-                      Skanna QR-koden i din Monero-plånbok eller{' '}
-                      <a href={paymentMoneroUri}>öppna betalning direkt</a>.
-                    </p>
-                  </>
-                ) : (
-                  <p className="auth-note">QR-kod kan inte genereras just nu.</p>
-                )}
-              </div>
-              <p className="auth-note">
-                Betalningen bekräftas automatiskt när din transaktion fått tillräckligt många
-                konfirmationer i Monero-nätverket. Det kan ta upp till cirka 20 minuter.
-              </p>
-              {paymentState.payment?.expiresAt && (
-                <p className="payment-expiry">
-                  Betalningen går ut:{' '}
-                  {new Date(paymentState.payment.expiresAt).toLocaleString('sv-SE')}
-                </p>
-              )}
-              {paymentState.phase === 'polling' && (
-                <p className="payment-status">⏳ Väntar på betalning...</p>
-              )}
-            </div>
-          ) : null}
-          {paymentState.phase === 'confirmed' ? (
-            <div className="payment-success">
-              <h3>✓ Betalning bekräftad!</h3>
-              <p>Din prenumeration är nu aktiv.</p>
-              <button className="pill-button" type="button" onClick={() => handleChangeView('report')}>
-                Visa rapporter
-              </button>
-            </div>
-          ) : null}
-          {paymentState.phase === 'expired' ? (
-            <div className="payment-error">
-              <h3>Betalningen gick ut</h3>
-              <p>Betalningen tog för lång tid. Försök igen.</p>
-              <button
-                className="pill-button"
-                type="button"
-                onClick={() => setPaymentState({ phase: 'idle', selectedPlan: null, payment: null })}
-              >
-                Försök igen
-              </button>
-            </div>
-          ) : null}
-          {paymentState.phase === 'error' && paymentState.error ? (
-            <div className="payment-error">
-              <p>{paymentState.error}</p>
-              <button
-                className="pill-button"
-                type="button"
-                onClick={() => setPaymentState({ phase: 'idle', selectedPlan: null, payment: null })}
-              >
-                Försök igen
-              </button>
-            </div>
-          ) : null}
-        </>
+        <SubscribePanel
+          paymentState={paymentState}
+          message={renderMessage('subscribe')}
+          onSelectPlan={(plan) => {
+            void handleSelectPlan(plan)
+          }}
+          onNavigateToReport={() => handleChangeView('report')}
+          onResetPayment={() => setPaymentState({ phase: 'idle', selectedPlan: null, payment: null })}
+          onCopyPaymentAddress={(address) => {
+            void navigator.clipboard.writeText(address)
+            setMessage({ scope: 'subscribe', status: 'success', text: 'Adress kopierad!' })
+          }}
+        />
       )
       break
     }
