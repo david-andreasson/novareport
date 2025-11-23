@@ -7,8 +7,12 @@ import { ProfilePanel } from './components/ProfilePanel'
 import { SettingsPanel } from './components/SettingsPanel'
 import { ReportPanel } from './components/ReportPanel'
 import { SubscribePanel } from './components/SubscribePanel'
+import { login, register, getProfile, updateSettings } from './api/accounts'
+import { getSubscriptionInfo } from './api/subscriptions'
+import { getLatestReport as apiGetLatestReport } from './api/reports'
+import { createPayment, getPaymentStatus } from './api/payments'
 
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+export const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 type View = 'login' | 'register' | 'profile' | 'settings' | 'report' | 'subscribe'
 
@@ -306,65 +310,12 @@ function App() {
     }
     setSubscriptionState((prev) => ({ ...prev, phase: 'loading', error: undefined }))
     try {
-      const accessResponse = await fetch('/api/subscriptions/me/has-access', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-
-      if (accessResponse.status === 401) {
-        throw new Error('Inloggningen har gått ut. Logga in igen.')
-      }
-
-      if (!accessResponse.ok) {
-        const errorText = await accessResponse.text()
-        throw new Error(errorText || 'Kunde inte kontrollera prenumeration')
-      }
-
-      const { hasAccess } = (await accessResponse.json()) as { hasAccess: boolean }
-      let detail: SubscriptionDetail | null = null
-
-      if (hasAccess) {
-        const detailResponse = await fetch('/api/subscriptions/me', {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-
-        if (detailResponse.ok) {
-          detail = (await detailResponse.json()) as SubscriptionDetail
-        } else if (detailResponse.status !== 404) {
-          const errorText = await detailResponse.text()
-          throw new Error(errorText || 'Kunde inte hämta prenumerationsdetaljer')
-        }
-      }
-
+      const { hasAccess, detail } = await getSubscriptionInfo(token)
       setSubscriptionState({ phase: 'success', hasAccess, detail })
     } catch (error) {
       const text = error instanceof Error ? error.message : 'Okänt fel'
       setSubscriptionState({ phase: 'error', hasAccess: null, detail: null, error: text })
     }
-  }
-
-  const getLatestReport = async (): Promise<DailyReport | null> => {
-    const response = await fetch('/api/notifications/latest', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-
-    if (response.status === 404) {
-      return null
-    }
-
-    if (response.status === 401) {
-      throw new Error('Inloggningen har gått ut. Logga in igen.')
-    }
-
-    if (response.status === 403) {
-      throw new Error('Du saknar prenumeration för att läsa rapporten.')
-    }
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(errorText || 'Kunde inte hämta rapport')
-    }
-
-    return (await response.json()) as DailyReport
   }
 
 
@@ -373,21 +324,7 @@ function App() {
     setLoading('login')
     setMessage((prev) => (prev?.scope === 'login' ? null : prev))
     try {
-      const response = await fetch('/api/accounts/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: loginForm.email,
-          password: loginForm.password,
-        }),
-      })
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(errorText || 'Login failed')
-      }
-
-      const data: { accessToken: string } = await response.json()
+      const data = await login(loginForm.email, loginForm.password)
       setToken(data.accessToken)
       setProfile(null)
       setSubscriptionState({ phase: 'idle', hasAccess: null, detail: null })
@@ -415,23 +352,12 @@ function App() {
     setLoading('register')
     setMessage((prev) => (prev?.scope === 'register' ? null : prev))
     try {
-      const response = await fetch('/api/accounts/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: registerForm.email,
-          password: registerForm.password,
-          firstName: registerForm.firstName,
-          lastName: registerForm.lastName,
-        }),
+      const data = await register({
+        email: registerForm.email,
+        password: registerForm.password,
+        firstName: registerForm.firstName,
+        lastName: registerForm.lastName,
       })
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(errorText || 'Registrering misslyckades')
-      }
-
-      const data: { accessToken: string } = await response.json()
       setToken(data.accessToken)
       setProfile(null)
       setSubscriptionState({ phase: 'idle', hasAccess: null, detail: null })
@@ -455,16 +381,7 @@ function App() {
     setLoading('profile')
     setMessage((prev) => (prev?.scope === 'profile' ? null : prev))
     try {
-      const response = await fetch('/api/accounts/me', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(errorText || 'Kunde inte hämta profil')
-      }
-
-      const data: UserProfile = await response.json()
+      const data: UserProfile = await getProfile(token)
       setProfile(data)
       setMessage({ scope: 'profile', status: 'success', text: 'Profil hämtad' })
     } catch (error) {
@@ -498,20 +415,7 @@ function App() {
     setLoading('settings')
     setMessage((prev) => (prev?.scope === 'settings' ? null : prev))
     try {
-      const response = await fetch('/api/accounts/me/settings', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ ...settingsForm, twoFactorEnabled: false }),
-      })
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(errorText || 'Kunde inte spara inställningar')
-      }
-
+      await updateSettings(token, { ...settingsForm, twoFactorEnabled: false })
       setMessage({ scope: 'settings', status: 'success', text: 'Inställningar sparade' })
     } catch (error) {
       const text = error instanceof Error ? error.message : 'Okänt fel'
@@ -534,7 +438,7 @@ function App() {
 
     setReportState({ phase: 'loading', report: null })
     try {
-      const data = await getLatestReport()
+      const data = await apiGetLatestReport(token)
       if (!data) {
         setReportState({ phase: 'error', report: null, error: 'Ingen rapport tillgänglig ännu.' })
         return
@@ -557,34 +461,7 @@ function App() {
 
     try {
       const amountXmr = '0.01'
-      const response = await fetch('/api/payments/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          plan,
-          amountXmr,
-        }),
-      })
-
-      if (response.status === 401) {
-        throw new Error('Inloggningen har gått ut. Logga in igen.')
-      }
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(errorText || 'Kunde inte skapa betalning')
-      }
-
-      const data: {
-        paymentId: string
-        paymentAddress: string
-        amountXmr: string
-        expiresAt: string
-      } = await response.json()
-
+      const data = await createPayment(token, plan, amountXmr)
       setPaymentState({
         phase: 'pending',
         selectedPlan: plan,
@@ -616,20 +493,7 @@ function App() {
       try {
         await delay(5000) // Wait 5 seconds between polls
 
-        const response = await fetch(`/api/payments/${paymentId}/status`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-
-        if (!response.ok) {
-          throw new Error('Kunde inte hämta betalningsstatus')
-        }
-
-        const data: {
-          paymentId: string
-          status: 'PENDING' | 'CONFIRMED' | 'FAILED'
-          createdAt: string
-          confirmedAt: string | null
-        } = await response.json()
+        const data = await getPaymentStatus(token, paymentId)
 
         if (data.status === 'CONFIRMED') {
           setPaymentState((prev) => ({ ...prev, phase: 'confirmed' }))
