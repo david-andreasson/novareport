@@ -9,7 +9,7 @@ afterEach(() => {
 })
 
 describe('subscriptions API', () => {
-  it('returnerar hasAccess=false och null-detail när användaren saknar access', async () => {
+  it('returns hasAccess=false and null detail when user has no access', async () => {
     const fetchMock = vi
       .fn()
       // /has-access
@@ -30,7 +30,7 @@ describe('subscriptions API', () => {
     })
   })
 
-  it('hämtar detaljer när hasAccess=true', async () => {
+  it('fetches details when hasAccess=true', async () => {
     const fetchMock = vi
       .fn()
       // /has-access
@@ -62,7 +62,7 @@ describe('subscriptions API', () => {
     expect(result.detail?.plan).toBe('monthly')
   })
 
-  it('kastar fel när has-access-anropet misslyckas', async () => {
+  it('throws error when has-access call fails', async () => {
     const fetchMock = vi.fn(async () => ({
       ok: false,
       status: 500,

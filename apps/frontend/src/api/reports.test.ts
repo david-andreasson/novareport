@@ -9,7 +9,7 @@ afterEach(() => {
 })
 
 describe('reports API', () => {
-  it('returnerar null vid 404 (ingen rapport)', async () => {
+  it('returns null on 404 (no report)', async () => {
     const fetchMock = vi.fn(async () => ({
       ok: false,
       status: 404,
@@ -23,7 +23,7 @@ describe('reports API', () => {
     expect(result).toBeNull()
   })
 
-  it('kastar fel med rätt meddelande vid 401 (utloggad)', async () => {
+  it('throws error with correct message on 401 (logged out)', async () => {
     const fetchMock = vi.fn(async () => ({
       ok: false,
       status: 401,
@@ -38,7 +38,7 @@ describe('reports API', () => {
     )
   })
 
-  it('kastar fel med rätt meddelande vid 403 (saknar prenumeration)', async () => {
+  it('throws error with correct message on 403 (no subscription)', async () => {
     const fetchMock = vi.fn(async () => ({
       ok: false,
       status: 403,
@@ -53,7 +53,7 @@ describe('reports API', () => {
     )
   })
 
-  it('returnerar rapport vid lyckat svar', async () => {
+  it('returns report on successful response', async () => {
     const fetchMock = vi.fn(async () => ({
       ok: true,
       status: 200,

@@ -10,7 +10,7 @@ describe('SettingsPanel', () => {
     reportEmailOptIn: false,
   }
 
-  it('renderar alla inställningsfält med korrekta etiketter', () => {
+  it('renders all settings fields with correct labels', () => {
     render(
       <SettingsPanel
         token="token"
@@ -31,7 +31,7 @@ describe('SettingsPanel', () => {
     expect(screen.getByText('Ta emot daglig rapport via e-post')).toBeInTheDocument()
   })
 
-  it('disablar alla fält och visar notis när token saknas', () => {
+  it('disables all fields and shows notice when token is missing', () => {
     render(
       <SettingsPanel
         token={null}
@@ -54,7 +54,7 @@ describe('SettingsPanel', () => {
     expect(screen.getByText('Logga in för att kunna spara.')).toBeInTheDocument()
   })
 
-  it('anropar onSubmit när formuläret skickas in', () => {
+  it('calls onSubmit when form is submitted', () => {
     const handleSubmit = vi.fn((event: React.FormEvent<HTMLFormElement>) => event.preventDefault())
 
     render(
@@ -76,7 +76,7 @@ describe('SettingsPanel', () => {
     expect(handleSubmit).toHaveBeenCalledTimes(1)
   })
 
-  it('visar laddningstillstånd på knappen när isLoading är true', () => {
+  it('shows loading state on button when isLoading is true', () => {
     render(
       <SettingsPanel
         token="token"

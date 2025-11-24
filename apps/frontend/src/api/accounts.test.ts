@@ -9,7 +9,7 @@ afterEach(() => {
 })
 
 describe('accounts API', () => {
-  it('login skickar POST med korrekt payload och returnerar accessToken', async () => {
+  it('login sends POST with correct payload and returns accessToken', async () => {
     const fetchMock = vi.fn(async () => ({
       ok: true,
       status: 200,
@@ -29,7 +29,7 @@ describe('accounts API', () => {
     })
   })
 
-  it('login kastar fel med text från backend vid misslyckande', async () => {
+  it('login throws error with backend text on failure', async () => {
     const fetchMock = vi.fn(async () => ({
       ok: false,
       status: 401,
@@ -42,7 +42,7 @@ describe('accounts API', () => {
     await expect(login('user@example.com', 'wrong')).rejects.toThrow('Felaktiga uppgifter')
   })
 
-  it('register skickar POST med korrekt payload och returnerar accessToken', async () => {
+  it('register sends POST with correct payload and returns accessToken', async () => {
     const fetchMock = vi.fn(async () => ({
       ok: true,
       status: 200,
@@ -69,7 +69,7 @@ describe('accounts API', () => {
     })
   })
 
-  it('getProfile hämtar profil med bearer-token', async () => {
+  it('getProfile fetches profile with bearer token', async () => {
     const fetchMock = vi.fn(async () => ({
       ok: true,
       status: 200,
@@ -93,7 +93,7 @@ describe('accounts API', () => {
     })
   })
 
-  it('updateSettings skickar PUT med rätt body och kastar fel vid misslyckande', async () => {
+  it('updateSettings sends PUT with correct body and throws error on failure', async () => {
     const okResponse = {
       ok: true,
       status: 200,
@@ -110,9 +110,9 @@ describe('accounts API', () => {
 
     const fetchMock = vi
       .fn()
-      // Första anropet: OK
+      // First call: OK
       .mockResolvedValueOnce(okResponse as Response)
-      // Andra anropet: fel
+      // Second call: error
       .mockResolvedValueOnce(errorResponse as Response)
 
     ;(globalThis as any).fetch = fetchMock

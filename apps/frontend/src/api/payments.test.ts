@@ -9,7 +9,7 @@ afterEach(() => {
 })
 
 describe('payments API', () => {
-  it('createPayment skickar POST med rätt body och returnerar payment-data', async () => {
+  it('createPayment sends POST with correct body and returns payment data', async () => {
     const fetchMock = vi.fn(async () => ({
       ok: true,
       status: 200,
@@ -40,7 +40,7 @@ describe('payments API', () => {
     })
   })
 
-  it('createPayment kastar fel med backend-text vid misslyckande', async () => {
+  it('createPayment throws error with backend text on failure', async () => {
     const fetchMock = vi.fn(async () => ({
       ok: false,
       status: 500,
@@ -55,7 +55,7 @@ describe('payments API', () => {
     )
   })
 
-  it('getPaymentStatus hämtar och returnerar status-data', async () => {
+  it('getPaymentStatus fetches and returns status data', async () => {
     const fetchMock = vi.fn(async () => ({
       ok: true,
       status: 200,
@@ -78,7 +78,7 @@ describe('payments API', () => {
     })
   })
 
-  it('getPaymentStatus kastar fel med backend-text vid misslyckande', async () => {
+  it('getPaymentStatus throws error with backend text on failure', async () => {
     const fetchMock = vi.fn(async () => ({
       ok: false,
       status: 404,

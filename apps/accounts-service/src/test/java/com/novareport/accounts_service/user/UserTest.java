@@ -53,7 +53,7 @@ class UserTest {
                 .updatedAt(Instant.now())
                 .build();
 
-        // Nybyggd entitet är "new" tills den laddats från DB eller onCreate har körts
+        // Newly built entity is "new" until it has been loaded from the DB or onCreate has run
         assertThat(user.isNew()).isTrue();
 
         user.markLoaded();
