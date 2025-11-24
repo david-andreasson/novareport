@@ -11,7 +11,7 @@ describe('SubscribePanel', () => {
     error: undefined,
   }
 
-  it('visar plan-kort när phase är idle', () => {
+  it('shows plan cards when phase is idle', () => {
     render(
       <SubscribePanel
         paymentState={baseState}
@@ -27,7 +27,7 @@ describe('SubscribePanel', () => {
     expect(screen.getByText('År')).toBeInTheDocument()
   })
 
-  it('anropar onSelectPlan när användaren väljer plan', () => {
+  it('calls onSelectPlan when user selects a plan', () => {
     const handleSelectPlan = vi.fn()
 
     render(
@@ -48,7 +48,7 @@ describe('SubscribePanel', () => {
     expect(handleSelectPlan).toHaveBeenCalledWith('yearly')
   })
 
-  it('visar betalningsdetaljer och anropar onCopyPaymentAddress', () => {
+  it('shows payment details and calls onCopyPaymentAddress', () => {
     const handleCopy = vi.fn()
     const state: PaymentState = {
       phase: 'pending',
@@ -80,7 +80,7 @@ describe('SubscribePanel', () => {
     expect(handleCopy).toHaveBeenCalledWith('address123')
   })
 
-  it('visar success-panel och anropar onNavigateToReport', () => {
+  it('shows success panel and calls onNavigateToReport', () => {
     const handleNavigate = vi.fn()
     const state: PaymentState = { ...baseState, phase: 'confirmed' }
 
@@ -101,7 +101,7 @@ describe('SubscribePanel', () => {
     expect(handleNavigate).toHaveBeenCalledTimes(1)
   })
 
-  it('visar expired-panel och anropar onResetPayment', () => {
+  it('shows expired panel and calls onResetPayment', () => {
     const handleReset = vi.fn()
     const state: PaymentState = { ...baseState, phase: 'expired' }
 
@@ -122,7 +122,7 @@ describe('SubscribePanel', () => {
     expect(handleReset).toHaveBeenCalledTimes(1)
   })
 
-  it('visar error-panel och anropar onResetPayment', () => {
+  it('shows error panel and calls onResetPayment', () => {
     const handleReset = vi.fn()
     const state: PaymentState = { ...baseState, phase: 'error', error: 'Något gick fel' }
 

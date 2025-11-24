@@ -11,7 +11,7 @@ describe('RegisterPanel', () => {
     lastName: '',
   }
 
-  it('renderar alla fält med korrekta etiketter', () => {
+  it('renders all fields with correct labels', () => {
     render(
       <RegisterPanel
         registerForm={baseForm}
@@ -32,7 +32,7 @@ describe('RegisterPanel', () => {
     expect(screen.getByLabelText('Bekräfta lösenord')).toBeInTheDocument()
   })
 
-  it('visar lösenordsfeedback när showPasswordFeedback är true', () => {
+  it('shows password feedback when showPasswordFeedback is true', () => {
     render(
       <RegisterPanel
         registerForm={baseForm}
@@ -50,7 +50,7 @@ describe('RegisterPanel', () => {
     expect(screen.getByText(/Lösenorden matchar/)).toBeInTheDocument()
   })
 
-  it('disablar knappen om lösenordskraven inte uppfylls eller lösenorden inte matchar', () => {
+  it('disables button if password requirements are not met or passwords do not match', () => {
     const { rerender } = render(
       <RegisterPanel
         registerForm={baseForm}
@@ -84,7 +84,7 @@ describe('RegisterPanel', () => {
     expect(button).not.toBeDisabled()
   })
 
-  it('anropar onSubmit när formuläret skickas in', () => {
+  it('calls onSubmit when form is submitted', () => {
     const handleSubmit = vi.fn((event: React.FormEvent<HTMLFormElement>) => event.preventDefault())
 
     render(

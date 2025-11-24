@@ -12,7 +12,7 @@ describe('ReportPanel', () => {
     report: null,
   }
 
-  it('visar login-hint när token saknas', () => {
+  it('shows login hint when token is missing', () => {
     render(
       <ReportPanel
         token={null}
@@ -25,7 +25,7 @@ describe('ReportPanel', () => {
     expect(screen.getByText('Logga in för att kunna läsa rapporten.')).toBeInTheDocument()
   })
 
-  it('visar laddningstext när phase är loading', () => {
+  it('shows loading text when phase is loading', () => {
     const state: LatestReportState = { ...baseState, phase: 'loading' }
 
     render(
@@ -40,7 +40,7 @@ describe('ReportPanel', () => {
     expect(screen.getByText('Hämtar rapport…')).toBeInTheDocument()
   })
 
-  it('visar felmeddelande när phase är error', () => {
+  it('shows error message when phase is error', () => {
     const state: LatestReportState = { phase: 'error', report: null, error: 'Något gick fel' }
 
     render(
@@ -55,7 +55,7 @@ describe('ReportPanel', () => {
     expect(screen.getByText('Något gick fel')).toBeInTheDocument()
   })
 
-  it('visar rapport och anropar formatTimestamp och renderSummary när phase är success', () => {
+  it('renders report and calls formatTimestamp and renderSummary when phase is success', () => {
     const report: DailyReport = {
       reportDate: '2024-01-01T00:00:00Z',
       summary: 'Sammanfattning',

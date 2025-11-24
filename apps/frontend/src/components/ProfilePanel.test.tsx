@@ -13,7 +13,7 @@ describe('ProfilePanel', () => {
   const formatDateTime = vi.fn((iso: string) => `formatted-${iso}`)
   const translateStatus = vi.fn((status: string) => `translated-${status}`)
 
-  it('visar inloggningsuppmaning när token saknas', () => {
+  it('shows login hint when token is missing', () => {
     render(
       <ProfilePanel
         token={null}
@@ -30,7 +30,7 @@ describe('ProfilePanel', () => {
     expect(screen.getByText('Logga in för att se din profil.')).toBeInTheDocument()
   })
 
-  it('visar profilinformation när profil finns', () => {
+  it('renders profile information when profile is present', () => {
     const profile: UserProfile = {
       id: 'user-1',
       email: 'user@example.com',
@@ -56,7 +56,7 @@ describe('ProfilePanel', () => {
     expect(screen.getByText('user@example.com')).toBeInTheDocument()
   })
 
-  it('visar prenumerationsinformation när access är aktiv', () => {
+  it('renders subscription information when access is active', () => {
     const subscriptionState: SubscriptionState = {
       phase: 'success',
       hasAccess: true,
@@ -89,7 +89,7 @@ describe('ProfilePanel', () => {
     expect(formatDateTime).toHaveBeenCalledWith('2024-02-01T00:00:00Z')
   })
 
-  it('anropar onRefresh när uppdatera-knappen klickas', () => {
+  it('calls onRefresh when refresh button is clicked', () => {
     const handleRefresh = vi.fn()
 
     render(

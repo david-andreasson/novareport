@@ -7,19 +7,19 @@ import App, {
 } from './App'
 
 describe('translateStatus', () => {
-  it('översätter kända statuser till svenska', () => {
+  it('translates known statuses to Swedish', () => {
     expect(translateStatus('ACTIVE')).toBe('Aktiv')
     expect(translateStatus('EXPIRED')).toBe('Utgången')
     expect(translateStatus('CANCELLED')).toBe('Avslutad')
   })
 
-  it('lämnar okända statuser oförändrade', () => {
+  it('leaves unknown statuses unchanged', () => {
     expect(translateStatus('UNKNOWN')).toBe('UNKNOWN')
   })
 })
 
 describe('renderInlineMarkdown', () => {
-  it('wrappar **text** i <strong>', () => {
+  it('wraps **text** in <strong>', () => {
     const { container } = render(<>{renderInlineMarkdown('Hello **World**')}</>)
     const strong = container.querySelector('strong')
     expect(strong).not.toBeNull()
@@ -28,13 +28,13 @@ describe('renderInlineMarkdown', () => {
 })
 
 describe('renderReportSummary', () => {
-  it('renderar fallback-text när sammanfattningen är tom', () => {
+  it('renders fallback text when summary is empty', () => {
     const { container } = render(<>{renderReportSummary('')}</>)
     const empty = container.querySelector('.report-summary__empty')
     expect(empty).not.toBeNull()
   })
 
-  it('renderar rubriker för markdown-överskrifter', () => {
+  it('renders headings for markdown titles', () => {
     const summary = '# Titel\n\n- Punkt 1\n- Punkt 2'
     const { container } = render(<>{renderReportSummary(summary)}</>)
     const heading = container.querySelector('.report-summary__heading')
@@ -42,7 +42,7 @@ describe('renderReportSummary', () => {
     expect(heading?.textContent).toContain('Titel')
   })
 
-  it('renderar punktlista som &lt;ul&gt; med &lt;li&gt;-element', () => {
+  it('renders bullet list as <ul> with <li> elements', () => {
     const summary = '- Första punkt\n- Andra punkt'
     const { container } = render(<>{renderReportSummary(summary)}</>)
     const list = container.querySelector('.report-summary__list')
@@ -51,7 +51,7 @@ describe('renderReportSummary', () => {
     expect(items.length).toBe(2)
   })
 
-  it('behandlar en bold-rad som rubrik och rensar numerisk prefix', () => {
+  it('treats a bold-only line as a heading and strips numeric prefix', () => {
     const summary = '**1. Viktig rubrik**\n\nText under rubrik.'
     const { container } = render(<>{renderReportSummary(summary)}</>)
     const heading = container.querySelector('.report-summary__heading--h2')
@@ -59,7 +59,7 @@ describe('renderReportSummary', () => {
     expect(heading?.textContent).toBe('Viktig rubrik')
   })
 
-  it('delar upp text i flera stycken vid tomrader', () => {
+  it('splits text into multiple paragraphs on blank lines', () => {
     const summary = 'Första stycket.\n\nAndra stycket.'
     const { container } = render(<>{renderReportSummary(summary)}</>)
     const paragraphs = container.querySelectorAll('.report-summary__paragraph')
@@ -80,7 +80,7 @@ describe('App integration', () => {
     return fetchMock
   }
 
-  it('kan logga in och visa profilvy med prenumerationsstatus', async () => {
+  it('can log in and show profile view with subscription status', async () => {
     const fetchMock = setupFetchMock(async (url) => {
       if (url.endsWith('/api/accounts/auth/login')) {
         return {
@@ -160,7 +160,7 @@ describe('App integration', () => {
     )
   })
 
-  it('visar felmeddelande vid misslyckad inloggning', async () => {
+  it('shows error message on failed login', async () => {
     const fetchMock = setupFetchMock(async (url) => {
       if (url.endsWith('/api/accounts/auth/login')) {
         return {
@@ -194,7 +194,7 @@ describe('App integration', () => {
     expect(fetchMock).toHaveBeenCalled()
   })
 
-  it('visar rätt felmeddelanden för rapport och prenumeration när användaren inte är inloggad', async () => {
+  it('shows correct error messages for report and subscription when user is not logged in', async () => {
     render(<App />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Rapport' }))
@@ -205,7 +205,7 @@ describe('App integration', () => {
     await screen.findByText('Logga in för att prenumerera.')
   })
 
-  it('sparar inställningar när användaren är inloggad', async () => {
+  it('saves settings when user is logged in', async () => {
     const fetchMock = setupFetchMock(async (url, init) => {
       if (url.endsWith('/api/accounts/auth/login')) {
         return {
@@ -270,7 +270,7 @@ describe('App integration', () => {
 
     render(<App />)
 
-    // Logga in först
+    // Log in first
     fireEvent.change(screen.getByLabelText('E-post'), {
       target: { value: 'user@example.com' },
     })
@@ -281,7 +281,7 @@ describe('App integration', () => {
 
     await screen.findByText('Inloggning lyckades')
 
-    // Gå till inställningar
+    // Go to settings
     fireEvent.click(screen.getByRole('button', { name: 'Inställningar' }))
 
     const localeInput = await screen.findByLabelText('Språk (locale)')
@@ -308,7 +308,7 @@ describe('App integration', () => {
     )
   })
 
-  it('visar felmeddelande när man öppnar profil utan att vara inloggad', async () => {
+  it('shows error message when opening profile without being logged in', async () => {
     render(<App />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Min profil' }))
@@ -316,7 +316,7 @@ describe('App integration', () => {
     await screen.findByText('Logga in för att se din profil.')
   })
 
-  it('visar felmeddelande när man öppnar inställningar utan att vara inloggad', async () => {
+  it('shows error message when opening settings without being logged in', async () => {
     render(<App />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Inställningar' }))
@@ -324,7 +324,7 @@ describe('App integration', () => {
     await screen.findByText('Logga in för att ändra inställningar.')
   })
 
-  it('kan skapa konto och visa profilvy efter registrering', async () => {
+  it('can create account and show profile view after registration', async () => {
     const fetchMock = setupFetchMock(async (url) => {
       if (url.endsWith('/api/accounts/auth/register')) {
         return {
@@ -406,7 +406,7 @@ describe('App integration', () => {
     expect(fetchMock).toHaveBeenCalled()
   })
 
-  it('visar senaste rapport när användaren är inloggad och har prenumeration', async () => {
+  it('shows latest report when user is logged in and has subscription', async () => {
     const fetchMock = setupFetchMock(async (url) => {
       if (url.endsWith('/api/accounts/auth/login')) {
         return {
@@ -498,7 +498,7 @@ describe('App integration', () => {
       expect.any(Object),
     )
   })
-  it('visar felmeddelande när sparande av inställningar misslyckas', async () => {
+  it('shows error message when saving settings fails', async () => {
     const fetchMock = setupFetchMock(async (url, init) => {
       if (url.endsWith('/api/accounts/auth/login')) {
         return {
@@ -555,7 +555,7 @@ describe('App integration', () => {
 
     render(<App />)
 
-    // Logga in först
+    // Log in first
     fireEvent.change(screen.getByLabelText('E-post'), {
       target: { value: 'user@example.com' },
     })
@@ -566,7 +566,7 @@ describe('App integration', () => {
 
     await screen.findByText('Inloggning lyckades')
 
-    // Gå till inställningar
+    // Go to settings
     fireEvent.click(screen.getByRole('button', { name: 'Inställningar' }))
 
     const localeInput = await screen.findByLabelText('Språk (locale)')
@@ -585,7 +585,7 @@ describe('App integration', () => {
     )
   })
 
-  it('visar felmeddelande när det inte finns någon rapport ännu', async () => {
+  it('shows error message when there is no report yet', async () => {
     const fetchMock = setupFetchMock(async (url) => {
       if (url.endsWith('/api/accounts/auth/login')) {
         return {
@@ -674,7 +674,7 @@ describe('App integration', () => {
     )
   })
 
-  it('visar felmeddelande när rapport inte kan hämtas på grund av saknad prenumeration', async () => {
+  it('shows error message when report cannot be fetched due to missing subscription', async () => {
     const fetchMock = setupFetchMock(async (url) => {
       if (url.endsWith('/api/accounts/auth/login')) {
         return {
@@ -763,15 +763,108 @@ describe('App integration', () => {
     )
   })
 
-  it('kan navigera från Skapa konto tillbaka till Logga in via sidomenyn', async () => {
+  it('can navigate from Create account back to Login via the sidebar', async () => {
     render(<App />)
 
-    // Gå till registreringsvyn
+    // Go to registration view
     fireEvent.click(screen.getByRole('button', { name: 'Skapa konto' }))
     await screen.findByRole('heading', { name: 'Skapa konto' })
 
-    // Navigera tillbaka till login
+    // Navigate back to login
     fireEvent.click(screen.getByRole('button', { name: 'Logga in' }))
     await screen.findByRole('heading', { name: 'Logga in' })
+  })
+
+  it('can initiate payment after login and show payment details', async () => {
+    const fetchMock = setupFetchMock(async (url, _init) => {
+      if (url.endsWith('/api/accounts/auth/login')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ accessToken: 'token-123' }),
+          text: async () => '',
+        } as Response
+      }
+
+      if (url.endsWith('/api/accounts/me')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            id: 'user-1',
+            email: 'user@example.com',
+            firstName: 'Anna',
+            lastName: 'Svensson',
+            role: 'USER',
+          }),
+          text: async () => '',
+        } as Response
+      }
+
+      if (url.endsWith('/api/subscriptions/me/has-access')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ hasAccess: false }),
+          text: async () => '',
+        } as Response
+      }
+
+      if (url.endsWith('/api/subscriptions/me')) {
+        return {
+          ok: false,
+          status: 404,
+          json: async () => ({}),
+          text: async () => '',
+        } as Response
+      }
+
+      if (url.endsWith('/api/payments/create')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            paymentId: 'payment-1',
+            paymentAddress: 'monero-address-123',
+            amountXmr: '0.01',
+            expiresAt: '2024-01-01T00:00:00Z',
+          }),
+          text: async () => '',
+        } as Response
+      }
+
+      return {
+        ok: false,
+        status: 404,
+        json: async () => ({}),
+        text: async () => '',
+      } as Response
+    })
+
+    render(<App />)
+
+    fireEvent.change(screen.getByLabelText('E-post'), {
+      target: { value: 'user@example.com' },
+    })
+    fireEvent.change(screen.getByLabelText('Lösenord'), {
+      target: { value: 'Password123!' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Fortsätt' }))
+
+    await screen.findByText('Inloggning lyckades')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Prenumerera' }))
+    await screen.findByRole('heading', { name: 'Prenumerera' })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Välj månad' }))
+
+    await screen.findByText('Skicka betalning')
+    await screen.findByText('0.01')
+    await screen.findByText('monero-address-123')
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/api/payments/create'),
+      expect.objectContaining({ method: 'POST' }),
+    )
   })
 })

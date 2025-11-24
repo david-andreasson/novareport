@@ -1,4 +1,4 @@
-# Nova Report – UMVP Architecture & Code Audit
+# Nova Report – Architecture & Code Audit
 
 **Purpose:**  
 Evaluate how well the Nova Report UMVP implementation follows its intended architecture and established software development best practices.
@@ -27,10 +27,9 @@ The goal is analysis only.
   - `/deploy/docker-compose.yml`
   - `/docs`, `.gitattributes`, `.gitignore`, `README.md`
 - Each service is a Spring Boot 3 application.
-- UMVP scope: the reporter service builds a minimal proof-of-concept report **without AI**.
 - Expected flow:
-  `frontend → accounts-service → subscriptions-service → payments-xmr-service (mocked) → reporter-service → notifications-service → user`
-- Everything runs locally via Docker Compose.
+  `frontend → accounts-service → subscriptions-service → payments-xmr-service → reporter-service → notifications-service → user`
+- Everything runs on a ubuntu server with Portainer for management.
 
 ---
 
@@ -61,7 +60,7 @@ one in **English** and one in **Swedish**.
 | **6. Observability & Ops** | Actuator, logging, Dockerfile, Compose, health checks. |
 | **7. Documentation & DX** | README completeness, clarity, English consistency. |
 
-Scoring: 0 = missing, 3 = acceptable for UMVP, 5 = excellent.
+Scoring: 0 = missing, 3 = acceptable for MVP, 5 = excellent.
 
 ---
 

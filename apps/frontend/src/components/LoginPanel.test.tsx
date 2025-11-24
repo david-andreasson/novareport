@@ -5,7 +5,7 @@ import { LoginPanel } from './LoginPanel'
 describe('LoginPanel', () => {
   const baseForm = { email: '', password: '' }
 
-  it('renderar fält med korrekta etiketter och placeholders', () => {
+  it('renders fields with correct labels and placeholders', () => {
     render(
       <LoginPanel
         loginForm={baseForm}
@@ -22,7 +22,7 @@ describe('LoginPanel', () => {
     expect(passwordInput.placeholder).toBe('••••••')
   })
 
-  it('anropar onChange när användaren skriver i fält', () => {
+  it('calls onChange when user types in fields', () => {
     const handleChange = vi.fn()
 
     render(
@@ -42,7 +42,7 @@ describe('LoginPanel', () => {
     expect(handleChange).toHaveBeenCalledWith({ email: 'user@example.com', password: '' })
   })
 
-  it('anropar onSubmit när formuläret skickas in', () => {
+  it('calls onSubmit when form is submitted', () => {
     const handleSubmit = vi.fn((event: React.FormEvent<HTMLFormElement>) => event.preventDefault())
 
     render(
@@ -60,7 +60,7 @@ describe('LoginPanel', () => {
     expect(handleSubmit).toHaveBeenCalledTimes(1)
   })
 
-  it('visar laddningstillstånd och disablar knappen', () => {
+  it('shows loading state and disables the button', () => {
     render(
       <LoginPanel
         loginForm={baseForm}
