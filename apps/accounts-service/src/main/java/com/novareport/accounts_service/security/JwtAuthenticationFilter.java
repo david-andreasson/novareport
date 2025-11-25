@@ -1,5 +1,6 @@
 package com.novareport.accounts_service.security;
 
+import com.novareport.accounts_service.util.LogSanitizer;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -35,7 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                path.equals("/v3/api-docs") ||
                path.startsWith("/v3/api-docs/") ||
                path.startsWith("/swagger-resources");
-        log.debug("shouldNotFilter for path '{}': {}", path, skip);
+        log.debug("shouldNotFilter for path '{}': {}", LogSanitizer.sanitize(path), skip);
         return skip;
     }
 
@@ -53,7 +54,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         email, null, List.of(new SimpleGrantedAuthority("ROLE_" + role)));
                 SecurityContextHolder.getContext().setAuthentication(auth);
             } catch (Exception e) {
-                log.debug("JWT authentication failed: {}", e.getMessage(), e);
+                log.debug("JWT authentication failed: {}", LogSanitizer.sanitize(e.getMessage()), e);
                 SecurityContextHolder.clearContext();
             }
         }

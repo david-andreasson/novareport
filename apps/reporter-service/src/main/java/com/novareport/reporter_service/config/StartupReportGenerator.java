@@ -1,6 +1,7 @@
 package com.novareport.reporter_service.config;
 
 import com.novareport.reporter_service.service.ReporterCoordinator;
+import com.novareport.reporter_service.util.LogSanitizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationRunner;
@@ -22,17 +23,26 @@ public class StartupReportGenerator {
             }
 
             LocalDate today = LocalDate.now();
-            log.info("Startup report generation enabled - ingesting RSS and building report for {}", today);
+            log.info(
+                "Startup report generation enabled - ingesting RSS and building report for {}",
+                LogSanitizer.sanitize(today)
+            );
 
             try {
                 var ingestResult = coordinator.ingestNow();
-                log.info("Startup RSS ingest complete - Attempted: {}, Stored: {}, Duplicates: {}",
-                    ingestResult.attempted(), ingestResult.stored(),
-                    ingestResult.attempted() - ingestResult.stored());
+                log.info(
+                    "Startup RSS ingest complete - Attempted: {}, Stored: {}, Duplicates: {}",
+                    ingestResult.attempted(),
+                    ingestResult.stored(),
+                    ingestResult.attempted() - ingestResult.stored()
+                );
 
                 var report = coordinator.buildReport(today);
-                log.info("Startup report generated successfully - ID: {}, Summary length: {} chars",
-                    report.getId(), report.getSummary().length());
+                log.info(
+                    "Startup report generated successfully - ID: {}, Summary length: {} chars",
+                    LogSanitizer.sanitize(report.getId()),
+                    report.getSummary().length()
+                );
 
             } catch (Exception e) {
                 log.error("Startup report generation failed", e);

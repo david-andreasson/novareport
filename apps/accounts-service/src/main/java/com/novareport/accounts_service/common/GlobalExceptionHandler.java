@@ -17,10 +17,18 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class})
     public ProblemDetail handleValidation(Exception ex) {
-        List<FieldError> errors = ex instanceof MethodArgumentNotValidException manv
-            ? manv.getBindingResult().getFieldErrors()
-            : ((BindException) ex).getBindingResult().getFieldErrors();
+        List<FieldError> errors;
+        if (ex instanceof MethodArgumentNotValidException manv) {
+            errors = manv.getBindingResult().getFieldErrors();
+        } else if (ex instanceof BindException be) {
+            errors = be.getBindingResult().getFieldErrors();
+        } else {
+            throw new IllegalArgumentException("Unsupported validation exception type: " + ex.getClass());
+        }
+        return createValidationProblemDetail(errors);
+    }
 
+    private ProblemDetail createValidationProblemDetail(List<FieldError> errors) {
         ProblemDetail detail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
         detail.setTitle("Validation failed");
         detail.setDetail("Request validation failed");

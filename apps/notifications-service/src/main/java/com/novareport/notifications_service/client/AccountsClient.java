@@ -1,6 +1,7 @@
 package com.novareport.notifications_service.client;
 
 import com.novareport.notifications_service.dto.ReportEmailSubscriberResponse;
+import com.novareport.notifications_service.util.LogSanitizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -11,7 +12,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 @Component
 public class AccountsClient {
@@ -27,7 +27,7 @@ public class AccountsClient {
     public List<ReportEmailSubscriberResponse> getReportEmailSubscribers(String baseUrl, String internalKey) {
         String correlationId = MDC.get("correlationId");
         try {
-            return Objects.requireNonNull(webClient
+            List<ReportEmailSubscriberResponse> result = webClient
                     .get()
                     .uri(baseUrl + "/api/accounts/internal/report-email-subscribers")
                     .header("X-INTERNAL-KEY", internalKey)
@@ -40,9 +40,11 @@ public class AccountsClient {
                     .retrieve()
                     .bodyToFlux(ReportEmailSubscriberResponse.class)
                     .collectList()
-                    .block());
+                    .block();
+
+            return result != null ? result : Collections.emptyList();
         } catch (RuntimeException ex) {
-            log.warn("Failed to fetch report email subscribers: {}", ex.getMessage());
+            log.warn("Failed to fetch report email subscribers: {}", LogSanitizer.sanitize(ex.getMessage()));
             return Collections.emptyList();
         }
     }

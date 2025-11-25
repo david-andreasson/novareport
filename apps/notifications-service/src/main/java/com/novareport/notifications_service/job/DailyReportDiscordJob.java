@@ -3,6 +3,7 @@ package com.novareport.notifications_service.job;
 import com.novareport.notifications_service.domain.NotificationReport;
 import com.novareport.notifications_service.service.DiscordReportService;
 import com.novareport.notifications_service.service.NotificationReportService;
+import com.novareport.notifications_service.util.LogSanitizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,22 +39,32 @@ public class DailyReportDiscordJob {
         reportService.findByReportDate(today).ifPresentOrElse(
             report -> {
                 if (report.getDiscordSentAt() != null) {
-                    log.info("Discord report already sent for {}. Skipping.", today);
+                    log.info("Discord report already sent for {}. Skipping.", LogSanitizer.sanitize(today));
                     return;
                 }
 
-                log.info("Sending daily report for {} to Discord", today);
+                log.info("Sending daily report for {} to Discord", LogSanitizer.sanitize(today));
                 boolean sent = discordReportService.sendDailyReport(report);
 
                 if (sent) {
                     report.setDiscordSentAt(Instant.now());
                     NotificationReport saved = reportService.save(report);
-                    log.info("Marked Discord report as sent for {} (id={})", today, saved.getId());
+                    log.info(
+                        "Marked Discord report as sent for {} (id={})",
+                        LogSanitizer.sanitize(today),
+                        LogSanitizer.sanitize(saved.getId())
+                    );
                 } else {
-                    log.warn("Failed to send Discord report for {}. Will retry on next run.", today);
+                    log.warn(
+                        "Failed to send Discord report for {}. Will retry on next run.",
+                        LogSanitizer.sanitize(today)
+                    );
                 }
             },
-            () -> log.info("No notification report found for {}. Skipping Discord job.", today)
+            () -> log.info(
+                "No notification report found for {}. Skipping Discord job.",
+                LogSanitizer.sanitize(today)
+            )
         );
     }
 }

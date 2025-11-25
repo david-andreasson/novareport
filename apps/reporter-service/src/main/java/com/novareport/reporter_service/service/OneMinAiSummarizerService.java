@@ -1,5 +1,6 @@
 package com.novareport.reporter_service.service;
 
+import com.novareport.reporter_service.util.LogSanitizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,17 +41,22 @@ public class OneMinAiSummarizerService implements DailyReportService.AiSummarize
         this.webClient = webClientBuilder.baseUrl(API_URL).build();
         this.apiKey = apiKey;
         this.model = model;
-        log.info("OneMinAiSummarizerService initialized with model: {}", model);
+        log.info("OneMinAiSummarizerService initialized with model: {}", LogSanitizer.sanitize(model));
     }
 
     @Override
     public String summarize(LocalDate date, List<String> headlines) {
         if (headlines == null || headlines.isEmpty()) {
-            log.warn("No headlines provided for summarization on {}", date);
+            log.warn("No headlines provided for summarization on {}", LogSanitizer.sanitize(date));
             return "No news items available for " + date + ".";
         }
 
-        log.info("Generating AI summary for {} with {} headlines using model {}", date, headlines.size(), model);
+        log.info(
+            "Generating AI summary for {} with {} headlines using model {}",
+            LogSanitizer.sanitize(date),
+            headlines.size(),
+            LogSanitizer.sanitize(model)
+        );
 
         String prompt = buildPrompt(date, headlines);
 
@@ -64,15 +70,31 @@ public class OneMinAiSummarizerService implements DailyReportService.AiSummarize
                 }
 
                 String summary = callOneMinAi(prompt);
-                log.info("Successfully generated AI summary with {} characters on attempt {}", summary.length(), attempt);
+                log.info(
+                    "Successfully generated AI summary with {} characters on attempt {}",
+                    summary.length(),
+                    attempt
+                );
                 return summary;
 
             } catch (WebClientResponseException e) {
-                log.error("1min.ai API error on attempt {}/{}: status={}, body={}",
-                        attempt, maxAttempts, e.getStatusCode(), e.getResponseBodyAsString(), e);
+                log.error(
+                    "1min.ai API error on attempt {}/{}: status={}, body={}",
+                    attempt,
+                    maxAttempts,
+                    e.getStatusCode(),
+                    LogSanitizer.sanitize(e.getResponseBodyAsString()),
+                    e
+                );
 
             } catch (WebClientRequestException e) {
-                log.error("1min.ai request error on attempt {}/{}: {}", attempt, maxAttempts, e.getMessage(), e);
+                log.error(
+                    "1min.ai request error on attempt {}/{}: {}",
+                    attempt,
+                    maxAttempts,
+                    LogSanitizer.sanitize(e.getMessage()),
+                    e
+                );
 
             } catch (Exception e) {
                 log.error("Unexpected error while generating AI summary on attempt {}/{}", attempt, maxAttempts, e);
@@ -111,7 +133,7 @@ public class OneMinAiSummarizerService implements DailyReportService.AiSummarize
                 "promptObject", promptObject
         );
 
-        log.debug("Calling 1min.ai API with model: {}", model);
+        log.debug("Calling 1min.ai API with model: {}", LogSanitizer.sanitize(model));
 
         Map<String, Object> response = webClient.post()
                 .contentType(Objects.requireNonNull(MediaType.APPLICATION_JSON))
@@ -204,7 +226,9 @@ public class OneMinAiSummarizerService implements DailyReportService.AiSummarize
             throw new RuntimeException("Unexpected resultObject type: " + resultObject.getClass());
         }
 
-        if (content == null || content.isBlank()) {
+        content = Objects.toString(content, "");
+
+        if (content.isBlank()) {
             throw new RuntimeException("Empty content in API response");
         }
 

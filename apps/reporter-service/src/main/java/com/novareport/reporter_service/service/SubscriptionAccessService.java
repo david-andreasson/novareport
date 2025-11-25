@@ -2,6 +2,7 @@ package com.novareport.reporter_service.service;
 
 import com.novareport.reporter_service.client.SubscriptionsClient;
 import com.novareport.reporter_service.domain.SubscriptionAccessResponse;
+import com.novareport.reporter_service.util.LogSanitizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,7 +45,7 @@ public class SubscriptionAccessService {
                 .map(SubscriptionAccessResponse::hasAccess)
                 .timeout(Duration.ofSeconds(5))
                 .onErrorResume(ex -> {
-                    log.warn("Subscription access call failed: {}", ex.getMessage());
+                    log.warn("Subscription access call failed: {}", LogSanitizer.sanitize(ex.getMessage()));
                     return switch (ex) {
                         case WebClientResponseException e when e.getStatusCode().is4xxClientError() -> {
                             yield Mono.just(false);

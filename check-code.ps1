@@ -7,8 +7,11 @@ Write-Host ""
 
 $ErrorActionPreference = "Stop"
 $services = @(
+    "apps/accounts-service"
+    "apps/subscriptions-service"
+    "apps/reporter-service"
+    "apps/notifications-service"
     "apps/payments-xmr-service"
-    # Add more services here as they are ready
 )
 
 $allPassed = $true

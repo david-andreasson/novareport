@@ -15,6 +15,10 @@ public record ReporterProperties(
     @DurationUnit(ChronoUnit.HOURS) @DefaultValue("PT48H") Duration dedupWindowHours,
     @DefaultValue("false") boolean startupGenerateReport
 ) {
+    public ReporterProperties {
+        rssFeeds = rssFeeds == null ? List.of() : List.copyOf(rssFeeds);
+    }
+
     public List<String> rssFeeds() {
         return this.rssFeeds == null || this.rssFeeds.isEmpty()
             ? List.of()

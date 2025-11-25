@@ -1,6 +1,7 @@
 package com.novareport.notifications_service.service;
 
 import com.novareport.notifications_service.domain.NotificationReport;
+import com.novareport.notifications_service.util.LogSanitizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +30,11 @@ public class ReportEmailService {
         message.setSubject(buildSubject(report));
         message.setText(buildBody(report));
         mailSender.send(message);
-        log.info("Sent daily report email for {} to {}", report.getReportDate(), to);
+        log.info(
+            "Sent daily report email for {} to {}",
+            LogSanitizer.sanitize(report.getReportDate()),
+            LogSanitizer.sanitize(to)
+        );
     }
 
     private String buildSubject(NotificationReport report) {

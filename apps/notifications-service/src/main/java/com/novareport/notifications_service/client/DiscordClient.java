@@ -1,5 +1,6 @@
 package com.novareport.notifications_service.client;
 
+import com.novareport.notifications_service.util.LogSanitizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -9,8 +10,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.util.Objects;
 import java.util.Map;
+import java.util.Objects;
 
 @Component
 public class DiscordClient {
@@ -35,7 +36,7 @@ public class DiscordClient {
 
         String correlationId = MDC.get("correlationId");
 
-        log.debug("Sending Discord payload with keys={}", body.keySet());
+        log.debug("Sending Discord payload with keys={}", LogSanitizer.sanitize(body.keySet()));
 
         return webClient
             .post()
@@ -50,12 +51,16 @@ public class DiscordClient {
             .exchangeToMono(response -> {
                 if (response.statusCode().is2xxSuccessful()) {
                     return response.bodyToMono(Void.class)
-                        .doOnSuccess(unused -> log.info("Sent Discord message, status={}", response.statusCode()));
+                        .doOnSuccess(unused -> log.info("Sent Discord message, status={}", LogSanitizer.sanitize(response.statusCode())));
                 }
                 return response.bodyToMono(String.class)
                     .defaultIfEmpty("")
                     .flatMap(errorBody -> {
-                        log.warn("Failed to send Discord message, status={}, body={}", response.statusCode(), errorBody);
+                        log.warn(
+                            "Failed to send Discord message, status={}, body={}",
+                            LogSanitizer.sanitize(response.statusCode()),
+                            LogSanitizer.sanitize(errorBody)
+                        );
                         return Mono.error(new IllegalStateException("Discord webhook returned " + response.statusCode()));
                     });
             });

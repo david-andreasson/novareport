@@ -2,6 +2,7 @@ package com.novareport.reporter_service.service;
 
 import com.novareport.reporter_service.config.NewsDataProperties;
 import com.novareport.reporter_service.domain.NewsItem;
+import com.novareport.reporter_service.util.LogSanitizer;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,10 +74,14 @@ public class NewsDataIoNewsApiProvider implements NewsApiProvider {
             return items;
         } catch (WebClientResponseException ex) {
             String body = ex.getResponseBodyAsString();
-            log.warn("Failed to fetch news from NewsData.io: status={} body={}", ex.getStatusCode().value(), body);
+            log.warn(
+                "Failed to fetch news from NewsData.io: status={} body={}",
+                ex.getStatusCode().value(),
+                LogSanitizer.sanitize(body)
+            );
             return List.of();
         } catch (Exception ex) {
-            log.warn("Failed to fetch news from NewsData.io: {}", ex.getMessage());
+            log.warn("Failed to fetch news from NewsData.io: {}", LogSanitizer.sanitize(ex.getMessage()));
             return List.of();
         }
     }

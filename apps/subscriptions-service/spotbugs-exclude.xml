@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!-- Spring controllers are endpoints by design -->
+    <Match>
+        <Bug pattern="SPRING_ENDPOINT"/>
+    </Match>
+
+    <!-- CSRF disabled intentionally for stateless JWT API without cookies -->
+    <Match>
+        <Class name="com.novareport.subscriptions_service.config.SecurityConfig"/>
+        <Bug pattern="SPRING_CSRF_PROTECTION_DISABLED"/>
+    </Match>
+
+    <!-- JwtService constructor validation is intentional, as in payments-xmr-service -->
+    <Match>
+        <Class name="com.novareport.subscriptions_service.security.JwtService"/>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+
+    <!-- Micrometer MeterRegistry and other injected collaborators are managed by Spring; EI_EXPOSE_REP2 is not a real leak here -->
+    <Match>
+        <Class name="com.novareport.subscriptions_service.service.SubscriptionService"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- Logging uses LogSanitizer; CRLF injection warnings are false positives for these classes -->
+    <Match>
+        <Class name="com.novareport.subscriptions_service.exception.GlobalExceptionHandler"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.subscriptions_service.security.JwtAuthenticationFilter"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+</FindBugsFilter>

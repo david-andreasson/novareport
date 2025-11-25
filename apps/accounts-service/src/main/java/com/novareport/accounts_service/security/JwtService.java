@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
@@ -23,7 +24,7 @@ public class JwtService {
             @Value("${jwt.secret}") String secret,
             @Value("${jwt.issuer}") String issuer,
             @Value("${jwt.access-token-minutes}") int accessMinutes) {
-        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.issuer = issuer;
         this.accessMinutes = accessMinutes;
     }

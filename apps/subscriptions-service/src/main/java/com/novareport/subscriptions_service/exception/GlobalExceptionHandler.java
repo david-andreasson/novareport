@@ -1,5 +1,6 @@
 package com.novareport.subscriptions_service.exception;
 
+import com.novareport.subscriptions_service.util.LogSanitizer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -14,7 +15,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResponseStatusException.class)
     public ProblemDetail handleResponseStatusException(ResponseStatusException ex) {
-        log.warn("Response status exception: {}", ex.getReason());
+        log.warn("Response status exception: {}", LogSanitizer.sanitize(ex.getReason()));
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(
                 HttpStatus.valueOf(ex.getStatusCode().value()),
                 ex.getReason() != null ? ex.getReason() : "Request failed"
@@ -25,7 +26,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleValidationException(MethodArgumentNotValidException ex) {
-        log.warn("Validation failed: {}", ex.getMessage());
+        log.warn("Validation failed: {}", LogSanitizer.sanitize(ex.getMessage()));
         String detail = ex.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .reduce((a, b) -> a + ", " + b)
@@ -38,7 +39,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ProblemDetail handleIllegalArgument(IllegalArgumentException ex) {
-        log.warn("Invalid argument: {}", ex.getMessage());
+        log.warn("Invalid argument: {}", LogSanitizer.sanitize(ex.getMessage()));
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         problem.setTitle("Invalid Request");
         return problem;
@@ -46,7 +47,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleGenericException(Exception ex) {
-        log.error("Unexpected error: {}", ex.getMessage(), ex);
+        log.error("Unexpected error: {}", LogSanitizer.sanitize(ex.getMessage()), ex);
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "An unexpected error occurred"

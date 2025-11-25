@@ -11,6 +11,11 @@ public record PagedDailyReportsResponse(
     long totalElements,
     int totalPages
 ) {
+
+    public PagedDailyReportsResponse {
+        content = content == null ? List.of() : List.copyOf(content);
+    }
+
     public static PagedDailyReportsResponse fromPage(Page<DailyReportResponse> page) {
         return new PagedDailyReportsResponse(
             page.getContent(),
