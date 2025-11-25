@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!-- Spring controllers are endpoints by design -->
+    <Match>
+        <Bug pattern="SPRING_ENDPOINT"/>
+    </Match>
+
+    <!-- CSRF disabled intentionally for stateless JWT API without cookies -->
+    <Match>
+        <Class name="com.novareport.reporter_service.config.SecurityConfig"/>
+        <Bug pattern="SPRING_CSRF_PROTECTION_DISABLED"/>
+    </Match>
+
+    <!-- JwtService constructor validation is intentional, as in payments-xmr-service -->
+    <Match>
+        <Class name="com.novareport.reporter_service.security.JwtService"/>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+
+    <!-- Injected collaborators like WebClient, MeterRegistry, and repositories are managed by Spring; EI_EXPOSE_REP2 is not a real leak here -->
+    <Match>
+        <Class name="com.novareport.reporter_service.client.NotificationsClient"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.reporter_service.client.SubscriptionsClient"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.reporter_service.config.ReporterProperties"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.reporter_service.controller.ReportController"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.reporter_service.service.NewsApiIngestService"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.reporter_service.service.NewsDataIoNewsApiProvider"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- Logging uses LogSanitizer or only logs controlled values; CRLF warnings here are considered false positives -->
+    <Match>
+        <Class name="com.novareport.reporter_service.service.NewsDataIoNewsApiProvider"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.reporter_service.service.OneMinAiSummarizerService"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+
+    <!-- RSS ingest and notification services either sanitize log data via LogSanitizer or only log controlled values; these CRLF warnings are treated as false positives -->
+    <Match>
+        <Class name="com.novareport.reporter_service.service.RssIngestService"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.reporter_service.service.RssIngestService"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.reporter_service.service.ReportNotificationPublisher"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.reporter_service.service.ScheduledReportGenerator"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.reporter_service.service.SubscriptionAccessService"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.reporter_service.domain.DailyReport"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+</FindBugsFilter>

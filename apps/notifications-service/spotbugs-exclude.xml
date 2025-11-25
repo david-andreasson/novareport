@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!-- Spring controllers are endpoints by design -->
+    <Match>
+        <Bug pattern="SPRING_ENDPOINT"/>
+    </Match>
+
+    <!-- CSRF disabled intentionally for stateless JWT API without cookies -->
+    <Match>
+        <Class name="com.novareport.notifications_service.config.SecurityConfig"/>
+        <Bug pattern="SPRING_CSRF_PROTECTION_DISABLED"/>
+    </Match>
+
+    <!-- JwtService constructor validation is intentional, as in payments-xmr-service -->
+    <Match>
+        <Class name="com.novareport.notifications_service.security.JwtService"/>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+
+    <!-- Injected collaborators like WebClient, JavaMailSender and repositories are managed by Spring; EI_EXPOSE_REP2 is not a real leak here -->
+    <Match>
+        <Class name="com.novareport.notifications_service.client.AccountsClient"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.notifications_service.client.DiscordClient"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.notifications_service.client.SubscriptionsClient"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- ActiveSubscriptionUsersResponse uses List.copyOf to ensure immutability; EI_EXPOSE_REP is a false positive here -->
+    <Match>
+        <Class name="com.novareport.notifications_service.dto.ActiveSubscriptionUsersResponse"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+
+    <!-- Logging uses LogSanitizer or only logs controlled values; CRLF warnings here are considered false positives -->
+    <Match>
+        <Class name="com.novareport.notifications_service.exception.GlobalExceptionHandler"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.notifications_service.job.DailyReportEmailJob"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.notifications_service.security.JwtAuthenticationFilter"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.notifications_service.service.DiscordReportService"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.notifications_service.service.ReportEmailService"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+
+    <!-- DiscordReportService uses Locale.ROOT for case mapping; IMPROPER_UNICODE is treated as a false positive here -->
+    <Match>
+        <Class name="com.novareport.notifications_service.service.DiscordReportService"/>
+        <Bug pattern="IMPROPER_UNICODE"/>
+    </Match>
+</FindBugsFilter>

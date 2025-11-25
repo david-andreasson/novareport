@@ -202,10 +202,10 @@
     - Använd hemlighetshanterare eller miljövariabler på servernivå i stället för delade filer.
 
  2. **Begränsa CORS i produktion**
-    - Sätt CORS_ALLOWED_ORIGINS till kända frontend-domäner och dokumentera rekommenderade värden i docs/.
+    - CORS-stöd är implementerat i alla tjänster och klart i kod; kvar: dokumentera rekommenderade prod-värden för CORS_ALLOWED_ORIGINS och se till att de sätts i din faktiska miljö.
 
  3. **Standardisera JWT- och säkerhetsmönster**
-    - Extrahera gemensam JwtService/JwtAuthenticationFilter till en liten shared-modul eller dokumentera en tydlig kodmall som alla tjänster följer.
+    - JWT-hanteringen enligt docs/jwt-conventions.md är uppfylld för UMVP; en eventuell gemensam JwtService/JwtAuthenticationFilter-shared-modul eller mer generell kodmall ses som framtida förbättring om projektet växer.
 
  4. **Stärk cross-service-testning**
     - Lägg till integrationstester som täcker betalning→prenumeration→rapportflödet (gärna med Testcontainers eller liknande).
@@ -220,6 +220,12 @@
     - Skapa korta runbooks i docs/ för nyckelscenarier: Monero-nedtid, nyckelrotation, SMTP/Discord-problem, manuella betalningsbekräftelser.
 
  8. **Följ upp statisk analys (SpotBugs/FindSecBugs)**
-    - Gå igenom varningar i code-quality-report.txt för payments-xmr-service.
-    - Dokumentera vilka varningar som är åtgärdade respektive medvetet accepterade (med motivering).
+    - SpotBugs + FindSecBugs körs nu för **alla Java-backends** via check-code.ps1 och sammanfattas i code-quality-report.txt.
+    - Vissa varningstyper är medvetet accepterade och filtreras bort via spotbugs-exclude.xml i respektive tjänst:
+      - SPRING_ENDPOINT: Controllers är endpoints per design och utgör inte i sig ett säkerhetsproblem.
+      - SPRING_CSRF_PROTECTION_DISABLED: CSRF är avstängt medvetet eftersom backends exponeras som stateless JWT-API:er utan cookies; hotbilden hanteras istället via JWT, interna nycklar och CORS.
+      - EI_EXPOSE_REP2 på dependency injection-fält (t.ex. WebClient, MeterRegistry, repositories) där Spring äger livscykeln och ingen verklig intern representation läcker.
+      - CT_CONSTRUCTOR_THROW i JwtService, där konstruktorn validerar felkonfigurerade hemligheter och därför får kasta vid uppstart.
+      - CRLF_INJECTION_LOGS i klasser där LogSanitizer används konsekvent för att sanera loggdata (t.ex. filters, exception handlers, klienter och notifieringsjobb).
+    - Övriga varningar (framför allt runt domän-/DTO-design) hanteras löpande antingen genom kodförbättringar eller genom att uppdatera exclude-filer med tydlig motivering.
 

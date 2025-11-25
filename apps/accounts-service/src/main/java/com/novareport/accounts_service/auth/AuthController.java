@@ -59,7 +59,10 @@ public class AuthController {
         settingsRepo.save(settings);
         ActivityLog registerLog = createActivityLog(user, ActivityEventType.REGISTER);
         activity.save(registerLog);
-        String token = jwt.createAccessToken(user.getId(), user.getEmail(), user.getRole());
+        String token = Objects.requireNonNull(
+                jwt.createAccessToken(user.getId(), user.getEmail(), user.getRole()),
+                "Generated JWT access token was null"
+        );
         return new AuthResponse(token);
     }
 
@@ -79,7 +82,10 @@ public class AuthController {
             }
             ActivityLog loginLog = createActivityLog(user, ActivityEventType.LOGIN);
             activity.save(loginLog);
-            String token = jwt.createAccessToken(user.getId(), user.getEmail(), user.getRole());
+            String token = Objects.requireNonNull(
+                    jwt.createAccessToken(user.getId(), user.getEmail(), user.getRole()),
+                    "Generated JWT access token was null"
+            );
             outcome = "success";
             return new AuthResponse(token);
         } catch (InvalidCredentialsException ex) {

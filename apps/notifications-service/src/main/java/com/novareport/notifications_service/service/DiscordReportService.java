@@ -2,6 +2,7 @@ package com.novareport.notifications_service.service;
 
 import com.novareport.notifications_service.client.DiscordClient;
 import com.novareport.notifications_service.domain.NotificationReport;
+import com.novareport.notifications_service.util.LogSanitizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,6 +13,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Service
@@ -35,11 +37,17 @@ public class DiscordReportService {
 
     public boolean sendDailyReport(NotificationReport report) {
         if (!enabled) {
-            log.info("Discord notifications are disabled; skipping send for {}", report.getReportDate());
+            log.info(
+                "Discord notifications are disabled; skipping send for {}",
+                LogSanitizer.sanitize(report.getReportDate())
+            );
             return false;
         }
         if (!StringUtils.hasText(webhookUrl)) {
-            log.warn("Discord webhook URL is not configured; skipping send for {}", report.getReportDate());
+            log.warn(
+                "Discord webhook URL is not configured; skipping send for {}",
+                LogSanitizer.sanitize(report.getReportDate())
+            );
             return false;
         }
 
@@ -51,7 +59,11 @@ public class DiscordReportService {
                 .block();
             return true;
         } catch (Exception ex) {
-            log.warn("Error sending Discord report for {}", report.getReportDate(), ex);
+            log.warn(
+                "Error sending Discord report for {}",
+                LogSanitizer.sanitize(report.getReportDate()),
+                ex
+            );
             return false;
         }
     }
@@ -186,7 +198,9 @@ public class DiscordReportService {
         // Remove trailing colon or dashes ("Market Trends:", "Market Trends -")
         normalized = normalized.replaceFirst("[:\\-–]+\\s*$", "");
 
-        return normalized.equalsIgnoreCase(heading);
+        String normalizedUpper = normalized.toUpperCase(Locale.ROOT);
+        String headingUpper = heading.toUpperCase(Locale.ROOT);
+        return normalizedUpper.equals(headingUpper);
     }
 
     private String stripMarkdownHeadings(String text) {

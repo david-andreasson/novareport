@@ -3,6 +3,7 @@ package com.novareport.reporter_service.service;
 import com.novareport.reporter_service.config.NewsApiProperties;
 import com.novareport.reporter_service.domain.NewsItem;
 import com.novareport.reporter_service.domain.NewsItemRepository;
+import com.novareport.reporter_service.util.LogSanitizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -53,9 +54,17 @@ public class NewsApiIngestService {
                 if (!items.isEmpty()) {
                     allItems.addAll(items);
                 }
-                log.info("News API provider {} returned {} items", provider.providerName(), items.size());
+                log.info(
+                    "News API provider {} returned {} items",
+                    LogSanitizer.sanitize(provider.providerName()),
+                    items.size()
+                );
             } catch (Exception ex) {
-                log.warn("News API provider {} failed: {}", provider.providerName(), ex.getMessage());
+                log.warn(
+                    "News API provider {} failed: {}",
+                    LogSanitizer.sanitize(provider.providerName()),
+                    LogSanitizer.sanitize(ex.getMessage())
+                );
             }
         }
 

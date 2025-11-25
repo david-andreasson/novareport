@@ -1,5 +1,6 @@
 package com.novareport.reporter_service.security;
 
+import com.novareport.reporter_service.util.LogSanitizer;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -65,11 +66,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(auth);
                     request.setAttribute("uid", uid);
                 } else {
-                    log.debug("JWT missing claims subject={}, role={}, uid={}", subject, role, uid);
+                    log.debug(
+                        "JWT missing claims subject={}, role={}, uid={}",
+                        LogSanitizer.sanitize(subject),
+                        LogSanitizer.sanitize(role),
+                        LogSanitizer.sanitize(uid)
+                    );
                     SecurityContextHolder.clearContext();
                 }
             } catch (Exception ex) {
-                log.debug("JWT validation failed: {}", ex.getMessage());
+                log.debug("JWT validation failed: {}", LogSanitizer.sanitize(ex.getMessage()));
                 SecurityContextHolder.clearContext();
             }
         }

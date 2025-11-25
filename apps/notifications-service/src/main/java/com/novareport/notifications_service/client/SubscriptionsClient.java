@@ -1,6 +1,7 @@
 package com.novareport.notifications_service.client;
 
 import com.novareport.notifications_service.dto.ActiveSubscriptionUsersResponse;
+import com.novareport.notifications_service.util.LogSanitizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -11,7 +12,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 @Component
@@ -28,7 +28,7 @@ public class SubscriptionsClient {
     public List<UUID> getActiveUserIds(String baseUrl, String internalKey) {
         String correlationId = MDC.get("correlationId");
         try {
-            ActiveSubscriptionUsersResponse response = Objects.requireNonNull(webClient
+            ActiveSubscriptionUsersResponse response = webClient
                     .get()
                     .uri(baseUrl + "/api/v1/internal/subscriptions/active-users")
                     .header("X-INTERNAL-KEY", internalKey)
@@ -40,10 +40,14 @@ public class SubscriptionsClient {
                     })
                     .retrieve()
                     .bodyToMono(ActiveSubscriptionUsersResponse.class)
-                    .block());
+                    .block();
+
+            if (response == null || response.userIds() == null) {
+                return Collections.emptyList();
+            }
             return response.userIds();
         } catch (RuntimeException ex) {
-            log.warn("Failed to fetch active subscription user ids: {}", ex.getMessage());
+            log.warn("Failed to fetch active subscription user ids: {}", LogSanitizer.sanitize(ex.getMessage()));
             return Collections.emptyList();
         }
     }

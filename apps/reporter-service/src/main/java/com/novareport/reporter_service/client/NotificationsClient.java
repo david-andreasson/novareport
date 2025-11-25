@@ -1,6 +1,7 @@
 package com.novareport.reporter_service.client;
 
 import com.novareport.reporter_service.dto.ReportReadyNotificationRequest;
+import com.novareport.reporter_service.util.LogSanitizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -37,11 +38,14 @@ public class NotificationsClient {
             .bodyValue(Objects.requireNonNull(payload))
             .retrieve()
             .bodyToMono(Void.class)
-            .doOnSuccess(unused -> log.info("Sent report-ready notification for {}", payload.reportDate()))
+            .doOnSuccess(unused -> log.info(
+                "Sent report-ready notification for {}",
+                LogSanitizer.sanitize(payload.reportDate())
+            ))
             .doOnError(ex -> log.warn(
                 "Failed to send report-ready notification for {}: {}",
-                payload.reportDate(),
-                ex.getMessage()
+                LogSanitizer.sanitize(payload.reportDate()),
+                LogSanitizer.sanitize(ex.getMessage())
             ));
     }
 }

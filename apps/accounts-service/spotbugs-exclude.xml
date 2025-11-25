@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!-- Spring controllers are endpoints by design -->
+    <Match>
+        <Bug pattern="SPRING_ENDPOINT"/>
+    </Match>
+
+    <!-- CSRF disabled intentionally for stateless JWT API without cookies -->
+    <Match>
+        <Class name="com.novareport.accounts_service.config.SecurityConfig"/>
+        <Bug pattern="SPRING_CSRF_PROTECTION_DISABLED"/>
+    </Match>
+
+    <!-- JwtService constructor validation is intentional, as in payments-xmr-service -->
+    <Match>
+        <Class name="com.novareport.accounts_service.security.JwtService"/>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+
+    <!-- Micrometer MeterRegistry and other injected collaborators are managed by Spring; EI_EXPOSE_REP2 is not a real leak here -->
+    <Match>
+        <Class name="com.novareport.accounts_service.auth.AuthController"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.accounts_service.filter.RateLimitFilter"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- AuthController uses Objects.requireNonNull for JWT creation; NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE is considered a false positive here -->
+    <Match>
+        <Class name="com.novareport.accounts_service.auth.AuthController"/>
+        <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
+    </Match>
+
+    <!-- JPA entity associations intentionally expose User through getters/setters; EI_EXPOSE_REP* are accepted here -->
+    <Match>
+        <Class name="com.novareport.accounts_service.activity.ActivityLog"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.accounts_service.activity.ActivityLog"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.accounts_service.settings.UserSettings"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.accounts_service.settings.UserSettings"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- Lombok builders for JPA entities store the same User reference as the entity itself; EI_EXPOSE_REP2 on builder classes is accepted design -->
+    <Match>
+        <Class name="com.novareport.accounts_service.activity.ActivityLog$ActivityLogBuilder"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.accounts_service.settings.UserSettings$UserSettingsBuilder"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- Logging uses LogSanitizer; CRLF injection warnings are false positives for these classes -->
+    <Match>
+        <Class name="com.novareport.accounts_service.security.JwtAuthenticationFilter"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+</FindBugsFilter>

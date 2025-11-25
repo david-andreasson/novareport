@@ -5,6 +5,7 @@ import com.novareport.reporter_service.domain.DailyReport;
 import com.novareport.reporter_service.domain.DailyReportRepository;
 import com.novareport.reporter_service.domain.NewsItem;
 import com.novareport.reporter_service.domain.NewsItemRepository;
+import com.novareport.reporter_service.util.LogSanitizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -73,7 +74,11 @@ public class DailyReportService {
         report.setSummary(summary);
         report.setCreatedAt(Instant.now());
         DailyReport saved = dailyReportRepository.save(report);
-        log.info("Built report for {} with summary length {} chars", reportDate, summary.length());
+        log.info(
+            "Built report for {} with summary length {} chars",
+            LogSanitizer.sanitize(reportDate),
+            summary.length()
+        );
         return saved;
     }
 
@@ -82,7 +87,11 @@ public class DailyReportService {
         Instant threshold = Instant.now().minus(window);
         List<NewsItem> recentItems = newsItemRepository.findTop10ByPublishedAtAfterOrderByPublishedAtDesc(threshold);
         if (recentItems.isEmpty()) {
-            log.warn("No news items found within {} hours for report {}", window.toHours(), reportDate);
+            log.warn(
+                "No news items found within {} hours for report {}",
+                window.toHours(),
+                LogSanitizer.sanitize(reportDate)
+            );
             return "No news items available. This may be due to temporary issues reaching external news sources.";
         }
 

@@ -4,6 +4,7 @@ import com.novareport.reporter_service.client.NotificationsClient;
 import com.novareport.reporter_service.domain.DailyReport;
 import com.novareport.reporter_service.domain.DailyReportRepository;
 import com.novareport.reporter_service.dto.ReportReadyNotificationRequest;
+import com.novareport.reporter_service.util.LogSanitizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,17 +42,17 @@ public class ReportNotificationPublisher {
         Optional<DailyReport> report = dailyReportRepository.findByReportDate(reportDate);
         report.ifPresentOrElse(
             this::publish,
-            () -> log.warn("No report available for {} to notify", reportDate)
+            () -> log.warn("No report available for {} to notify", LogSanitizer.sanitize(reportDate))
         );
     }
 
     public void publish(DailyReport report) {
         if (!StringUtils.hasText(notificationsBaseUrl)) {
-            log.info("Notification base URL not configured, skipping notify for {}", report.getReportDate());
+            log.info("Notification base URL not configured, skipping notify for {}", LogSanitizer.sanitize(report.getReportDate()));
             return;
         }
         if (!StringUtils.hasText(internalApiKey)) {
-            log.warn("Internal API key missing, skipping notify for {}", report.getReportDate());
+            log.warn("Internal API key missing, skipping notify for {}", LogSanitizer.sanitize(report.getReportDate()));
             return;
         }
 
@@ -61,12 +62,16 @@ public class ReportNotificationPublisher {
             notificationsClient.notifyReportReady(notificationsBaseUrl, internalApiKey, payload)
                 .timeout(Duration.ofSeconds(5))
                 .onErrorResume(ex -> {
-                    log.warn("Failed to send notification for {}: {}", report.getReportDate(), ex.getMessage());
+                    log.warn("Failed to send notification for {}: {}",
+                        LogSanitizer.sanitize(report.getReportDate()),
+                        LogSanitizer.sanitize(ex.getMessage()));
                     return Mono.empty();
                 })
                 .blockOptional();
         } catch (Exception ex) {
-            log.warn("Notification error for {}", report.getReportDate(), ex);
+            log.warn("Notification error for {}",
+                LogSanitizer.sanitize(report.getReportDate()),
+                ex);
         }
     }
 }

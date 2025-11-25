@@ -3,8 +3,10 @@ package com.novareport.reporter_service.service;
 import com.novareport.reporter_service.config.ReporterProperties;
 import com.novareport.reporter_service.domain.NewsItem;
 import com.novareport.reporter_service.domain.NewsItemRepository;
+import com.novareport.reporter_service.util.LogSanitizer;
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
+import com.rometools.rome.io.FeedException;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -23,6 +25,7 @@ import reactor.util.function.Tuples;
 import reactor.util.retry.Retry;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
@@ -76,7 +79,11 @@ public class RssIngestService {
             .flatMap(this::fetchFeed)
             .flatMap(tuple -> Flux.fromIterable(tuple.getT2().getEntries())
                 .map(entry -> toNewsItem(tuple.getT2(), tuple.getT1(), entry)))
-            .onErrorContinue((ex, entry) -> log.warn("Failed to process entry {}: {}", entry, ex.getMessage()))
+            .onErrorContinue((ex, entry) -> log.warn(
+                "Failed to process entry {}: {}",
+                LogSanitizer.sanitize(entry),
+                LogSanitizer.sanitize(ex.getMessage())
+            ))
             .collectList()
             .blockOptional()
             .orElse(List.of());
@@ -127,7 +134,7 @@ public class RssIngestService {
     private Flux<Tuple2<String, SyndFeed>> fetchFeed(String url) {
         long maxRetries = 2L;
         long totalAttempts = maxRetries + 1L;
-        log.info("Fetching RSS feed {}", url);
+        log.info("Fetching RSS feed {}", LogSanitizer.sanitize(url));
 
         return webClient
             .get()
@@ -143,16 +150,19 @@ public class RssIngestService {
                     Throwable failure = retrySignal.failure();
                     long attempt = retrySignal.totalRetries() + 1L;
                     log.warn("Retrying RSS feed fetch {} (attempt {}/{}) due to: {}",
-                        url,
+                        LogSanitizer.sanitize(url),
                         attempt,
                         totalAttempts,
-                        failure != null ? failure.getMessage() : "unknown error");
+                        failure != null ? LogSanitizer.sanitize(failure.getMessage()) : "unknown error");
                 })
                 .onRetryExhaustedThrow((spec, signal) -> signal.failure()))
             .filter(xml -> xml != null)
             .flatMapMany(xml -> parseFeed(url, xml))
             .onErrorResume(ex -> {
-                log.warn("Failed to fetch RSS feed {} after {} attempts: {}", url, totalAttempts, ex.getMessage());
+                log.warn("Failed to fetch RSS feed {} after {} attempts: {}",
+                    LogSanitizer.sanitize(url),
+                    totalAttempts,
+                    LogSanitizer.sanitize(ex.getMessage()));
                 return Flux.empty();
             })
             .map(feed -> Tuples.of(url, feed));
@@ -176,9 +186,9 @@ public class RssIngestService {
             String firstLines = firstLinesBuilder.toString();
             log.warn(
                 "RSS feed {} did not start with XML markup. First {} line(s): {}",
-                url,
+                LogSanitizer.sanitize(url),
                 maxLines,
-                firstLines
+                LogSanitizer.sanitize(firstLines)
             );
             return Flux.empty();
         }
@@ -192,8 +202,11 @@ public class RssIngestService {
                 log.info("RSS feed {} parsed successfully with {} entries", url, entries);
             }
             return Flux.just(feed);
-        } catch (Exception ex) {
-            log.warn("Failed to parse RSS feed {}: {}. Preview: {}", url, ex.getMessage(), preview.replaceAll("\\s+", " "));
+        } catch (FeedException | IOException | RuntimeException ex) {
+            log.warn("Failed to parse RSS feed {}: {}. Preview: {}",
+                LogSanitizer.sanitize(url),
+                LogSanitizer.sanitize(ex.getMessage()),
+                LogSanitizer.sanitize(preview.replaceAll("\\s+", " ")));
             return Flux.empty();
         }
     }
