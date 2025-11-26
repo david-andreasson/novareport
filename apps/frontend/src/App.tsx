@@ -293,6 +293,30 @@ function App() {
   const showPasswordFeedback =
     registerForm.password.length > 0 || registerForm.confirmPassword.length > 0
 
+  const getViewTitle = (current: View): string => {
+    switch (current) {
+      case 'login':
+        return 'Logga in'
+      case 'register':
+        return 'Skapa konto'
+      case 'profile':
+        return 'Översikt'
+      case 'settings':
+        return 'Inställningar'
+      case 'report':
+        return 'Rapport'
+      case 'subscribe':
+        return 'Prenumeration'
+      default:
+        return 'NovaReport'
+    }
+  }
+
+  const profileInitials =
+    profile != null && profile.firstName.length > 0 && profile.lastName.length > 0
+      ? `${profile.firstName.charAt(0)}${profile.lastName.charAt(0)}`.toUpperCase()
+      : 'NR'
+
   const renderMessage = (scope: View) =>
     message?.scope === scope ? (
       <p className={`auth-feedback ${message.status}`}>{message.text}</p>
@@ -691,6 +715,30 @@ function App() {
       </aside>
 
       <main className="auth-content">
+        <header className="auth-topbar">
+          <div className="auth-topbar__title">
+            <h2>{getViewTitle(view)}</h2>
+            <p className="auth-topbar__subtitle">
+              {view === 'report'
+                ? 'Se din senaste säkerhetsrapport.'
+                : view === 'profile'
+                  ? 'Översikt över ditt konto och din prenumeration.'
+                  : view === 'settings'
+                    ? 'Hantera språk, tidszon och e-postinställningar.'
+                    : view === 'subscribe'
+                      ? 'Starta eller förläng din NovaReport-prenumeration.'
+                      : 'Logga in eller skapa konto för att komma igång.'}
+            </p>
+          </div>
+          <div className="auth-topbar__user">
+            <span className="auth-topbar__status">{token == null ? 'Inte inloggad' : 'Inloggad'}</span>
+            <div className="auth-user-chip">
+              <span className="auth-user-chip__initials">{profileInitials}</span>
+              <span className="auth-user-chip__text">{profile?.email ?? 'Gäst'}</span>
+            </div>
+          </div>
+        </header>
+
         <section
           className={`auth-panel ${view === 'report' ? 'auth-panel--report' : ''}`.trim()}
         >
