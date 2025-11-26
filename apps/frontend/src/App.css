@@ -85,14 +85,15 @@ body {
   gap: 0.5rem;
   font-size: 0.85rem;
   word-break: break-all;
-  color: #2f3a4a;
+  color: #e5ecf5;
 }
 
 .auth-token code {
   padding: 0.75rem;
-  background: rgba(92, 106, 196, 0.14);
+  background: #020617;
   border-radius: 12px;
-  border: 1px dashed #4252ab;
+  border: 1px solid #1f2937;
+  color: #e5ecf5;
 }
 
 .auth-content {
@@ -119,8 +120,8 @@ body {
 
 .auth-topbar__subtitle {
   margin: 0.25rem 0 0;
-  font-size: 0.9rem;
-  color: #9ca3af;
+  font-size: 0.95rem;
+  color: #d1d5db;
 }
 
 .auth-topbar__user {
@@ -188,10 +189,10 @@ body {
 .report-preview {
   margin-top: 1.75rem;
   padding: 1.75rem 1.5rem 1.5rem;
-  background: linear-gradient(145deg, #ffffff 0%, #f3f6ff 100%);
+  background: #ffffff;
   border-radius: 18px;
-  border: 1px solid rgba(82, 96, 154, 0.15);
-  box-shadow: 0 24px 60px rgba(50, 60, 100, 0.12);
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.5);
   display: grid;
   gap: 1.5rem;
 }
@@ -316,7 +317,7 @@ body {
   gap: 0.45rem;
   text-align: left;
   font-size: 0.95rem;
-  color: #2f3a4a;
+  color: #e5ecf5;
 }
 
 .auth-form input {
@@ -405,19 +406,19 @@ body {
   gap: 0.5rem;
   padding: 0.85rem 1.6rem;
   border-radius: 999px;
-  border: 2px dashed #4f63d6;
-  background: #ebefff;
-  color: #23315a;
+  border: 1px solid #22d3ee;
+  background: #ffffff;
+  color: #020617;
   font-weight: 600;
   letter-spacing: 0.01em;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .pill-button:hover {
-  background: #4f63d6;
-  color: #f7f8ff;
-  box-shadow: 0 14px 28px rgba(79, 99, 214, 0.28);
+  background: #22d3ee;
+  color: #020617;
+  box-shadow: 0 14px 28px rgba(34, 211, 238, 0.4);
 }
 
 .pill-button:disabled {
@@ -435,7 +436,7 @@ body {
 .auth-note {
   margin: 1rem 0 0;
   font-size: 0.9rem;
-  color: #3e4a60;
+  color: #9ca3af;
 }
 
 .auth-details {
@@ -693,9 +694,9 @@ body {
 
 .payment-qr {
   padding: 2rem;
-  background: rgba(255, 255, 255, 0.9);
+  background: #ffffff;
   border-radius: 12px;
-  border: 2px dashed rgba(92, 106, 196, 0.3);
+  border: 1px solid #e5e7eb;
   text-align: center;
 }
 
@@ -716,11 +717,11 @@ body {
 
 .payment-test-command {
   padding: 0.75rem;
-  background: rgba(0, 0, 0, 0.05);
+  background: #ffffff;
   border-radius: 8px;
   font-family: 'Courier New', monospace;
   font-size: 0.85rem;
-  color: #1f2a3d;
+  color: #020617;
   word-break: break-all;
 }
 

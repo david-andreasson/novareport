@@ -666,7 +666,7 @@ function App() {
       <aside className="auth-sidebar">
         <div>
           <h1>NovaReport</h1>
-          <p>Simple access för accounts-service</p>
+          <p>Daily Crypto Reports</p>
         </div>
         <nav className="auth-nav">
           <button
