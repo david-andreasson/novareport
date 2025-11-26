@@ -416,12 +416,6 @@ function App() {
     }
   }
 
-  const handleSettingsInput = (field: 'locale' | 'timezone') =>
-    (event: ChangeEvent<HTMLInputElement>) => {
-      const { value } = event.target
-      setSettingsForm((prev) => ({ ...prev, [field]: value }))
-    }
-
   const handleSettingsCheckbox = (field: 'marketingOptIn' | 'reportEmailOptIn') =>
     (event: ChangeEvent<HTMLInputElement>) => {
       const { checked } = event.target
@@ -621,8 +615,6 @@ function App() {
           token={token}
           settingsForm={settingsForm}
           onSubmit={handleSettingsSubmit}
-          onChangeLocale={handleSettingsInput('locale')}
-          onChangeTimezone={handleSettingsInput('timezone')}
           onToggleMarketing={handleSettingsCheckbox('marketingOptIn')}
           onToggleReportEmail={handleSettingsCheckbox('reportEmailOptIn')}
           message={renderMessage('settings')}

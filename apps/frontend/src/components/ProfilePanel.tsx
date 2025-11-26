@@ -42,7 +42,7 @@ export function ProfilePanel({
           onClick={onRefresh}
           disabled={isLoadingProfile}
         >
-          {isLoadingProfile ? 'Hämtar…' : 'Uppdatera profil'}
+          {isLoadingProfile ? 'Uppdaterar…' : '↻ Uppdatera status'}
         </button>
       </div>
       {message}

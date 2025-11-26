@@ -148,7 +148,8 @@ body {
 }
 
 .auth-panel {
-  width: min(760px, 100%);
+  width: min(540px, 100%);
+  margin: 0 auto;
   background: #020617;
   border-radius: 20px;
   border: 1px solid #111827;
