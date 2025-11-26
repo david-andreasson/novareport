@@ -23,9 +23,7 @@ export function LoginPanel({ loginForm, onChange, onSubmit, message, isLoading }
   }
 
   return (
-    <>
-      <h2>Logga in</h2>
-      <form className="auth-form" onSubmit={onSubmit}>
+    <form className="auth-form" onSubmit={onSubmit}>
         <label>
           E-post
           <input
@@ -53,6 +51,5 @@ export function LoginPanel({ loginForm, onChange, onSubmit, message, isLoading }
           {isLoading ? 'Arbetar…' : 'Fortsätt'}
         </button>
       </form>
-    </>
   )
 }

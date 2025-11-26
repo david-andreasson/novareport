@@ -36,7 +36,6 @@ export function SubscribePanel({
 
   return (
     <>
-      <h2>Prenumerera</h2>
       <p className="auth-note">Välj en plan och betala med Monero (XMR)</p>
       {message}
       {paymentState.phase === 'idle' || paymentState.phase === 'selecting' ? (

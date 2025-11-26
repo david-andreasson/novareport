@@ -34,9 +34,7 @@ export function RegisterPanel({
   }
 
   return (
-    <>
-      <h2>Skapa konto</h2>
-      <form className="auth-form" onSubmit={onSubmit}>
+    <form className="auth-form" onSubmit={onSubmit}>
         <label>
           Förnamn
           <input
@@ -111,6 +109,5 @@ export function RegisterPanel({
           {isLoading ? 'Skapar…' : 'Registrera'}
         </button>
       </form>
-    </>
   )
 }
