@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { ChangeEvent, FormEvent, JSX } from 'react'
-import './App.css'
+import './AppDark.css'
 import { LoginPanel } from './components/LoginPanel'
 import { RegisterPanel } from './components/RegisterPanel'
 import { ProfilePanel } from './components/ProfilePanel'
