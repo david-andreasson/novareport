@@ -71,7 +71,6 @@ describe('ReportPanel', () => {
       />,
     )
 
-    expect(screen.getAllByText('Senaste rapport').length).toBeGreaterThanOrEqual(1)
     expect(formatTimestamp).toHaveBeenCalledWith(report)
     expect(renderSummary).toHaveBeenCalledWith('Sammanfattning')
   })

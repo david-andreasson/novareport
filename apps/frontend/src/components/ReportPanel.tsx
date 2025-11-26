@@ -16,7 +16,6 @@ export function ReportPanel({ token, reportState, formatTimestamp, renderSummary
 
   return (
     <>
-      <h2>Senaste rapport</h2>
       {reportState.phase === 'loading' && <p className="auth-note">Hämtar rapport…</p>}
       {reportState.phase === 'error' && (
         <p className="subscription-error">{reportState.error ?? 'Ett fel inträffade.'}</p>

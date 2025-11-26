@@ -28,7 +28,6 @@ export function SettingsPanel({
 
   return (
     <>
-      <h2>Inställningar</h2>
       {message}
       <form className="auth-form" onSubmit={onSubmit}>
         <label className="checkbox-row">

@@ -149,7 +149,7 @@ describe('App integration', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Fortsätt' }))
 
     await screen.findByText('Inloggning lyckades')
-    await screen.findByRole('heading', { name: 'Min profil' })
+    await screen.findByRole('heading', { name: 'Översikt' })
     await screen.findByText('Anna Svensson')
     await screen.findAllByText('user@example.com')
     await screen.findByText('Prenumerationsstatus')
@@ -394,7 +394,7 @@ describe('App integration', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Registrera' }))
 
     await screen.findByText('Konto skapat och inloggad')
-    await screen.findByRole('heading', { name: 'Min profil' })
+    await screen.findByRole('heading', { name: 'Översikt' })
     await screen.findByText('Anna Svensson')
     await screen.findAllByText('new@example.com')
 
@@ -485,7 +485,6 @@ describe('App integration', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Rapport' }))
 
-    await screen.findByText('Senaste rapport')
     await screen.findByText('Dagens rapport: Allt ser bra ut.')
 
     expect(fetchMock).toHaveBeenCalledWith(
@@ -843,7 +842,7 @@ describe('App integration', () => {
     await screen.findByText('Inloggning lyckades')
 
     fireEvent.click(screen.getByRole('button', { name: 'Prenumerera' }))
-    await screen.findByRole('heading', { name: 'Prenumerera' })
+    await screen.findByRole('heading', { name: 'Prenumeration' })
 
     fireEvent.click(screen.getByRole('button', { name: 'Välj månad' }))
 

@@ -24,17 +24,11 @@ export function ProfilePanel({
   translateStatus,
 }: ProfilePanelProps) {
   if (!token) {
-    return (
-      <>
-        <h2>Min profil</h2>
-        <p className="auth-note">Logga in för att se din profil.</p>
-      </>
-    )
+    return <p className="auth-note">Logga in för att se din profil.</p>
   }
 
   return (
     <>
-      <h2>Min profil</h2>
       <div className="panel-actions">
         <button
           className="pill-button"
