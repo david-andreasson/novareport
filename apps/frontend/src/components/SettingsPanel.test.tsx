@@ -4,20 +4,16 @@ import { SettingsPanel } from './SettingsPanel'
 
 describe('SettingsPanel', () => {
   const baseForm = {
-    locale: 'sv-SE',
-    timezone: 'Europe/Stockholm',
     marketingOptIn: false,
     reportEmailOptIn: false,
   }
 
-  it('renders all settings fields with correct labels', () => {
+  it('renders checkboxes and save button with correct labels', () => {
     render(
       <SettingsPanel
         token="token"
         settingsForm={baseForm}
         onSubmit={() => {}}
-        onChangeLocale={() => {}}
-        onChangeTimezone={() => {}}
         onToggleMarketing={() => {}}
         onToggleReportEmail={() => {}}
         message={null}
@@ -25,10 +21,9 @@ describe('SettingsPanel', () => {
       />,
     )
 
-    expect(screen.getByLabelText('Språk (locale)')).toBeInTheDocument()
-    expect(screen.getByLabelText('Tidszon')).toBeInTheDocument()
     expect(screen.getByText('Ta emot nyheter och uppdateringar')).toBeInTheDocument()
     expect(screen.getByText('Ta emot daglig rapport via e-post')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Spara inställningar' })).toBeInTheDocument()
   })
 
   it('disables all fields and shows notice when token is missing', () => {
@@ -37,8 +32,6 @@ describe('SettingsPanel', () => {
         token={null}
         settingsForm={baseForm}
         onSubmit={() => {}}
-        onChangeLocale={() => {}}
-        onChangeTimezone={() => {}}
         onToggleMarketing={() => {}}
         onToggleReportEmail={() => {}}
         message={null}
@@ -46,11 +39,11 @@ describe('SettingsPanel', () => {
       />,
     )
 
-    const localeInput = screen.getByLabelText('Språk (locale)') as HTMLInputElement
-    const timezoneInput = screen.getByLabelText('Tidszon') as HTMLInputElement
+    const marketingCheckbox = screen.getByLabelText('Ta emot nyheter och uppdateringar') as HTMLInputElement
+    const reportCheckbox = screen.getByLabelText('Ta emot daglig rapport via e-post') as HTMLInputElement
 
-    expect(localeInput).toBeDisabled()
-    expect(timezoneInput).toBeDisabled()
+    expect(marketingCheckbox).toBeDisabled()
+    expect(reportCheckbox).toBeDisabled()
     expect(screen.getByText('Logga in för att kunna spara.')).toBeInTheDocument()
   })
 
@@ -62,8 +55,6 @@ describe('SettingsPanel', () => {
         token="token"
         settingsForm={baseForm}
         onSubmit={handleSubmit}
-        onChangeLocale={() => {}}
-        onChangeTimezone={() => {}}
         onToggleMarketing={() => {}}
         onToggleReportEmail={() => {}}
         message={null}
@@ -82,8 +73,6 @@ describe('SettingsPanel', () => {
         token="token"
         settingsForm={baseForm}
         onSubmit={() => {}}
-        onChangeLocale={() => {}}
-        onChangeTimezone={() => {}}
         onToggleMarketing={() => {}}
         onToggleReportEmail={() => {}}
         message={null}

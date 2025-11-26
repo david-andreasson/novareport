@@ -151,7 +151,7 @@ describe('App integration', () => {
     await screen.findByText('Inloggning lyckades')
     await screen.findByRole('heading', { name: 'Min profil' })
     await screen.findByText('Anna Svensson')
-    await screen.findByText('user@example.com')
+    await screen.findAllByText('user@example.com')
     await screen.findByText('Prenumerationsstatus')
 
     expect(fetchMock).toHaveBeenCalledWith(
@@ -246,8 +246,8 @@ describe('App integration', () => {
 
         const body = init?.body as string
         const parsed = JSON.parse(body)
-        expect(parsed.locale).toBe('en-US')
-        expect(parsed.timezone).toBe('Europe/London')
+        expect(parsed.locale).toBe('sv-SE')
+        expect(parsed.timezone).toBe('Europe/Stockholm')
         expect(parsed.marketingOptIn).toBe(true)
         expect(parsed.reportEmailOptIn).toBe(true)
         expect(parsed.twoFactorEnabled).toBe(false)
@@ -284,17 +284,12 @@ describe('App integration', () => {
     // Go to settings
     fireEvent.click(screen.getByRole('button', { name: 'Inställningar' }))
 
-    const localeInput = await screen.findByLabelText('Språk (locale)')
-    const timezoneInput = screen.getByLabelText('Tidszon')
-    const marketingCheckbox = screen.getByLabelText(
+    const marketingCheckbox = (await screen.findByLabelText(
       'Ta emot nyheter och uppdateringar',
-    ) as HTMLInputElement
+    )) as HTMLInputElement
     const reportCheckbox = screen.getByLabelText(
       'Ta emot daglig rapport via e-post',
     ) as HTMLInputElement
-
-    fireEvent.change(localeInput, { target: { value: 'en-US' } })
-    fireEvent.change(timezoneInput, { target: { value: 'Europe/London' } })
     fireEvent.click(marketingCheckbox)
     fireEvent.click(reportCheckbox)
 
@@ -401,7 +396,7 @@ describe('App integration', () => {
     await screen.findByText('Konto skapat och inloggad')
     await screen.findByRole('heading', { name: 'Min profil' })
     await screen.findByText('Anna Svensson')
-    await screen.findByText('new@example.com')
+    await screen.findAllByText('new@example.com')
 
     expect(fetchMock).toHaveBeenCalled()
   })
@@ -568,12 +563,6 @@ describe('App integration', () => {
 
     // Go to settings
     fireEvent.click(screen.getByRole('button', { name: 'Inställningar' }))
-
-    const localeInput = await screen.findByLabelText('Språk (locale)')
-    const timezoneInput = screen.getByLabelText('Tidszon')
-
-    fireEvent.change(localeInput, { target: { value: 'en-US' } })
-    fireEvent.change(timezoneInput, { target: { value: 'Europe/London' } })
 
     fireEvent.click(screen.getByRole('button', { name: 'Spara inställningar' }))
 
@@ -768,11 +757,11 @@ describe('App integration', () => {
 
     // Go to registration view
     fireEvent.click(screen.getByRole('button', { name: 'Skapa konto' }))
-    await screen.findByRole('heading', { name: 'Skapa konto' })
+    await screen.findAllByRole('heading', { name: 'Skapa konto' })
 
     // Navigate back to login
     fireEvent.click(screen.getByRole('button', { name: 'Logga in' }))
-    await screen.findByRole('heading', { name: 'Logga in' })
+    await screen.findAllByRole('heading', { name: 'Logga in' })
   })
 
   it('can initiate payment after login and show payment details', async () => {
@@ -859,7 +848,7 @@ describe('App integration', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Välj månad' }))
 
     await screen.findByText('Skicka betalning')
-    await screen.findByText('0.01')
+    await screen.findByText('0.01 XMR')
     await screen.findByText('monero-address-123')
 
     expect(fetchMock).toHaveBeenCalledWith(

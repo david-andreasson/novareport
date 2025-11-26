@@ -105,7 +105,7 @@ describe('ProfilePanel', () => {
       />,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Uppdatera profil' }))
+    fireEvent.click(screen.getByRole('button', { name: '↻ Uppdatera status' }))
 
     expect(handleRefresh).toHaveBeenCalledTimes(1)
   })
