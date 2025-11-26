@@ -709,17 +709,17 @@ function App() {
         <header className="auth-topbar">
           <div className="auth-topbar__title">
             <h2>{getViewTitle(view)}</h2>
-            <p className="auth-topbar__subtitle">
-              {view === 'report'
-                ? 'Se din senaste säkerhetsrapport.'
-                : view === 'profile'
+            {view !== 'report' && (
+              <p className="auth-topbar__subtitle">
+                {view === 'profile'
                   ? 'Översikt över ditt konto och din prenumeration.'
                   : view === 'settings'
                     ? 'Hantera språk, tidszon och e-postinställningar.'
                     : view === 'subscribe'
                       ? 'Starta eller förläng din NovaReport-prenumeration.'
                       : 'Logga in eller skapa konto för att komma igång.'}
-            </p>
+              </p>
+            )}
           </div>
           <div className="auth-topbar__user">
             <span className="auth-topbar__status">{token == null ? 'Inte inloggad' : 'Inloggad'}</span>

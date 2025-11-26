@@ -48,6 +48,9 @@ export function SubscribePanel({
               <span className="price-currency">XMR</span>
             </div>
             <p className="plan-description">Tillgång i 30 dagar</p>
+            <p className="plan-savings plan-savings--placeholder">
+              Spara 17% jämfört med månad
+            </p>
             <button
               className="pill-button"
               type="button"
