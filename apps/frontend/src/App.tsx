@@ -407,7 +407,6 @@ function App() {
     try {
       const data: UserProfile = await getProfile(token)
       setProfile(data)
-      setMessage({ scope: 'profile', status: 'success', text: 'Profil hämtad' })
     } catch (error) {
       const text = error instanceof Error ? error.message : 'Okänt fel'
       setProfile(null)
