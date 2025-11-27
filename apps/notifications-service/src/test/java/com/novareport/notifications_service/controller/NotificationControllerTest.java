@@ -3,7 +3,9 @@ package com.novareport.notifications_service.controller;
 import com.novareport.notifications_service.domain.NotificationReport;
 import com.novareport.notifications_service.dto.NotificationReportResponse;
 import com.novareport.notifications_service.dto.ReportReadyNotificationRequest;
+import com.novareport.notifications_service.dto.WelcomeEmailRequest;
 import com.novareport.notifications_service.service.NotificationReportService;
+import com.novareport.notifications_service.service.WelcomeEmailService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,6 +27,9 @@ class NotificationControllerTest {
 
     @Mock
     private NotificationReportService reportService;
+
+    @Mock
+    private WelcomeEmailService welcomeEmailService;
 
     @InjectMocks
     private NotificationController controller;
@@ -62,5 +67,15 @@ class NotificationControllerTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(response.getBody()).isNull();
+    }
+
+    @Test
+    void sendWelcomeEmailReturnsAcceptedAndDelegatesToService() {
+        WelcomeEmailRequest request = new WelcomeEmailRequest("user@example.com", "Anna");
+
+        ResponseEntity<Void> response = controller.sendWelcomeEmail(request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
+        verify(welcomeEmailService).sendWelcomeEmail("user@example.com", "Anna");
     }
 }

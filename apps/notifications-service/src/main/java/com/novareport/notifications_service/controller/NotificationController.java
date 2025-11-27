@@ -2,7 +2,9 @@ package com.novareport.notifications_service.controller;
 
 import com.novareport.notifications_service.dto.NotificationReportResponse;
 import com.novareport.notifications_service.dto.ReportReadyNotificationRequest;
+import com.novareport.notifications_service.dto.WelcomeEmailRequest;
 import com.novareport.notifications_service.service.NotificationReportService;
+import com.novareport.notifications_service.service.WelcomeEmailService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -18,9 +20,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class NotificationController {
 
     private final NotificationReportService reportService;
+    private final WelcomeEmailService welcomeEmailService;
 
-    public NotificationController(NotificationReportService reportService) {
+    public NotificationController(NotificationReportService reportService, WelcomeEmailService welcomeEmailService) {
         this.reportService = reportService;
+        this.welcomeEmailService = welcomeEmailService;
     }
 
     @PostMapping("/internal/notifications/report-ready")
@@ -35,5 +39,11 @@ public class NotificationController {
             .map(NotificationReportResponse::from)
             .map(ResponseEntity::ok)
             .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/internal/notifications/welcome-email")
+    public ResponseEntity<Void> sendWelcomeEmail(@Valid @RequestBody WelcomeEmailRequest request) {
+        welcomeEmailService.sendWelcomeEmail(request.email(), request.firstName());
+        return ResponseEntity.accepted().build();
     }
 }

@@ -6,6 +6,8 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev
       JWT_SECRET: dev-secret-change-me-please-32-bytes-minimum
+      INTERNAL_API_KEY: dev-change-me
+      NOTIFICATIONS_BASE_URL: http://notifications-service:8083
     ports:
       - '8080:8080'
     networks:

@@ -52,4 +52,43 @@ class InternalUserSettingsControllerTest {
         assertThat(response.userId()).isEqualTo(user.getId());
         assertThat(response.email()).isEqualTo(user.getEmail());
     }
+
+    @Test
+    void getReportEmailSubscribersExcludesUsersWithoutOptIn() {
+        User optInUser = User.builder()
+                .id(UUID.randomUUID())
+                .email("optin@example.com")
+                .passwordHash("hash")
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
+
+        User optOutUser = User.builder()
+                .id(UUID.randomUUID())
+                .email("optout@example.com")
+                .passwordHash("hash")
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
+
+        UserSettings optInSettings = UserSettings.builder()
+                .user(optInUser)
+                .reportEmailOptIn(true)
+                .build();
+
+        UserSettings optOutSettings = UserSettings.builder()
+                .user(optOutUser)
+                .reportEmailOptIn(false)
+                .build();
+
+        when(userSettingsRepository.findByReportEmailOptInTrue())
+                .thenReturn(List.of(optInSettings, optOutSettings));
+
+        List<ReportEmailSubscriberResponse> result = controller.getReportEmailSubscribers();
+
+        assertThat(result).hasSize(1);
+        ReportEmailSubscriberResponse response = result.get(0);
+        assertThat(response.userId()).isEqualTo(optInUser.getId());
+        assertThat(response.email()).isEqualTo(optInUser.getEmail());
+    }
 }
