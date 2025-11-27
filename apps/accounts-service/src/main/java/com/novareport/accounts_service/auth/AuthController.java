@@ -6,6 +6,7 @@ import com.novareport.accounts_service.activity.ActivityLogRepository;
 import com.novareport.accounts_service.auth.dto.AuthResponse;
 import com.novareport.accounts_service.auth.dto.LoginRequest;
 import com.novareport.accounts_service.auth.dto.RegisterRequest;
+import com.novareport.accounts_service.client.NotificationsClient;
 import com.novareport.accounts_service.common.exception.EmailAlreadyExistsException;
 import com.novareport.accounts_service.common.exception.InvalidCredentialsException;
 import com.novareport.accounts_service.security.JwtService;
@@ -43,6 +44,7 @@ public class AuthController {
     private final PasswordEncoder encoder;
     private final JwtService jwt;
     private final MeterRegistry meterRegistry;
+    private final NotificationsClient notificationsClient;
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
@@ -59,6 +61,7 @@ public class AuthController {
         settingsRepo.save(settings);
         ActivityLog registerLog = createActivityLog(user, ActivityEventType.REGISTER);
         activity.save(registerLog);
+        notificationsClient.sendWelcomeEmail(user.getEmail(), user.getFirstName());
         String token = Objects.requireNonNull(
                 jwt.createAccessToken(user.getId(), user.getEmail(), user.getRole()),
                 "Generated JWT access token was null"

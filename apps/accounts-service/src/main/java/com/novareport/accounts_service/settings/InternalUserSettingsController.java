@@ -19,6 +19,7 @@ public class InternalUserSettingsController {
     @GetMapping("/report-email-subscribers")
     public List<ReportEmailSubscriberResponse> getReportEmailSubscribers() {
         return settingsRepository.findByReportEmailOptInTrue().stream()
+            .filter(settings -> Boolean.TRUE.equals(settings.getReportEmailOptIn()))
             .map(settings -> new ReportEmailSubscriberResponse(
                 settings.getUser().getId(),
                 settings.getUser().getEmail()

@@ -3,7 +3,7 @@
 - [x] Implement Discord notifications
 - [x ] Add completed documentation
 - [x ] Add tests with 80% coverage
-- [ ] Frontend polish
+- [x ] Frontend polish
 - [ ] Report polish
 
 If extra time:

@@ -5,6 +5,7 @@ import com.novareport.accounts_service.activity.ActivityLogRepository;
 import com.novareport.accounts_service.auth.dto.AuthResponse;
 import com.novareport.accounts_service.auth.dto.LoginRequest;
 import com.novareport.accounts_service.auth.dto.RegisterRequest;
+import com.novareport.accounts_service.client.NotificationsClient;
 import com.novareport.accounts_service.common.exception.EmailAlreadyExistsException;
 import com.novareport.accounts_service.common.exception.InvalidCredentialsException;
 import com.novareport.accounts_service.security.JwtService;
@@ -49,6 +50,9 @@ class AuthControllerTest {
     @Mock
     private JwtService jwtService;
 
+    @Mock
+    private NotificationsClient notificationsClient;
+
     private MeterRegistry meterRegistry;
 
     private AuthController controller;
@@ -56,7 +60,7 @@ class AuthControllerTest {
     @BeforeEach
     void setUp() {
         meterRegistry = new SimpleMeterRegistry();
-        controller = new AuthController(userRepository, userSettingsRepository, activityLogRepository, passwordEncoder, jwtService, meterRegistry);
+        controller = new AuthController(userRepository, userSettingsRepository, activityLogRepository, passwordEncoder, jwtService, meterRegistry, notificationsClient);
     }
 
     @Test
@@ -81,6 +85,7 @@ class AuthControllerTest {
         verify(userRepository).save(any(User.class));
         verify(userSettingsRepository).save(any(UserSettings.class));
         verify(activityLogRepository).save(any(ActivityLog.class));
+        verify(notificationsClient).sendWelcomeEmail("user@example.com", "First");
     }
 
     @Test
