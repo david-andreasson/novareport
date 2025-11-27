@@ -197,14 +197,15 @@ body {
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset;
-  box-shadow: 0 0 0px 1000px #ffffff inset;
-  -webkit-text-fill-color: #020617;
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #020617 !important;
 }
 
 .auth-form input:focus {
   outline: none;
   border-color: #22d3ee;
+  background: #ffffff;
   box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.4);
 }
 

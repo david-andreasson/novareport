@@ -12,6 +12,27 @@ export type PaymentStatus = {
   confirmedAt: string | null
 }
 
+async function extractErrorMessage(response: Response, defaultMessage: string): Promise<string> {
+  const contentType = response.headers.get('Content-Type') ?? ''
+
+  try {
+    if (contentType.includes('application/problem+json')) {
+      const problem = (await response.json()) as { title?: string; detail?: string } | null | undefined
+      if (problem && typeof problem === 'object') {
+        if (typeof problem.detail === 'string') return problem.detail
+        if (typeof problem.title === 'string') return problem.title
+      }
+    } else {
+      const text = await response.text()
+      if (text) return text
+    }
+  } catch {
+    // Ignorera parse-fel
+  }
+
+  return defaultMessage
+}
+
 export async function createPayment(
   token: string,
   plan: 'monthly' | 'yearly',
@@ -34,8 +55,8 @@ export async function createPayment(
   }
 
   if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(errorText || 'Kunde inte skapa betalning')
+    const errorText = await extractErrorMessage(response, 'Kunde inte skapa betalning')
+    throw new Error(errorText)
   }
 
   return (await response.json()) as CreatedPayment
@@ -50,8 +71,8 @@ export async function getPaymentStatus(
   })
 
   if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(errorText || 'Kunde inte hämta betalningsstatus')
+    const errorText = await extractErrorMessage(response, 'Kunde inte hämta betalningsstatus')
+    throw new Error(errorText)
   }
 
   return (await response.json()) as PaymentStatus

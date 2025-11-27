@@ -1,5 +1,37 @@
 import type { UserProfile } from '../App'
 
+async function extractErrorMessage(response: Response, defaultMessage: string): Promise<string> {
+  const contentType = response.headers.get('Content-Type') ?? ''
+
+  try {
+    if (contentType.includes('application/problem+json')) {
+      const problem = (await response.json()) as
+        | { title?: string; detail?: string; status?: number }
+        | null
+        | undefined
+      if (problem && typeof problem === 'object') {
+        const status = typeof problem.status === 'number' ? problem.status : undefined
+        const title = typeof problem.title === 'string' ? problem.title : undefined
+        const detail = typeof problem.detail === 'string' ? problem.detail : undefined
+
+        if (status === 409 || title === 'EmailAlreadyExistsException') {
+          return 'E-postadressen är redan registrerad. Logga in i stället.'
+        }
+
+        if (detail) return detail
+        if (title) return title
+      }
+    } else {
+      const text = await response.text()
+      if (text) return text
+    }
+  } catch {
+    // Ignorera parse-fel och fall tillbaka till standardmeddelandet
+  }
+
+  return defaultMessage
+}
+
 export async function login(email: string, password: string): Promise<{ accessToken: string }> {
   const response = await fetch('/api/accounts/auth/login', {
     method: 'POST',
@@ -11,8 +43,8 @@ export async function login(email: string, password: string): Promise<{ accessTo
   })
 
   if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(errorText || 'Login failed')
+    const errorText = await extractErrorMessage(response, 'Inloggning misslyckades')
+    throw new Error(errorText)
   }
 
   return (await response.json()) as { accessToken: string }
@@ -31,8 +63,8 @@ export async function register(params: {
   })
 
   if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(errorText || 'Registrering misslyckades')
+    const errorText = await extractErrorMessage(response, 'Registrering misslyckades')
+    throw new Error(errorText)
   }
 
   return (await response.json()) as { accessToken: string }
@@ -44,8 +76,8 @@ export async function getProfile(token: string): Promise<UserProfile> {
   })
 
   if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(errorText || 'Kunde inte hämta profil')
+    const errorText = await extractErrorMessage(response, 'Kunde inte hämta profil')
+    throw new Error(errorText)
   }
 
   return (await response.json()) as UserProfile
@@ -68,7 +100,7 @@ export async function updateSettings(token: string, settings: {
   })
 
   if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(errorText || 'Kunde inte spara inställningar')
+    const errorText = await extractErrorMessage(response, 'Kunde inte spara inställningar')
+    throw new Error(errorText)
   }
 }
