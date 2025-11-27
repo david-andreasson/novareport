@@ -7,6 +7,27 @@ export type DailyReport = {
   updatedAt?: string
 }
 
+async function extractErrorMessage(response: Response, defaultMessage: string): Promise<string> {
+  const contentType = response.headers.get('Content-Type') ?? ''
+
+  try {
+    if (contentType.includes('application/problem+json')) {
+      const problem = (await response.json()) as { title?: string; detail?: string } | null | undefined
+      if (problem && typeof problem === 'object') {
+        if (typeof problem.detail === 'string') return problem.detail
+        if (typeof problem.title === 'string') return problem.title
+      }
+    } else {
+      const text = await response.text()
+      if (text) return text
+    }
+  } catch {
+    // Ignorera parse-fel
+  }
+
+  return defaultMessage
+}
+
 export async function getLatestReport(token: string): Promise<DailyReport | null> {
   const response = await fetch('/api/notifications/latest', {
     headers: { Authorization: `Bearer ${token}` },
@@ -25,8 +46,8 @@ export async function getLatestReport(token: string): Promise<DailyReport | null
   }
 
   if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(errorText || 'Kunde inte hämta rapport')
+    const errorText = await extractErrorMessage(response, 'Kunde inte hämta rapport')
+    throw new Error(errorText)
   }
 
   return (await response.json()) as DailyReport

@@ -11,6 +11,27 @@ export type SubscriptionInfoResult = {
   detail: SubscriptionDetail | null
 }
 
+async function extractErrorMessage(response: Response, defaultMessage: string): Promise<string> {
+  const contentType = response.headers.get('Content-Type') ?? ''
+
+  try {
+    if (contentType.includes('application/problem+json')) {
+      const problem = (await response.json()) as { title?: string; detail?: string } | null | undefined
+      if (problem && typeof problem === 'object') {
+        if (typeof problem.detail === 'string') return problem.detail
+        if (typeof problem.title === 'string') return problem.title
+      }
+    } else {
+      const text = await response.text()
+      if (text) return text
+    }
+  } catch {
+    // Ignorera parse-fel
+  }
+
+  return defaultMessage
+}
+
 export async function getSubscriptionInfo(token: string): Promise<SubscriptionInfoResult> {
   const accessResponse = await fetch('/api/subscriptions/me/has-access', {
     headers: { Authorization: `Bearer ${token}` },
@@ -21,8 +42,8 @@ export async function getSubscriptionInfo(token: string): Promise<SubscriptionIn
   }
 
   if (!accessResponse.ok) {
-    const errorText = await accessResponse.text()
-    throw new Error(errorText || 'Kunde inte kontrollera prenumeration')
+    const errorText = await extractErrorMessage(accessResponse, 'Kunde inte kontrollera prenumeration')
+    throw new Error(errorText)
   }
 
   const { hasAccess } = (await accessResponse.json()) as { hasAccess: boolean }
@@ -36,8 +57,8 @@ export async function getSubscriptionInfo(token: string): Promise<SubscriptionIn
     if (detailResponse.ok) {
       detail = (await detailResponse.json()) as SubscriptionDetail
     } else if (detailResponse.status !== 404) {
-      const errorText = await detailResponse.text()
-      throw new Error(errorText || 'Kunde inte hämta prenumerationsdetaljer')
+      const errorText = await extractErrorMessage(detailResponse, 'Kunde inte hämta prenumerationsdetaljer')
+      throw new Error(errorText)
     }
   }
 

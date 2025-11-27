@@ -69,6 +69,34 @@ describe('accounts API', () => {
     })
   })
 
+  it('register maps EmailAlreadyExistsException problem+json to friendly message', async () => {
+    const response = {
+      ok: false,
+      status: 409,
+      headers: {
+        get: (name: string) => (name.toLowerCase() === 'content-type' ? 'application/problem+json' : null),
+      },
+      json: async () => ({
+        title: 'EmailAlreadyExistsException',
+        status: 409,
+        detail: 'Email already registered: user@example.com',
+      }),
+      text: async () => '',
+    } as unknown as Response
+
+    const fetchMock = vi.fn(async () => response)
+    ;(globalThis as any).fetch = fetchMock
+
+    await expect(
+      register({
+        email: 'user@example.com',
+        password: 'Password123!',
+        firstName: 'First',
+        lastName: 'Last',
+      }),
+    ).rejects.toThrow('E-postadressen är redan registrerad. Logga in i stället.')
+  })
+
   it('getProfile fetches profile with bearer token', async () => {
     const fetchMock = vi.fn(async () => ({
       ok: true,
