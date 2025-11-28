@@ -23,6 +23,8 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 
     List<Payment> findByStatus(PaymentStatus status);
 
+    Optional<Payment> findTop1ByUserIdOrderByCreatedAtDesc(UUID userId);
+
     @Override
     @NonNull
     <S extends Payment> S save(@NonNull S entity);

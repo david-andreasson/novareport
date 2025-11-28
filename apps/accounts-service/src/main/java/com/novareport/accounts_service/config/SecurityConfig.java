@@ -43,6 +43,7 @@ public class SecurityConfig {
                     "/error",
                     "/api/accounts/internal/**"
                 ).permitAll()
+                .requestMatchers("/api/accounts/admin/**", "/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(internalFilter, UsernamePasswordAuthenticationFilter.class)

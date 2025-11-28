@@ -47,6 +47,7 @@ public class SecurityConfig {
                     "/error",
                     "/api/v1/internal/**"
                 ).permitAll()
+                .requestMatchers("/api/v1/notifications/admin/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .anyRequest().authenticated()
             )

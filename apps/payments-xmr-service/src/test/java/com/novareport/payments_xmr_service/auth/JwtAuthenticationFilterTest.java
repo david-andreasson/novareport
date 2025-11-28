@@ -1,5 +1,6 @@
 package com.novareport.payments_xmr_service.auth;
 
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.ServletException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -15,8 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class JwtAuthenticationFilterTest {
@@ -53,8 +53,10 @@ class JwtAuthenticationFilterTest {
         MockHttpServletResponse response = new MockHttpServletResponse();
         MockFilterChain chain = new MockFilterChain();
 
-        when(jwtService.isTokenValid("valid-token")).thenReturn(true);
-        when(jwtService.extractUserId("valid-token")).thenReturn("user-123");
+        Claims claims = mock(Claims.class);
+        when(claims.get("uid", String.class)).thenReturn("user-123");
+        when(claims.get("role", String.class)).thenReturn(null);
+        when(jwtService.extractClaims("valid-token")).thenReturn(claims);
 
         filter.doFilterInternal(request, response, chain);
 
