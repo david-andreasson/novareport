@@ -42,13 +42,34 @@ public class ReportEmailService {
     }
 
     private String buildBody(NotificationReport report) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Hi,\n\n");
-        sb.append("Here is your daily Nova Report for ")
-            .append(report.getReportDate())
-            .append(".\n\n");
-        sb.append(report.getSummary()).append("\n\n");
-        sb.append("Best regards,\nNova Report");
-        return sb.toString();
-    }
+      StringBuilder sb = new StringBuilder();
+      sb.append("Hi,\n\n");
+      sb.append("Here is your daily Nova Report for ")
+          .append(report.getReportDate())
+          .append(".\n\n");
+      String summary = renderPlainTextSummary(report.getSummary());
+      if (!summary.isEmpty()) {
+          sb.append(summary).append("\n\n");
+      }
+      sb.append("Best regards,\nNova Report");
+      return sb.toString();
+  }
+
+  private String renderPlainTextSummary(String markdown) {
+      if (markdown == null || markdown.isBlank()) {
+          return "";
+      }
+
+      String normalized = markdown.replace("\r\n", "\n").replace("\r", "\n");
+      StringBuilder sb = new StringBuilder();
+      String[] lines = normalized.split("\n");
+
+      for (String line : lines) {
+          String trimmedLeading = line.stripLeading();
+          String withoutHashes = trimmedLeading.replaceFirst("^#{1,6}\\s*", "");
+          sb.append(withoutHashes).append("\n");
+      }
+
+      return sb.toString().stripTrailing();
+  }
 }
