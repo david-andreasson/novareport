@@ -25,6 +25,12 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
         Instant endAt
     );
 
+    long countByStatusAndStartAtLessThanEqualAndEndAtGreaterThanEqual(
+        SubscriptionStatus status,
+        Instant startAt,
+        Instant endAt
+    );
+
     @Query("select distinct s.userId from Subscription s where s.status = :status and s.startAt <= :startAt and s.endAt >= :endAt")
     List<UUID> findDistinctUserIdByStatusAndStartAtLessThanEqualAndEndAtGreaterThanEqual(
         @Param("status") SubscriptionStatus status,

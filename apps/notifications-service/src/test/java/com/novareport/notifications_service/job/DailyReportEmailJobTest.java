@@ -6,6 +6,8 @@ import com.novareport.notifications_service.domain.NotificationReport;
 import com.novareport.notifications_service.dto.ReportEmailSubscriberResponse;
 import com.novareport.notifications_service.service.NotificationReportService;
 import com.novareport.notifications_service.service.ReportEmailService;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,15 +38,19 @@ class DailyReportEmailJobTest {
     @Mock
     private ReportEmailService reportEmailService;
 
+    private MeterRegistry meterRegistry;
+
     private DailyReportEmailJob job;
 
     @BeforeEach
     void setUp() {
+        meterRegistry = new SimpleMeterRegistry();
         job = new DailyReportEmailJob(
                 reportService,
                 accountsClient,
                 subscriptionsClient,
                 reportEmailService,
+                meterRegistry,
                 "http://accounts",
                 "http://subs",
                 "key",
@@ -59,6 +65,7 @@ class DailyReportEmailJobTest {
                 accountsClient,
                 subscriptionsClient,
                 reportEmailService,
+                meterRegistry,
                 "http://accounts",
                 "http://subs",
                 " ",

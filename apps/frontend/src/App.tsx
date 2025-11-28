@@ -7,6 +7,7 @@ import { ProfilePanel } from './components/ProfilePanel'
 import { SettingsPanel } from './components/SettingsPanel'
 import { ReportPanel } from './components/ReportPanel'
 import { SubscribePanel } from './components/SubscribePanel'
+import { AdminPanel } from './components/AdminPanel'
 import { login, register, getProfile, updateSettings } from './api/accounts'
 import { getSubscriptionInfo } from './api/subscriptions'
 import { getLatestReport as apiGetLatestReport } from './api/reports'
@@ -14,7 +15,7 @@ import { createPayment, getPaymentStatus } from './api/payments'
 
 export const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
-type View = 'login' | 'register' | 'profile' | 'settings' | 'report' | 'subscribe'
+type View = 'login' | 'register' | 'profile' | 'settings' | 'report' | 'subscribe' | 'admin'
 
 type Message = {
   scope: View
@@ -307,6 +308,8 @@ function App() {
         return 'Rapport'
       case 'subscribe':
         return 'Prenumeration'
+      case 'admin':
+        return 'Admin'
       default:
         return 'NovaReport'
     }
@@ -650,6 +653,9 @@ function App() {
       )
       break
     }
+    case 'admin':
+      panelContent = <AdminPanel token={token} profile={profile} />
+      break
   }
 
   return (
@@ -702,6 +708,15 @@ function App() {
           >
             Rapport
           </button>
+          {profile?.role === 'ADMIN' && (
+            <button
+              type="button"
+              className={`${view === 'admin' ? 'active' : ''}`}
+              onClick={() => handleChangeView('admin')}
+            >
+              Admin
+            </button>
+          )}
         </nav>
       </aside>
 
@@ -717,7 +732,9 @@ function App() {
                     ? 'Hantera språk, tidszon och e-postinställningar.'
                     : view === 'subscribe'
                       ? 'Starta eller förläng din NovaReport-prenumeration.'
-                      : 'Logga in eller skapa konto för att komma igång.'}
+                      : view === 'admin'
+                        ? 'Adminpanel för support och drift.'
+                        : 'Logga in eller skapa konto för att komma igång.'}
               </p>
             )}
           </div>

@@ -46,6 +46,7 @@ public class SecurityConfig {
                     "/error",
                     "/api/v1/internal/**"
                 ).permitAll()
+                .requestMatchers("/api/v1/subscriptions/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(internalApiKeyFilter, UsernamePasswordAuthenticationFilter.class)

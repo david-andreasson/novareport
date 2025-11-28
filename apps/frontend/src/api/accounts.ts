@@ -1,7 +1,12 @@
 import type { UserProfile } from '../App'
 
 async function extractErrorMessage(response: Response, defaultMessage: string): Promise<string> {
-  const contentType = response.headers.get('Content-Type') ?? ''
+
+  const rawContentType =
+    typeof (response as any).headers?.get === 'function'
+      ? (response as any).headers.get('Content-Type')
+      : null
+  const contentType = rawContentType ?? ''
 
   try {
     if (contentType.includes('application/problem+json')) {
