@@ -234,25 +234,50 @@ export function AdminPanel({ token, profile }: AdminPanelProps) {
             <h3>Konton</h3>
             <div className="admin-metrics-row">
               <div className="admin-metric-card">
-                <div className="admin-metric-label">Registrerade användare</div>
+                <div
+                  className="admin-metric-label"
+                  title="Antal användarkonton i databasen (alla statusar)."
+                >
+                  Registrerade användare
+                </div>
                 <div className="admin-metric-value">{accountsMetrics.totalUsers}</div>
               </div>
               <div className="admin-metric-card">
-                <div className="admin-metric-label">Aktiva användare</div>
+                <div
+                  className="admin-metric-label"
+                  title="Antal användare vars konto är aktivt (is_active = true)."
+                >
+                  Aktiva användare
+                </div>
                 <div className="admin-metric-value">{accountsMetrics.activeUsers}</div>
               </div>
             </div>
             <div className="admin-metrics-row">
               <div className="admin-metric-card">
-                <div className="admin-metric-label">Inloggningar (OK)</div>
+                <div
+                  className="admin-metric-label"
+                  title="Antal lyckade inloggningar sedan accounts-servicen startades."
+                >
+                  Inloggningar (OK)
+                </div>
                 <div className="admin-metric-value">{accountsMetrics.logins.success}</div>
               </div>
               <div className="admin-metric-card">
-                <div className="admin-metric-label">Felaktiga uppgifter</div>
+                <div
+                  className="admin-metric-label"
+                  title="Antal inloggningsförsök som misslyckat p.g.a. fel e-post, lösenord eller inaktivt konto sedan accounts-servicen startades."
+                >
+                  Felaktiga uppgifter
+                </div>
                 <div className="admin-metric-value">{accountsMetrics.logins.invalidCredentials}</div>
               </div>
               <div className="admin-metric-card">
-                <div className="admin-metric-label">Tekniska fel</div>
+                <div
+                  className="admin-metric-label"
+                  title="Antal inloggningsförsök som gett oväntat tekniskt fel (t.ex. databashaveri) sedan accounts-servicen startades."
+                >
+                  Tekniska fel
+                </div>
                 <div className="admin-metric-value">{accountsMetrics.logins.error}</div>
               </div>
             </div>
@@ -296,15 +321,30 @@ export function AdminPanel({ token, profile }: AdminPanelProps) {
             <h3>Prenumerationer</h3>
             <div className="admin-metrics-row">
               <div className="admin-metric-card">
-                <div className="admin-metric-label">Aktiva prenumerationer</div>
+                <div
+                  className="admin-metric-label"
+                  title="Antal prenumerationer som är aktiva just nu (baserat på start- och slutdatum i databasen)."
+                >
+                  Aktiva prenumerationer
+                </div>
                 <div className="admin-metric-value">{subscriptionsMetrics.activeSubscriptions}</div>
               </div>
               <div className="admin-metric-card">
-                <div className="admin-metric-label">Aktiveringar (OK)</div>
+                <div
+                  className="admin-metric-label"
+                  title="Antal gånger en prenumeration har aktiverats eller förlängts sedan subscriptions-servicen startades."
+                >
+                  Aktiveringar (OK)
+                </div>
                 <div className="admin-metric-value">{subscriptionsMetrics.activatedSuccess}</div>
               </div>
               <div className="admin-metric-card">
-                <div className="admin-metric-label">Aktiveringar (fel)</div>
+                <div
+                  className="admin-metric-label"
+                  title="Antal misslyckade försök att aktivera eller förlänga en prenumeration sedan subscriptions-servicen startades."
+                >
+                  Aktiveringar (fel)
+                </div>
                 <div className="admin-metric-value">{subscriptionsMetrics.activatedError}</div>
               </div>
             </div>
@@ -316,25 +356,50 @@ export function AdminPanel({ token, profile }: AdminPanelProps) {
             <h3>Betalningar</h3>
             <div className="admin-metrics-row">
               <div className="admin-metric-card">
-                <div className="admin-metric-label">Skapade betalningar (OK)</div>
+                <div
+                  className="admin-metric-label"
+                  title="Totalt antal betalningar som finns sparade i databasen (alla statusar)."
+                >
+                  Skapade betalningar (OK)
+                </div>
                 <div className="admin-metric-value">{paymentsMetrics.created.success}</div>
               </div>
               <div className="admin-metric-card">
-                <div className="admin-metric-label">Skapade betalningar (fel)</div>
+                <div
+                  className="admin-metric-label"
+                  title="Antal misslyckade försök att skapa en betalning sedan payments-servicen startades."
+                >
+                  Skapade betalningar (fel)
+                </div>
                 <div className="admin-metric-value">{paymentsMetrics.created.error}</div>
               </div>
             </div>
             <div className="admin-metrics-row">
               <div className="admin-metric-card">
-                <div className="admin-metric-label">Bekräftade betalningar (OK)</div>
+                <div
+                  className="admin-metric-label"
+                  title="Antal betalningar i databasen med status CONFIRMED (lyckade betalningar)."
+                >
+                  Bekräftade betalningar (OK)
+                </div>
                 <div className="admin-metric-value">{paymentsMetrics.confirmed.success}</div>
               </div>
               <div className="admin-metric-card">
-                <div className="admin-metric-label">Bekräftade betalningar (ogiltigt tillstånd)</div>
+                <div
+                  className="admin-metric-label"
+                  title="Antal gånger ett försök att bekräfta betalning avvisats eftersom betalningen inte var i PENDING-läge när anropet gjordes (sedan payments-servicen startades)."
+                >
+                  Bekräftade betalningar (ogiltigt tillstånd)
+                </div>
                 <div className="admin-metric-value">{paymentsMetrics.confirmed.invalidState}</div>
               </div>
               <div className="admin-metric-card">
-                <div className="admin-metric-label">Bekräftade betalningar (fel)</div>
+                <div
+                  className="admin-metric-label"
+                  title="Antal bekräftelseförsök som slutat med tekniskt fel (t.ex. oväntat undantag) sedan payments-servicen startades."
+                >
+                  Bekräftade betalningar (fel)
+                </div>
                 <div className="admin-metric-value">{paymentsMetrics.confirmed.error}</div>
               </div>
             </div>
