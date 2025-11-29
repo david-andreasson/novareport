@@ -12,6 +12,7 @@ describe('ProfilePanel', () => {
 
   const formatDateTime = vi.fn((iso: string) => `formatted-${iso}`)
   const translateStatus = vi.fn((status: string) => `translated-${status}`)
+  const onRequestDiscordInvite = vi.fn()
 
   it('shows login hint when token is missing', () => {
     render(
@@ -24,6 +25,7 @@ describe('ProfilePanel', () => {
         onRefresh={() => {}}
         formatDateTime={formatDateTime}
         translateStatus={translateStatus}
+        onRequestDiscordInvite={onRequestDiscordInvite}
       />,
     )
 
@@ -49,6 +51,7 @@ describe('ProfilePanel', () => {
         onRefresh={() => {}}
         formatDateTime={formatDateTime}
         translateStatus={translateStatus}
+        onRequestDiscordInvite={onRequestDiscordInvite}
       />,
     )
 
@@ -79,6 +82,7 @@ describe('ProfilePanel', () => {
         onRefresh={() => {}}
         formatDateTime={formatDateTime}
         translateStatus={translateStatus}
+        onRequestDiscordInvite={onRequestDiscordInvite}
       />,
     )
 
@@ -102,6 +106,7 @@ describe('ProfilePanel', () => {
         onRefresh={handleRefresh}
         formatDateTime={formatDateTime}
         translateStatus={translateStatus}
+        onRequestDiscordInvite={onRequestDiscordInvite}
       />,
     )
 
