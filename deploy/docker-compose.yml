@@ -68,6 +68,7 @@ services:
       JWT_ISSUER: accounts-service
       INTERNAL_API_KEY: dev-change-me
       SUBSCRIPTIONS_BASE_URL: http://subscriptions-service:8080
+      NOTIFICATIONS_BASE_URL: http://notifications-service:8083
       MONERO_WALLET_RPC_URL: http://monero-wallet-rpc:18082/json_rpc
     ports:
       - '8084:8084'

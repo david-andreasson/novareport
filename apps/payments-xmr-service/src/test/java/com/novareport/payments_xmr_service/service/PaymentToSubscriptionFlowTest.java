@@ -34,6 +34,9 @@ class PaymentToSubscriptionFlowTest {
     @Mock
     private SubscriptionsClient subscriptionsClient;
 
+    @Mock
+    private NotificationsClient notificationsClient;
+
     private SubscriptionActivationService subscriptionActivationService;
 
     private PaymentEventListener paymentEventListener;
@@ -42,7 +45,7 @@ class PaymentToSubscriptionFlowTest {
 
     @BeforeEach
     void setUp() {
-        subscriptionActivationService = new SubscriptionActivationService(subscriptionsClient, paymentRepository);
+        subscriptionActivationService = new SubscriptionActivationService(subscriptionsClient, paymentRepository, notificationsClient);
         paymentEventListener = new PaymentEventListener(subscriptionActivationService);
         SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
 

@@ -27,6 +27,7 @@ public class SubscriptionActivationService {
 
     private final SubscriptionsClient subscriptionsClient;
     private final PaymentRepository paymentRepository;
+    private final NotificationsClient notificationsClient;
 
     /**
      * Activates a subscription for a confirmed payment.
@@ -48,6 +49,7 @@ public class SubscriptionActivationService {
                     payment.getDurationDays()
             );
             log.info("Successfully activated subscription for payment {}", LogSanitizer.sanitize(payment.getId()));
+            notificationsClient.sendPaymentConfirmedEmail(payment);
         } catch (SubscriptionActivationException e) {
             log.error("Failed to activate subscription for payment {}, marking as failed", LogSanitizer.sanitize(payment.getId()), e);
             markPaymentAsFailed(payment.getId());

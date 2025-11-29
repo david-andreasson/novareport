@@ -56,3 +56,31 @@ export async function getLatestReport(token: string): Promise<DailyReport | null
 
   return (await response.json()) as DailyReport
 }
+
+export async function requestDiscordInvite(token: string): Promise<void> {
+  const response = await fetch('/api/notifications/discord/invite/me', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+
+  if (response.status === 401) {
+    throw new Error('Inloggningen har gått ut. Logga in igen.')
+  }
+
+  if (response.status === 403) {
+    throw new Error('Du behöver en aktiv prenumeration för att få Discord-invite.')
+  }
+
+  if (response.status === 503) {
+    const errorText = await extractErrorMessage(
+      response,
+      'Discord-invite är tillfälligt otillgänglig. Försök igen senare.',
+    )
+    throw new Error(errorText)
+  }
+
+  if (!response.ok) {
+    const errorText = await extractErrorMessage(response, 'Kunde inte skicka Discord-invite')
+    throw new Error(errorText)
+  }
+}

@@ -11,6 +11,7 @@ type ProfilePanelProps = {
   onRefresh: () => void
   formatDateTime: (iso: string) => string
   translateStatus: (status: string) => string
+  onRequestDiscordInvite: () => void
 }
 
 export function ProfilePanel({
@@ -22,6 +23,7 @@ export function ProfilePanel({
   onRefresh,
   formatDateTime,
   translateStatus,
+  onRequestDiscordInvite,
 }: ProfilePanelProps) {
   if (!token) {
     return <p className="auth-note">Logga in för att se din profil.</p>
@@ -85,32 +87,43 @@ export function ProfilePanel({
 
         {subscriptionState.phase === 'success' && (
           subscriptionState.hasAccess ? (
-            <div className="subscription-meta">
-              <div>
-                <span>Plan</span>
-                <strong>{subscriptionState.detail?.plan ?? 'Okänd'}</strong>
+            <>
+              <div className="subscription-meta">
+                <div>
+                  <span>Plan</span>
+                  <strong>{subscriptionState.detail?.plan ?? 'Okänd'}</strong>
+                </div>
+                <div>
+                  <span>Status</span>
+                  <strong>
+                    {subscriptionState.detail
+                      ? translateStatus(subscriptionState.detail.status)
+                      : 'Aktiv'}
+                  </strong>
+                </div>
+                {subscriptionState.detail && (
+                  <>
+                    <div>
+                      <span>Startade</span>
+                      <strong>{formatDateTime(subscriptionState.detail.startAt)}</strong>
+                    </div>
+                    <div>
+                      <span>Giltig till</span>
+                      <strong>{formatDateTime(subscriptionState.detail.endAt)}</strong>
+                    </div>
+                  </>
+                )}
               </div>
-              <div>
-                <span>Status</span>
-                <strong>
-                  {subscriptionState.detail
-                    ? translateStatus(subscriptionState.detail.status)
-                    : 'Aktiv'}
-                </strong>
+              <div className="panel-actions">
+                <button
+                  type="button"
+                  className="pill-button"
+                  onClick={onRequestDiscordInvite}
+                >
+                  Skicka Discord-invite till min e-post
+                </button>
               </div>
-              {subscriptionState.detail && (
-                <>
-                  <div>
-                    <span>Startade</span>
-                    <strong>{formatDateTime(subscriptionState.detail.startAt)}</strong>
-                  </div>
-                  <div>
-                    <span>Giltig till</span>
-                    <strong>{formatDateTime(subscriptionState.detail.endAt)}</strong>
-                  </div>
-                </>
-              )}
-            </div>
+            </>
           ) : (
             <p className="auth-note">Ingen aktiv prenumeration.</p>
           )
