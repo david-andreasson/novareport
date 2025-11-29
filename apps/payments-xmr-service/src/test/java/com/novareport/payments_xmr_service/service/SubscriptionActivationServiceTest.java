@@ -29,6 +29,9 @@ class SubscriptionActivationServiceTest {
     @Mock
     private PaymentRepository paymentRepository;
 
+    @Mock
+    private NotificationsClient notificationsClient;
+
     @InjectMocks
     private SubscriptionActivationService subscriptionActivationService;
 

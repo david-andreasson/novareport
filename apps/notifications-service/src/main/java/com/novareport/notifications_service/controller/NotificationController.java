@@ -1,9 +1,11 @@
 package com.novareport.notifications_service.controller;
 
 import com.novareport.notifications_service.dto.NotificationReportResponse;
+import com.novareport.notifications_service.dto.PaymentConfirmationEmailRequest;
 import com.novareport.notifications_service.dto.ReportReadyNotificationRequest;
 import com.novareport.notifications_service.dto.WelcomeEmailRequest;
 import com.novareport.notifications_service.service.NotificationReportService;
+import com.novareport.notifications_service.service.PaymentConfirmationEmailService;
 import com.novareport.notifications_service.service.WelcomeEmailService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -21,10 +23,12 @@ public class NotificationController {
 
     private final NotificationReportService reportService;
     private final WelcomeEmailService welcomeEmailService;
+    private final PaymentConfirmationEmailService paymentConfirmationEmailService;
 
-    public NotificationController(NotificationReportService reportService, WelcomeEmailService welcomeEmailService) {
+    public NotificationController(NotificationReportService reportService, WelcomeEmailService welcomeEmailService, PaymentConfirmationEmailService paymentConfirmationEmailService) {
         this.reportService = reportService;
         this.welcomeEmailService = welcomeEmailService;
+        this.paymentConfirmationEmailService = paymentConfirmationEmailService;
     }
 
     @PostMapping("/internal/notifications/report-ready")
@@ -44,6 +48,12 @@ public class NotificationController {
     @PostMapping("/internal/notifications/welcome-email")
     public ResponseEntity<Void> sendWelcomeEmail(@Valid @RequestBody WelcomeEmailRequest request) {
         welcomeEmailService.sendWelcomeEmail(request.email(), request.firstName());
+        return ResponseEntity.accepted().build();
+    }
+
+    @PostMapping("/internal/notifications/payment-confirmed-email")
+    public ResponseEntity<Void> sendPaymentConfirmedEmail(@Valid @RequestBody PaymentConfirmationEmailRequest request) {
+        paymentConfirmationEmailService.sendPaymentConfirmedEmail(request.userId(), request.plan(), request.durationDays());
         return ResponseEntity.accepted().build();
     }
 }

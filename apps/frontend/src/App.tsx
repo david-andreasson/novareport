@@ -10,7 +10,7 @@ import { SubscribePanel } from './components/SubscribePanel'
 import { AdminPanel } from './components/AdminPanel'
 import { login, register, getProfile, updateSettings } from './api/accounts'
 import { getSubscriptionInfo } from './api/subscriptions'
-import { getLatestReport as apiGetLatestReport } from './api/reports'
+import { getLatestReport as apiGetLatestReport, requestDiscordInvite } from './api/reports'
 import { createPayment, getPaymentStatus } from './api/payments'
 
 export const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -250,7 +250,21 @@ export const renderReportSummary = (summary: string) => {
 }
 
 function App() {
-  const [view, setView] = useState<View>('login')
+  const getInitialView = (): View => {
+    try {
+      const params = new URLSearchParams(window.location.search)
+      const viewParam = params.get('view')
+      const allowed: View[] = ['login', 'register', 'profile', 'settings', 'report', 'subscribe', 'admin']
+      if (viewParam && (allowed as string[]).includes(viewParam)) {
+        return viewParam as View
+      }
+    } catch {
+      // Faller tillbaka på standardvy om window eller URLSearchParams inte finns
+    }
+    return 'login'
+  }
+
+  const [view, setView] = useState<View>(() => getInitialView())
   const [loginForm, setLoginForm] = useState({ email: '', password: '' })
   const createInitialRegisterForm = () => ({
     email: '',
@@ -470,6 +484,43 @@ function App() {
     }
   }
 
+  const handleRequestDiscordInvite = async () => {
+    if (!token) {
+      setMessage({
+        scope: 'profile',
+        status: 'error',
+        text: 'Logga in för att begära Discord-invite.',
+      })
+      return
+    }
+
+    if (subscriptionState.phase !== 'success' || !subscriptionState.hasAccess) {
+      setMessage({
+        scope: 'profile',
+        status: 'error',
+        text: 'Du behöver en aktiv prenumeration för att få Discord-invite.',
+      })
+      return
+    }
+
+    setLoading('profile')
+    setMessage((prev) => (prev?.scope === 'profile' ? null : prev))
+    try {
+      await requestDiscordInvite(token)
+      setMessage({
+        scope: 'profile',
+        status: 'success',
+        text: 'Discord-invite har skickats till din e-postadress.',
+      })
+    } catch (error) {
+      const text =
+        error instanceof Error ? error.message : 'Kunde inte skicka Discord-invite.'
+      setMessage({ scope: 'profile', status: 'error', text })
+    } finally {
+      setLoading(null)
+    }
+  }
+
   const handleSelectPlan = async (plan: 'monthly' | 'yearly') => {
     if (!token) {
       setMessage({ scope: 'subscribe', status: 'error', text: 'Logga in för att prenumerera.' })
@@ -609,6 +660,7 @@ function App() {
           onRefresh={handleRefreshProfile}
           formatDateTime={formatDateTime}
           translateStatus={translateStatus}
+          onRequestDiscordInvite={handleRequestDiscordInvite}
         />
       )
       break
