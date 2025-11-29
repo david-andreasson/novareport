@@ -23,6 +23,8 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 
     List<Payment> findByStatus(PaymentStatus status);
 
+    long countByStatus(PaymentStatus status);
+
     Optional<Payment> findTop1ByUserIdOrderByCreatedAtDesc(UUID userId);
 
     @Override

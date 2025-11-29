@@ -36,10 +36,10 @@ public class AdminPaymentController {
     @GetMapping("/metrics")
     @Operation(summary = "Payments metrics", description = "Returns aggregated metrics for created and confirmed payments")
     public PaymentsAdminMetricsResponse metrics() {
-        long createdSuccess = getCounterSum("nova_payments_created_total", "success");
+        long createdSuccess = paymentRepository.count();
         long createdError = getCounterSum("nova_payments_created_total", "error");
 
-        long confirmedSuccess = getCounterSum("nova_payments_confirmed_total", "success");
+        long confirmedSuccess = paymentRepository.countByStatus(PaymentStatus.CONFIRMED);
         long confirmedInvalidState = getCounterSum("nova_payments_confirmed_total", "invalid_state");
         long confirmedError = getCounterSum("nova_payments_confirmed_total", "error");
 
