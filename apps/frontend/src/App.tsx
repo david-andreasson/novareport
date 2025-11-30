@@ -4,7 +4,6 @@ import './AppDark.css'
 import { LoginPanel } from './components/LoginPanel'
 import { RegisterPanel } from './components/RegisterPanel'
 import { ProfilePanel } from './components/ProfilePanel'
-import { SettingsPanel } from './components/SettingsPanel'
 import { ReportPanel } from './components/ReportPanel'
 import { SubscribePanel } from './components/SubscribePanel'
 import { AdminPanel } from './components/AdminPanel'
@@ -315,9 +314,8 @@ function App() {
       case 'register':
         return 'Skapa konto'
       case 'profile':
-        return 'Översikt'
       case 'settings':
-        return 'Inställningar'
+        return 'Konto & inställningar'
       case 'report':
         return 'Rapport'
       case 'subscribe':
@@ -599,17 +597,22 @@ function App() {
   }
 
   useEffect(() => {
-    if (view === 'profile') {
+    if (view === 'profile' || view === 'settings') {
       if (!token) {
         setProfile(null)
         setSubscriptionState({ phase: 'idle', hasAccess: null, detail: null })
-        setMessage({ scope: 'profile', status: 'error', text: 'Logga in för att se profilen.' })
+        setMessage({
+          scope: view === 'settings' ? 'settings' : 'profile',
+          status: 'error',
+          text:
+            view === 'settings'
+              ? 'Logga in för att ändra inställningar.'
+              : 'Logga in för att se profilen.',
+        })
         return
       }
       void fetchProfile()
       void fetchSubscriptionInfo()
-    } else if (view === 'settings' && !token) {
-      setMessage({ scope: 'settings', status: 'error', text: 'Logga in för att ändra inställningar.' })
     } else if (view === 'report') {
       void fetchLatestReport()
     } else if (view === 'subscribe') {
@@ -650,30 +653,24 @@ function App() {
       )
       break
     case 'profile':
+    case 'settings':
       panelContent = (
         <ProfilePanel
           token={token}
           isLoadingProfile={loading === 'profile'}
-          message={renderMessage('profile')}
+          isSavingSettings={loading === 'settings'}
+          profileMessage={renderMessage('profile')}
+          settingsMessage={renderMessage('settings')}
           profile={profile}
           subscriptionState={subscriptionState}
+          settingsForm={settingsForm}
           onRefresh={handleRefreshProfile}
           formatDateTime={formatDateTime}
           translateStatus={translateStatus}
           onRequestDiscordInvite={handleRequestDiscordInvite}
-        />
-      )
-      break
-    case 'settings':
-      panelContent = (
-        <SettingsPanel
-          token={token}
-          settingsForm={settingsForm}
-          onSubmit={handleSettingsSubmit}
+          onSettingsSubmit={handleSettingsSubmit}
           onToggleMarketing={handleSettingsCheckbox('marketingOptIn')}
           onToggleReportEmail={handleSettingsCheckbox('reportEmailOptIn')}
-          message={renderMessage('settings')}
-          isLoading={loading === 'settings'}
         />
       )
       break
@@ -734,17 +731,12 @@ function App() {
           </button>
           <button
             type="button"
-            className={`${view === 'profile' ? 'active' : ''} ${token ? '' : 'locked'}`.trim()}
+            className={`${
+              view === 'profile' || view === 'settings' ? 'active' : ''
+            } ${token ? '' : 'locked'}`.trim()}
             onClick={() => handleChangeView('profile')}
           >
-            Min profil
-          </button>
-          <button
-            type="button"
-            className={`${view === 'settings' ? 'active' : ''} ${token ? '' : 'locked'}`.trim()}
-            onClick={() => handleChangeView('settings')}
-          >
-            Inställningar
+            Konto & inställningar
           </button>
           <button
             type="button"
@@ -778,15 +770,13 @@ function App() {
             <h2>{getViewTitle(view)}</h2>
             {view !== 'report' && (
               <p className="auth-topbar__subtitle">
-                {view === 'profile'
-                  ? 'Översikt över ditt konto och din prenumeration.'
-                  : view === 'settings'
-                    ? 'Hantera språk, tidszon och e-postinställningar.'
-                    : view === 'subscribe'
-                      ? 'Starta eller förläng din NovaReport-prenumeration.'
-                      : view === 'admin'
-                        ? 'Adminpanel för support och drift.'
-                        : 'Logga in eller skapa konto för att komma igång.'}
+                {view === 'profile' || view === 'settings'
+                  ? 'Översikt över ditt konto, prenumeration och e-postinställningar.'
+                  : view === 'subscribe'
+                    ? 'Starta eller förläng din NovaReport-prenumeration.'
+                    : view === 'admin'
+                      ? 'Adminpanel för support och drift.'
+                      : 'Logga in eller skapa konto för att komma igång.'}
               </p>
             )}
           </div>
