@@ -306,6 +306,16 @@ input:-webkit-autofill:focus {
   margin-bottom: 1rem;
 }
 
+.panel-actions--split {
+  justify-content: space-between;
+}
+
+.panel-actions__left,
+.panel-actions__right {
+  display: flex;
+  gap: 0.75rem;
+}
+
 .auth-note {
   margin: 1rem 0 0;
   font-size: 0.9rem;
