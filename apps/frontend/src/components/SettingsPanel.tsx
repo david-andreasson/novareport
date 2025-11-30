@@ -1,6 +1,6 @@
 import type { ChangeEvent, FormEvent, JSX } from 'react'
 
-type SettingsForm = {
+export type SettingsForm = {
   marketingOptIn: boolean
   reportEmailOptIn: boolean
 }

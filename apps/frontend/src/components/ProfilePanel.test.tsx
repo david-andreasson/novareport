@@ -13,19 +13,32 @@ describe('ProfilePanel', () => {
   const formatDateTime = vi.fn((iso: string) => `formatted-${iso}`)
   const translateStatus = vi.fn((status: string) => `translated-${status}`)
   const onRequestDiscordInvite = vi.fn()
+  const baseSettingsForm = {
+    marketingOptIn: false,
+    reportEmailOptIn: false,
+  }
+  const onSettingsSubmit = vi.fn()
+  const onToggleMarketing = vi.fn()
+  const onToggleReportEmail = vi.fn()
 
   it('shows login hint when token is missing', () => {
     render(
       <ProfilePanel
         token={null}
         isLoadingProfile={false}
-        message={null}
+        isSavingSettings={false}
+        profileMessage={null}
+        settingsMessage={null}
         profile={null}
         subscriptionState={baseSubscriptionState}
+        settingsForm={baseSettingsForm}
         onRefresh={() => {}}
         formatDateTime={formatDateTime}
         translateStatus={translateStatus}
         onRequestDiscordInvite={onRequestDiscordInvite}
+        onSettingsSubmit={onSettingsSubmit}
+        onToggleMarketing={onToggleMarketing}
+        onToggleReportEmail={onToggleReportEmail}
       />,
     )
 
@@ -45,13 +58,19 @@ describe('ProfilePanel', () => {
       <ProfilePanel
         token="token"
         isLoadingProfile={false}
-        message={null}
+        isSavingSettings={false}
+        profileMessage={null}
+        settingsMessage={null}
         profile={profile}
         subscriptionState={baseSubscriptionState}
+        settingsForm={baseSettingsForm}
         onRefresh={() => {}}
         formatDateTime={formatDateTime}
         translateStatus={translateStatus}
         onRequestDiscordInvite={onRequestDiscordInvite}
+        onSettingsSubmit={onSettingsSubmit}
+        onToggleMarketing={onToggleMarketing}
+        onToggleReportEmail={onToggleReportEmail}
       />,
     )
 
@@ -76,13 +95,19 @@ describe('ProfilePanel', () => {
       <ProfilePanel
         token="token"
         isLoadingProfile={false}
-        message={null}
+        isSavingSettings={false}
+        profileMessage={null}
+        settingsMessage={null}
         profile={null}
         subscriptionState={subscriptionState}
+        settingsForm={baseSettingsForm}
         onRefresh={() => {}}
         formatDateTime={formatDateTime}
         translateStatus={translateStatus}
         onRequestDiscordInvite={onRequestDiscordInvite}
+        onSettingsSubmit={onSettingsSubmit}
+        onToggleMarketing={onToggleMarketing}
+        onToggleReportEmail={onToggleReportEmail}
       />,
     )
 
@@ -100,13 +125,19 @@ describe('ProfilePanel', () => {
       <ProfilePanel
         token="token"
         isLoadingProfile={false}
-        message={null}
+        isSavingSettings={false}
+        profileMessage={null}
+        settingsMessage={null}
         profile={null}
         subscriptionState={baseSubscriptionState}
+        settingsForm={baseSettingsForm}
         onRefresh={handleRefresh}
         formatDateTime={formatDateTime}
         translateStatus={translateStatus}
         onRequestDiscordInvite={onRequestDiscordInvite}
+        onSettingsSubmit={onSettingsSubmit}
+        onToggleMarketing={onToggleMarketing}
+        onToggleReportEmail={onToggleReportEmail}
       />,
     )
 

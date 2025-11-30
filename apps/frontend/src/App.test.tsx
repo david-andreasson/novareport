@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import App, {
   translateStatus,
@@ -68,6 +68,9 @@ describe('renderReportSummary', () => {
 })
 
 describe('App integration', () => {
+  beforeEach(() => {
+    window.history.replaceState({}, '', '/')
+  })
   const setupFetchMock = (
     impl: (url: string, init?: RequestInit) => Promise<Response>,
   ) => {
@@ -149,7 +152,7 @@ describe('App integration', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Fortsätt' }))
 
     await screen.findByText('Inloggning lyckades')
-    await screen.findByRole('heading', { name: 'Översikt' })
+    await screen.findByRole('heading', { name: 'Konto & inställningar' })
     await screen.findByText('Anna Svensson')
     await screen.findAllByText('user@example.com')
     await screen.findByText('Prenumerationsstatus')
@@ -282,7 +285,7 @@ describe('App integration', () => {
     await screen.findByText('Inloggning lyckades')
 
     // Go to settings
-    fireEvent.click(screen.getByRole('button', { name: 'Inställningar' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Konto & inställningar' }))
 
     const marketingCheckbox = (await screen.findByLabelText(
       'Ta emot nyheter och uppdateringar',
@@ -306,15 +309,15 @@ describe('App integration', () => {
   it('shows error message when opening profile without being logged in', async () => {
     render(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Min profil' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Konto & inställningar' }))
 
     await screen.findByText('Logga in för att se din profil.')
   })
 
   it('shows error message when opening settings without being logged in', async () => {
-    render(<App />)
+    window.history.replaceState({}, '', '/?view=settings')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Inställningar' }))
+    render(<App />)
 
     await screen.findByText('Logga in för att ändra inställningar.')
   })
@@ -394,7 +397,7 @@ describe('App integration', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Registrera' }))
 
     await screen.findByText('Konto skapat och inloggad')
-    await screen.findByRole('heading', { name: 'Översikt' })
+    await screen.findByRole('heading', { name: 'Konto & inställningar' })
     await screen.findByText('Anna Svensson')
     await screen.findAllByText('new@example.com')
 
@@ -560,8 +563,8 @@ describe('App integration', () => {
 
     await screen.findByText('Inloggning lyckades')
 
-    // Go to settings
-    fireEvent.click(screen.getByRole('button', { name: 'Inställningar' }))
+    // Go to settings via the combined account view
+    fireEvent.click(screen.getByRole('button', { name: 'Konto & inställningar' }))
 
     fireEvent.click(screen.getByRole('button', { name: 'Spara inställningar' }))
 

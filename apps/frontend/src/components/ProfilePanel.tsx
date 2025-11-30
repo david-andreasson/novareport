@@ -1,33 +1,45 @@
-import type { JSX } from 'react'
+import type { ChangeEvent, FormEvent, JSX } from 'react'
 
 import type { UserProfile, SubscriptionState } from '../App'
+import { SettingsPanel } from './SettingsPanel'
+import type { SettingsForm } from './SettingsPanel'
 
 type ProfilePanelProps = {
   token: string | null
   isLoadingProfile: boolean
-  message: JSX.Element | null
+  isSavingSettings: boolean
+  profileMessage: JSX.Element | null
+  settingsMessage: JSX.Element | null
   profile: UserProfile | null
   subscriptionState: SubscriptionState
+  settingsForm: SettingsForm
   onRefresh: () => void
   formatDateTime: (iso: string) => string
   translateStatus: (status: string) => string
   onRequestDiscordInvite: () => void
+  onSettingsSubmit: (event: FormEvent<HTMLFormElement>) => void
+  onToggleMarketing: (event: ChangeEvent<HTMLInputElement>) => void
+  onToggleReportEmail: (event: ChangeEvent<HTMLInputElement>) => void
 }
 
 export function ProfilePanel({
   token,
   isLoadingProfile,
-  message,
+  isSavingSettings,
+  profileMessage,
+  settingsMessage,
   profile,
   subscriptionState,
+  settingsForm,
   onRefresh,
   formatDateTime,
   translateStatus,
   onRequestDiscordInvite,
+  onSettingsSubmit,
+  onToggleMarketing,
+  onToggleReportEmail,
 }: ProfilePanelProps) {
-  if (!token) {
-    return <p className="auth-note">Logga in för att se din profil.</p>
-  }
+  const isAdmin = profile?.role === 'ADMIN'
 
   return (
     <>
@@ -36,32 +48,38 @@ export function ProfilePanel({
           className="pill-button"
           type="button"
           onClick={onRefresh}
-          disabled={isLoadingProfile}
+          disabled={isLoadingProfile || !token}
         >
           {isLoadingProfile ? 'Uppdaterar…' : '↻ Uppdatera status'}
         </button>
       </div>
-      {message}
-      {profile ? (
-        <div className="auth-details">
-          <dl>
-            <dt>Namn</dt>
-            <dd>
-              {profile.firstName} {profile.lastName}
-            </dd>
-            <dt>E-post</dt>
-            <dd>{profile.email}</dd>
-            <dt>Roll</dt>
-            <dd>{profile.role}</dd>
-            <dt>ID</dt>
-            <dd>{profile.id}</dd>
-          </dl>
-        </div>
-      ) : (
-        isLoadingProfile ? null : (
-          <p className="auth-note">Ingen profildata hämtad ännu.</p>
-        )
-      )}
+      {profileMessage}
+      {!token && <p className="auth-note">Logga in för att se din profil.</p>}
+      {token &&
+        (profile ? (
+          <div className="auth-details">
+            <dl>
+              <dt>Namn</dt>
+              <dd>
+                {profile.firstName} {profile.lastName}
+              </dd>
+              <dt>E-post</dt>
+              <dd>{profile.email}</dd>
+              {isAdmin && (
+                <>
+                  <dt>Roll</dt>
+                  <dd>{profile.role}</dd>
+                  <dt>ID</dt>
+                  <dd>{profile.id}</dd>
+                </>
+              )}
+            </dl>
+          </div>
+        ) : (
+          isLoadingProfile ? null : (
+            <p className="auth-note">Ingen profildata hämtad ännu.</p>
+          )
+        ))}
       <section className="subscription-card">
         <div
           className={`subscription-chip ${
@@ -132,6 +150,19 @@ export function ProfilePanel({
         {subscriptionState.phase === 'idle' && (
           <p className="auth-note">Prenumerationsstatus hämtas efter inloggning.</p>
         )}
+      </section>
+
+      <section className="settings-section">
+        <h3>Inställningar</h3>
+        <SettingsPanel
+          token={token}
+          settingsForm={settingsForm}
+          onSubmit={onSettingsSubmit}
+          onToggleMarketing={onToggleMarketing}
+          onToggleReportEmail={onToggleReportEmail}
+          message={settingsMessage}
+          isLoading={isSavingSettings}
+        />
       </section>
     </>
   )
