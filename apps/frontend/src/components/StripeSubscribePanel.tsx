@@ -147,7 +147,7 @@ export function StripeSubscribePanel({
   return (
     <>
       <p className="auth-note">
-        Välj plan och betala med kort via Stripe. Krypto (Monero) är vanligtvis runt 20% billigare.
+        Välj plan och betala med kort via Stripe.
       </p>
       {message}
 

@@ -760,7 +760,7 @@ function App() {
                 resetStripePaymentState()
               }}
             >
-              Krypto (Monero – ca 20% billigare)
+              Betala med Monero (20% rabatt)
             </button>
             <button
               type="button"
@@ -771,7 +771,7 @@ function App() {
                 resetStripePaymentState()
               }}
             >
-              Kort (Stripe)
+              Kortbetalning
             </button>
           </div>
 
