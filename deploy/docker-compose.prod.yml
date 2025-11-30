@@ -233,6 +233,7 @@ services:
     image: davidandreasson/novareport-frontend:${TAG:-latest}
     environment:
       INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
     ports:
       - '15173:80'
     networks:
