@@ -213,8 +213,7 @@ export function StripeSubscribePanel({
         <div className="payment-success">
           <h3>✓ Kortbetalning genomförd!</h3>
           <p>
-            Din betalning är genomförd. Din prenumeration aktiveras strax när backend har
-            bekräftat betalningen.
+            Din betalning är genomförd. Din prenumeration uppdateras och blir aktiv inom kort.
           </p>
         </div>
       )}
