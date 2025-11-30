@@ -5,7 +5,8 @@ set -e
 cat > /usr/share/nginx/html/config.js <<EOF
 // Runtime configuration - generated at container startup
 window.APP_CONFIG = {
-  INTERNAL_API_KEY: '${INTERNAL_API_KEY:-}'
+  INTERNAL_API_KEY: '${INTERNAL_API_KEY:-}',
+  STRIPE_PUBLISHABLE_KEY: '${STRIPE_PUBLISHABLE_KEY:-}'
 };
 EOF
 
