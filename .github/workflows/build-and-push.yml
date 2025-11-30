@@ -24,6 +24,10 @@ jobs:
             context: apps/payments-xmr-service
             dockerfile: Dockerfile
             image: davidandreasson/novareport-payments-xmr-service
+          - name: payments-stripe-service
+            context: apps/payments-stripe-service
+            dockerfile: Dockerfile
+            image: davidandreasson/novareport-payments-stripe-service
           - name: notifications-service
             context: apps/notifications-service
             dockerfile: Dockerfile
