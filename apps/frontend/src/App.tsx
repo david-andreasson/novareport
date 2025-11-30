@@ -6,11 +6,13 @@ import { RegisterPanel } from './components/RegisterPanel'
 import { ProfilePanel } from './components/ProfilePanel'
 import { ReportPanel } from './components/ReportPanel'
 import { SubscribePanel } from './components/SubscribePanel'
+import { StripeSubscribePanel, type StripePaymentState } from './components/StripeSubscribePanel'
 import { AdminPanel } from './components/AdminPanel'
 import { login, register, getProfile, updateSettings } from './api/accounts'
 import { getSubscriptionInfo } from './api/subscriptions'
 import { getLatestReport as apiGetLatestReport, requestDiscordInvite } from './api/reports'
 import { createPayment, getPaymentStatus } from './api/payments'
+import { createStripePaymentIntent } from './api/paymentsStripe'
 
 export const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -297,6 +299,15 @@ function App() {
     selectedPlan: null,
     payment: null,
   })
+  const [paymentMethod, setPaymentMethod] = useState<'monero' | 'stripe'>('monero')
+  const [stripePaymentState, setStripePaymentState] = useState<StripePaymentState>({
+    phase: 'idle',
+    selectedPlan: null,
+    paymentId: null,
+    clientSecret: null,
+    amountFiat: null,
+    currencyFiat: null,
+  })
 
   const passwordPolicyRegex = /^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,}$/
   const meetsPasswordPolicy = passwordPolicyRegex.test(registerForm.password)
@@ -550,6 +561,57 @@ function App() {
     }
   }
 
+  const resetStripePaymentState = () => {
+    setStripePaymentState({
+      phase: 'idle',
+      selectedPlan: null,
+      paymentId: null,
+      clientSecret: null,
+      amountFiat: null,
+      currencyFiat: null,
+    })
+  }
+
+  const handleSelectStripePlan = async (plan: 'monthly' | 'yearly') => {
+    if (!token) {
+      setMessage({ scope: 'subscribe', status: 'error', text: 'Logga in för att prenumerera.' })
+      return
+    }
+
+    setStripePaymentState({
+      phase: 'processing',
+      selectedPlan: plan,
+      paymentId: null,
+      clientSecret: null,
+      amountFiat: null,
+      currencyFiat: null,
+    })
+    setMessage(null)
+
+    try {
+      const data = await createStripePaymentIntent(token, plan)
+      setStripePaymentState({
+        phase: 'intentCreated',
+        selectedPlan: plan,
+        paymentId: data.paymentId,
+        clientSecret: data.clientSecret,
+        amountFiat: data.amountFiat,
+        currencyFiat: data.currencyFiat,
+      })
+    } catch (error) {
+      const text = error instanceof Error ? error.message : 'Okänt fel'
+      setStripePaymentState({
+        phase: 'error',
+        selectedPlan: null,
+        paymentId: null,
+        clientSecret: null,
+        amountFiat: null,
+        currencyFiat: null,
+        error: text,
+      })
+    }
+  }
+
   const pollPaymentStatus = async (paymentId: string) => {
     if (!token) return
 
@@ -618,6 +680,7 @@ function App() {
     } else if (view === 'subscribe') {
       // Reset payment state when entering subscribe view
       setPaymentState({ phase: 'idle', selectedPlan: null, payment: null })
+      resetStripePaymentState()
       if (!token) {
         setMessage({ scope: 'subscribe', status: 'error', text: 'Logga in för att prenumerera.' })
       }
@@ -686,19 +749,71 @@ function App() {
       break
     case 'subscribe': {
       panelContent = (
-        <SubscribePanel
-          paymentState={paymentState}
-          message={renderMessage('subscribe')}
-          onSelectPlan={(plan) => {
-            void handleSelectPlan(plan)
-          }}
-          onNavigateToReport={() => handleChangeView('report')}
-          onResetPayment={() => setPaymentState({ phase: 'idle', selectedPlan: null, payment: null })}
-          onCopyPaymentAddress={(address) => {
-            void navigator.clipboard.writeText(address)
-            setMessage({ scope: 'subscribe', status: 'success', text: 'Adress kopierad!' })
-          }}
-        />
+        <>
+          <div className="payment-method-toggle">
+            <button
+              type="button"
+              className={`pill-button ${paymentMethod === 'monero' ? 'pill-button--active' : ''}`.trim()}
+              onClick={() => {
+                setPaymentMethod('monero')
+                setPaymentState({ phase: 'idle', selectedPlan: null, payment: null })
+                resetStripePaymentState()
+              }}
+            >
+              Krypto (Monero – ca 20% billigare)
+            </button>
+            <button
+              type="button"
+              className={`pill-button ${paymentMethod === 'stripe' ? 'pill-button--active' : ''}`.trim()}
+              onClick={() => {
+                setPaymentMethod('stripe')
+                setPaymentState({ phase: 'idle', selectedPlan: null, payment: null })
+                resetStripePaymentState()
+              }}
+            >
+              Kort (Stripe)
+            </button>
+          </div>
+
+          {paymentMethod === 'monero' ? (
+            <SubscribePanel
+              paymentState={paymentState}
+              message={renderMessage('subscribe')}
+              onSelectPlan={(plan) => {
+                void handleSelectPlan(plan)
+              }}
+              onNavigateToReport={() => handleChangeView('report')}
+              onResetPayment={() =>
+                setPaymentState({ phase: 'idle', selectedPlan: null, payment: null })
+              }
+              onCopyPaymentAddress={(address) => {
+                void navigator.clipboard.writeText(address)
+                setMessage({ scope: 'subscribe', status: 'success', text: 'Adress kopierad!' })
+              }}
+            />
+          ) : (
+            <StripeSubscribePanel
+              state={stripePaymentState}
+              message={renderMessage('subscribe')}
+              onSelectPlan={(plan) => {
+                void handleSelectStripePlan(plan)
+              }}
+              onPaymentSuccess={() => {
+                setStripePaymentState((prev) => ({ ...prev, phase: 'confirmed' }))
+                setMessage({
+                  scope: 'subscribe',
+                  status: 'success',
+                  text: 'Kortbetalning genomförd! Din prenumeration aktiveras strax.',
+                })
+                void fetchSubscriptionInfo()
+              }}
+              onPaymentError={(text) => {
+                setStripePaymentState((prev) => ({ ...prev, phase: 'error', error: text }))
+                setMessage({ scope: 'subscribe', status: 'error', text })
+              }}
+            />
+          )}
+        </>
       )
       break
     }

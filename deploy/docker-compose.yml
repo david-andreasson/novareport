@@ -77,6 +77,29 @@ services:
     depends_on:
       - subscriptions-service
 
+  payments-stripe-service:
+    build:
+      context: ../apps/payments-stripe-service
+    image: novareport/payments-stripe-service:dev
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      # WARNING: Do not use hard-coded secrets in production!
+      # Use Docker secrets, environment files, or secret management tools.
+      JWT_SECRET: dev-secret-change-me-please-32-bytes-minimum
+      JWT_ISSUER: accounts-service
+      INTERNAL_API_KEY: dev-change-me
+      SUBSCRIPTIONS_BASE_URL: http://subscriptions-service:8080
+      NOTIFICATIONS_BASE_URL: http://notifications-service:8083
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+    ports:
+      - '8085:8085'
+    networks:
+      - novareport
+    depends_on:
+      - subscriptions-service
+      - notifications-service
+
   monero-wallet-rpc:
     image: monero-project/monero:latest
     command: >
@@ -130,6 +153,7 @@ services:
       - accounts-service
       - subscriptions-service
       - payments-xmr-service
+      - payments-stripe-service
 
 networks:
   novareport:
