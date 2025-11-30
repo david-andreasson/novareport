@@ -1,5 +1,7 @@
 package com.novareport.payments_stripe_service.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.novareport.payments_stripe_service.service.PaymentService;
 import com.novareport.payments_stripe_service.util.LogSanitizer;
 import com.stripe.exception.SignatureVerificationException;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 @RestController
@@ -61,36 +64,70 @@ public class StripeWebhookController {
         if ("payment_intent.succeeded".equals(eventType) ||
             "payment_intent.payment_failed".equals(eventType) ||
             "payment_intent.canceled".equals(eventType)) {
-            try {
-                PaymentIntent pi = (PaymentIntent) event.getDataObjectDeserializer()
-                        .getObject().orElse(null);
-                if (pi != null) {
-                    handlePaymentIntentEvent(eventType, pi);
+
+            String paymentIntentId = resolvePaymentIntentId(event, payload);
+
+            if (paymentIntentId == null || paymentIntentId.isBlank()) {
+                log.warn("Stripe webhook event {} did not contain a PaymentIntent id; skipping further processing",
+                        LogSanitizer.sanitize(eventType));
+                return ResponseEntity.ok("ok");
+            }
+
+            log.info("Handling Stripe PaymentIntent event {} for id {}",
+                    LogSanitizer.sanitize(eventType), LogSanitizer.sanitize(paymentIntentId));
+
+            switch (eventType) {
+                case "payment_intent.succeeded" ->
+                        paymentService.confirmPaymentByStripePaymentIntentId(paymentIntentId);
+                case "payment_intent.payment_failed", "payment_intent.canceled" ->
+                        paymentService.markPaymentFailedByStripePaymentIntentId(paymentIntentId);
+                default -> {
+                    // ignore
                 }
-            } catch (ClassCastException ex) {
-                log.warn("Unexpected payload type in Stripe webhook: {}",
-                        LogSanitizer.sanitize(ex.getMessage()));
             }
         }
 
         return ResponseEntity.ok("ok");
     }
 
-    private void handlePaymentIntentEvent(String eventType, PaymentIntent pi) {
-        String paymentIntentId = pi.getId();
-        log.info("Handling Stripe PaymentIntent event {} for id {} with status {}",
-                LogSanitizer.sanitize(eventType),
-                LogSanitizer.sanitize(paymentIntentId),
-                LogSanitizer.sanitize(pi.getStatus()));
-
-        switch (eventType) {
-            case "payment_intent.succeeded" ->
-                    paymentService.confirmPaymentByStripePaymentIntentId(paymentIntentId);
-            case "payment_intent.payment_failed", "payment_intent.canceled" ->
-                    paymentService.markPaymentFailedByStripePaymentIntentId(paymentIntentId);
-            default -> {
-                // ignore
+    private String resolvePaymentIntentId(Event event, String payload) {
+        // Först: försök via Stripes deserializer
+        try {
+            var deserializer = event.getDataObjectDeserializer();
+            if (deserializer != null && deserializer.getObject().isPresent()) {
+                Object obj = deserializer.getObject().get();
+                if (obj instanceof PaymentIntent pi) {
+                    String id = pi.getId();
+                    if (id != null && !id.isBlank()) {
+                        return id;
+                    }
+                } else {
+                    log.warn("Stripe webhook contained unexpected object type: {}",
+                            obj.getClass().getName());
+                }
+            } else {
+                log.warn("Stripe webhook dataObjectDeserializer returned empty Optional; falling back to raw JSON parsing");
             }
+        } catch (ClassCastException ex) {
+            log.warn("Unexpected payload type in Stripe webhook: {}",
+                    LogSanitizer.sanitize(ex.getMessage()));
         }
+
+        // Fallback: plocka ut id från rå JSON
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(payload);
+            String id = root.path("data").path("object").path("id").asText(null);
+            if (id != null && !id.isBlank()) {
+                log.info("Extracted PaymentIntent id from raw Stripe webhook payload");
+                return id;
+            }
+            log.warn("Could not find PaymentIntent id in Stripe webhook payload JSON");
+        } catch (IOException e) {
+            log.error("Failed to parse Stripe webhook payload for PaymentIntent id: {}",
+                    LogSanitizer.sanitize(e.getMessage()));
+        }
+
+        return null;
     }
 }
