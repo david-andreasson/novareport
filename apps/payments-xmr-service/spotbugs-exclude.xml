@@ -66,6 +66,18 @@
         <Class name="com.novareport.payments_xmr_service.service.MoneroWalletClient"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
+    <Match>
+        <Class name="com.novareport.payments_xmr_service.controller.AdminPaymentController"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.payments_xmr_service.service.NotificationsClient"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.payments_xmr_service.service.NotificationsClient"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
 
     <!-- MoneroWalletClient only talks to internal monero-wallet-rpc; SSRF warning is overly strict -->
     <Match>

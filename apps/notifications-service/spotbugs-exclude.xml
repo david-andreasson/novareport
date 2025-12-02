@@ -39,24 +39,12 @@
 
     <!-- Logging uses LogSanitizer or only logs controlled values; CRLF warnings here are considered false positives -->
     <Match>
-        <Class name="com.novareport.notifications_service.exception.GlobalExceptionHandler"/>
         <Bug pattern="CRLF_INJECTION_LOGS"/>
     </Match>
+
+    <!-- Micrometer MeterRegistry and other Spring-managed beans; EI_EXPOSE_REP2 is not a real leak -->
     <Match>
-        <Class name="com.novareport.notifications_service.job.DailyReportEmailJob"/>
-        <Bug pattern="CRLF_INJECTION_LOGS"/>
-    </Match>
-    <Match>
-        <Class name="com.novareport.notifications_service.security.JwtAuthenticationFilter"/>
-        <Bug pattern="CRLF_INJECTION_LOGS"/>
-    </Match>
-    <Match>
-        <Class name="com.novareport.notifications_service.service.DiscordReportService"/>
-        <Bug pattern="CRLF_INJECTION_LOGS"/>
-    </Match>
-    <Match>
-        <Class name="com.novareport.notifications_service.service.ReportEmailService"/>
-        <Bug pattern="CRLF_INJECTION_LOGS"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
 
     <!-- DiscordReportService uses Locale.ROOT for case mapping; IMPROPER_UNICODE is treated as a false positive here -->

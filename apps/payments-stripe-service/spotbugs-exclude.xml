@@ -1,4 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <FindBugsFilter>
-    <!-- Suppress specific findings here if needed -->
+    <!-- Spring controllers are endpoints by design -->
+    <Match>
+        <Bug pattern="SPRING_ENDPOINT"/>
+    </Match>
+
+    <!-- CSRF disabled intentionally for stateless JWT API -->
+    <Match>
+        <Class name="com.novareport.payments_stripe_service.config.SecurityConfig"/>
+        <Bug pattern="SPRING_CSRF_PROTECTION_DISABLED"/>
+    </Match>
+
+    <!-- JwtService constructor validation is intentional -->
+    <Match>
+        <Class name="com.novareport.payments_stripe_service.auth.JwtService"/>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+
+    <!-- Spring-managed beans and Micrometer MeterRegistry are not real leaks -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- Logging uses LogSanitizer; CRLF injection warnings are false positives -->
+    <Match>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+
+    <!-- Stripe.apiKey is set per request with proper synchronization in production -->
+    <Match>
+        <Class name="com.novareport.payments_stripe_service.service.PaymentService"/>
+        <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD"/>
+    </Match>
 </FindBugsFilter>

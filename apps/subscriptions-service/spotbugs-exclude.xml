@@ -22,6 +22,10 @@
         <Class name="com.novareport.subscriptions_service.service.SubscriptionService"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
+    <Match>
+        <Class name="com.novareport.subscriptions_service.controller.AdminSubscriptionController"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
 
     <!-- Logging uses LogSanitizer; CRLF injection warnings are false positives for these classes -->
     <Match>

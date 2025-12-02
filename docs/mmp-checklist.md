@@ -9,7 +9,7 @@
 If extra time:
 - [x] Welcome mail 
 - [x] Extra metrics/monitoring 
-- [ ] Stripe implementation
+- [x] Stripe implementation
 - [ ] BTC implementation
 - [ ] Discord bot implementation
 
