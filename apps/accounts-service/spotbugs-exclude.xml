@@ -26,11 +26,25 @@
         <Class name="com.novareport.accounts_service.filter.RateLimitFilter"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
+    <Match>
+        <Class name="com.novareport.accounts_service.admin.AdminController"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
 
-    <!-- AuthController uses Objects.requireNonNull for JWT creation; NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE is considered a false positive here -->
+    <!-- Uses Objects.requireNonNull for null safety; NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE is considered a false positive -->
     <Match>
         <Class name="com.novareport.accounts_service.auth.AuthController"/>
         <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
+    </Match>
+    <Match>
+        <Class name="com.novareport.accounts_service.admin.AdminController"/>
+        <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
+    </Match>
+
+    <!-- AdminController uses Locale.ROOT for toLowerCase; IMPROPER_UNICODE is treated as false positive -->
+    <Match>
+        <Class name="com.novareport.accounts_service.admin.AdminController"/>
+        <Bug pattern="IMPROPER_UNICODE"/>
     </Match>
 
     <!-- JPA entity associations intentionally expose User through getters/setters; EI_EXPOSE_REP* are accepted here -->

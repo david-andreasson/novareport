@@ -6,7 +6,6 @@ import com.novareport.notifications_service.util.LogSanitizer;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -47,7 +46,6 @@ public class PaymentConfirmationEmailService {
     }
 
     public void sendPaymentConfirmedEmail(UUID userId, String plan, int durationDays) {
-        String outcome = "error";
         String planTag = plan != null ? plan : "unknown";
         String sanitizedUserId = LogSanitizer.sanitize(userId);
 
@@ -78,7 +76,6 @@ public class PaymentConfirmationEmailService {
 
             log.info("Sent payment confirmation email to {} for user {}", LogSanitizer.sanitize(to), sanitizedUserId);
             meterRegistry.counter("nova_notifications_payment_confirmation_emails_total", "outcome", "success", "plan", planTag).increment();
-            outcome = "success";
         } catch (Exception ex) {
             log.warn(
                 "Failed to send payment confirmation email for user {}: {}",

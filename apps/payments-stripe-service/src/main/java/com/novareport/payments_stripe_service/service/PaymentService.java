@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
@@ -39,6 +38,7 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final PaymentEventPublisher eventPublisher;
     private final MeterRegistry meterRegistry;
+    private final StripePaymentClient stripePaymentClient;
 
     @Value("${stripe.secret-key:}")
     private String stripeSecretKey;
@@ -76,7 +76,7 @@ public class PaymentService {
                     .putMetadata("plan", normalizedPlan)
                     .putMetadata("durationDays", String.valueOf(durationDays));
 
-            PaymentIntent pi = PaymentIntent.create(builder.build());
+            PaymentIntent pi = stripePaymentClient.createPaymentIntent(builder.build());
 
             log.info("Stripe PaymentIntent created. ID: {}, clientSecret present: {}",
                     LogSanitizer.sanitize(pi.getId()), pi.getClientSecret() != null);
