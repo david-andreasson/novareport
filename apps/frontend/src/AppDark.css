@@ -47,7 +47,7 @@ body {
 
 .auth-nav button {
   padding: 0.8rem 1.1rem;
-  border-radius: 999px;
+  border-radius: 12px;
   border: 1px solid #d1d5db;
   background: #ffffff;
   font-size: 0.95rem;
@@ -213,7 +213,7 @@ input:-webkit-autofill:focus {
 .auth-form button {
   margin-top: 0.75rem;
   padding: 0.9rem;
-  border-radius: 999px;
+  border-radius: 12px;
   border: 1px solid #d1d5db;
   background: #ffffff;
   font-size: 1rem;
@@ -279,7 +279,7 @@ input:-webkit-autofill:focus {
   justify-content: center;
   gap: 0.5rem;
   padding: 0.85rem 1.6rem;
-  border-radius: 999px;
+  border-radius: 12px;
   border: 1px solid #d1d5db;
   background: #ffffff;
   color: #111827;
@@ -375,7 +375,7 @@ input:-webkit-autofill:focus {
 .admin-tabs {
   display: inline-flex;
   padding: 0.25rem;
-  border-radius: 999px;
+  border-radius: 12px;
   background: #ffffff;
   border: 1px solid #e5e7eb;
 }
@@ -385,7 +385,7 @@ input:-webkit-autofill:focus {
   background: transparent;
   color: #6b7280;
   padding: 0.5rem 1.1rem;
-  border-radius: 999px;
+  border-radius: 10px;
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
@@ -488,7 +488,7 @@ input:-webkit-autofill:focus {
 
 .admin-user__search button {
   padding: 0.7rem 1.3rem;
-  border-radius: 999px;
+  border-radius: 12px;
   border: 1px solid #d1d5db;
   background: #ffffff;
   font-size: 0.95rem;
@@ -567,7 +567,7 @@ input:-webkit-autofill:focus {
 .admin-emails__actions button,
 .admin-emails__global button {
   padding: 0.8rem 1.4rem;
-  border-radius: 999px;
+  border-radius: 12px;
   border: 1px solid #d1d5db;
   background: #ffffff;
   font-size: 0.95rem;
@@ -794,7 +794,7 @@ input:-webkit-autofill:focus {
   background: #111827;
   color: #ffffff;
   border: none;
-  border-radius: 999px;
+  border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s ease;
