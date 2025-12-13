@@ -33,7 +33,11 @@ class ReportEmailServiceTest {
     void sendDailyReportBuildsAndSendsEmail() {
         NotificationReport report = new NotificationReport();
         report.setReportDate(LocalDate.of(2025, 1, 1));
-        report.setSummary("Some summary text");
+        report.setSummary(
+            "# Title\n\n" +
+            "Executive Summary\n" +
+            "This is **bold**, this is *italic*, and this is `code`.\n"
+        );
 
         ArgumentCaptor<SimpleMailMessage> captor = ArgumentCaptor.forClass(SimpleMailMessage.class);
 
@@ -45,6 +49,9 @@ class ReportEmailServiceTest {
         assertThat(message.getFrom()).isEqualTo("from@test.local");
         assertThat(message.getTo()).containsExactly("user@example.com");
         assertThat(message.getSubject()).contains("Daily report 2025-01-01");
-        assertThat(message.getText()).contains("Some summary text");
+        assertThat(message.getText()).contains("Title");
+        assertThat(message.getText()).contains("This is bold, this is italic, and this is code.");
+        assertThat(message.getText()).doesNotContain("**");
+        assertThat(message.getText()).doesNotContain("`");
     }
 }

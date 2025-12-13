@@ -67,7 +67,11 @@ public class ReportEmailService {
       for (String line : lines) {
           String trimmedLeading = line.stripLeading();
           String withoutHashes = trimmedLeading.replaceFirst("^#{1,6}\\s*", "");
-          sb.append(withoutHashes).append("\n");
+          String withoutMarkdown = withoutHashes
+              .replace("**", "")
+              .replace("*", "")
+              .replace("`", "");
+          sb.append(withoutMarkdown).append("\n");
       }
 
       return sb.toString().stripTrailing();
