@@ -4,12 +4,12 @@
   margin: 0;
   font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial,
     sans-serif;
-  color: #e5e7eb;
+  color: #111827;
 }
 
 body {
   margin: 0;
-  background: #020617;
+  background: #ffffff;
   display: block;
   min-height: 100vh;
 }
@@ -26,8 +26,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 2.25rem;
-  background: #020617;
-  border-right: 1px solid #111827;
+  background: #ffffff;
+  border-right: 1px solid #e5e7eb;
 }
 
 .auth-sidebar h1 {
@@ -37,7 +37,7 @@ body {
 
 .auth-sidebar p {
   margin-top: 0.5rem;
-  color: #9ca3af;
+  color: #6b7280;
 }
 
 .auth-nav {
@@ -48,24 +48,24 @@ body {
 .auth-nav button {
   padding: 0.8rem 1.1rem;
   border-radius: 999px;
-  border: 1px solid #1f2937;
-  background: transparent;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
   font-size: 0.95rem;
   font-weight: 500;
   text-align: left;
-  color: #e5e7eb;
+  color: #111827;
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .auth-nav button:hover {
-  border-color: #22d3ee;
-  background: rgba(34, 211, 238, 0.08);
+  border-color: #9ca3af;
+  background: #f9fafb;
 }
 
 .auth-nav button.active {
-  border-color: #22d3ee;
-  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.6);
+  border-color: #111827;
+  box-shadow: none;
 }
 
 .auth-nav button.locked {
@@ -74,8 +74,8 @@ body {
 }
 
 .auth-nav button.locked:hover {
-  border-color: #1f2937;
-  background: transparent;
+  border-color: #d1d5db;
+  background: #ffffff;
 }
 
 .auth-content {
@@ -84,7 +84,7 @@ body {
   flex-direction: column;
   gap: 1.75rem;
   padding: 2.5rem 3rem;
-  background: #020617;
+  background: #ffffff;
 }
 
 .auth-topbar {
@@ -102,7 +102,7 @@ body {
 .auth-topbar__subtitle {
   margin: 0.25rem 0 0;
   font-size: 0.95rem;
-  color: #9ca3af;
+  color: #6b7280;
 }
 
 .auth-topbar__user {
@@ -113,7 +113,7 @@ body {
 
 .auth-topbar__status {
   font-size: 0.9rem;
-  color: #9ca3af;
+  color: #6b7280;
 }
 
 .auth-user-chip {
@@ -122,9 +122,9 @@ body {
   gap: 0.5rem;
   padding: 0.35rem 0.9rem;
   border-radius: 999px;
-  border: 1px solid #1f2937;
-  background: #020617;
-  color: #e5e7eb;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #111827;
   font-size: 0.9rem;
 }
 
@@ -132,12 +132,13 @@ body {
   width: 26px;
   height: 26px;
   border-radius: 999px;
-  background: #22d3ee;
+  background: #111827;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   font-size: 0.8rem;
+  color: #ffffff;
 }
 
 .auth-user-chip__text {
@@ -150,11 +151,11 @@ body {
 .auth-panel {
   width: min(540px, 100%);
   margin: 0;
-  background: #020617;
+  background: #ffffff;
   border-radius: 20px;
-  border: 1px solid #111827;
+  border: 1px solid #e5e7eb;
   padding: 2.25rem 2.25rem 2.5rem;
-  box-shadow: 0 22px 50px rgba(15, 23, 42, 0.9);
+  box-shadow: none;
 }
 
 .auth-panel--report {
@@ -177,16 +178,16 @@ body {
   gap: 0.45rem;
   text-align: left;
   font-size: 0.95rem;
-  color: #e5e7eb;
+  color: #111827;
 }
 
 .auth-form input {
   padding: 0.7rem 0.9rem;
   border-radius: 10px;
-  border: 1px solid #4b5563;
+  border: 1px solid #d1d5db;
   background: #ffffff;
   font-size: 1rem;
-  color: #020617;
+  color: #111827;
   transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 
@@ -199,33 +200,33 @@ input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
   -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
   box-shadow: 0 0 0px 1000px #ffffff inset !important;
-  -webkit-text-fill-color: #020617 !important;
+  -webkit-text-fill-color: #111827 !important;
 }
 
 .auth-form input:focus {
   outline: none;
-  border-color: #22d3ee;
+  border-color: #111827;
   background: #ffffff;
-  box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.4);
+  box-shadow: none;
 }
 
 .auth-form button {
   margin-top: 0.75rem;
   padding: 0.9rem;
   border-radius: 999px;
-  border: 1px solid #22d3ee;
+  border: 1px solid #d1d5db;
   background: #ffffff;
   font-size: 1rem;
   font-weight: 600;
-  color: #020617;
+  color: #111827;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
 .auth-form button:hover {
-  background: #22d3ee;
-  color: #020617;
-  box-shadow: 0 10px 25px rgba(34, 211, 238, 0.45);
+  background: #f3f4f6;
+  color: #111827;
+  box-shadow: none;
 }
 
 .auth-form button:disabled {
@@ -243,8 +244,8 @@ input:-webkit-autofill:focus {
 }
 
 .auth-feedback.success {
-  color: #22d3ee;
-  background: rgba(34, 211, 238, 0.08);
+  color: #111827;
+  background: #f9fafb;
 }
 
 .auth-feedback.error {
@@ -265,7 +266,7 @@ input:-webkit-autofill:focus {
 }
 
 .password-feedback li.valid {
-  color: #22d3ee;
+  color: #111827;
 }
 
 .password-feedback li.invalid {
@@ -279,9 +280,9 @@ input:-webkit-autofill:focus {
   gap: 0.5rem;
   padding: 0.85rem 1.6rem;
   border-radius: 999px;
-  border: 1px solid #22d3ee;
+  border: 1px solid #d1d5db;
   background: #ffffff;
-  color: #020617;
+  color: #111827;
   font-weight: 600;
   letter-spacing: 0.01em;
   cursor: pointer;
@@ -289,9 +290,9 @@ input:-webkit-autofill:focus {
 }
 
 .pill-button:hover {
-  background: #22d3ee;
-  color: #020617;
-  box-shadow: 0 12px 26px rgba(34, 211, 238, 0.5);
+  background: #f3f4f6;
+  color: #111827;
+  box-shadow: none;
 }
 
 .pill-button:disabled {
@@ -319,7 +320,7 @@ input:-webkit-autofill:focus {
 .auth-note {
   margin: 1rem 0 0;
   font-size: 0.9rem;
-  color: #9ca3af;
+  color: #6b7280;
 }
 
 .auth-details {
@@ -349,7 +350,7 @@ input:-webkit-autofill:focus {
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
-  color: #020617;
+  color: #111827;
 }
 
 .checkbox-row {
@@ -362,7 +363,7 @@ input:-webkit-autofill:focus {
 .checkbox-row input[type='checkbox'] {
   width: 1.1rem;
   height: 1.1rem;
-  accent-color: #22d3ee;
+  accent-color: #111827;
 }
 
 .admin-panel {
@@ -375,14 +376,14 @@ input:-webkit-autofill:focus {
   display: inline-flex;
   padding: 0.25rem;
   border-radius: 999px;
-  background: #020617;
-  border: 1px solid #111827;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
 }
 
 .admin-tabs button {
   border: none;
   background: transparent;
-  color: #9ca3af;
+  color: #6b7280;
   padding: 0.5rem 1.1rem;
   border-radius: 999px;
   font-size: 0.9rem;
@@ -392,8 +393,8 @@ input:-webkit-autofill:focus {
 }
 
 .admin-tabs button.active {
-  background: #ffffff;
-  color: #020617;
+  background: #f3f4f6;
+  color: #111827;
 }
 
 .admin-tab-content {
@@ -410,8 +411,8 @@ input:-webkit-autofill:focus {
 .admin-metrics-group {
   padding: 1.5rem 1.4rem;
   border-radius: 16px;
-  background: #020617;
-  border: 1px solid #111827;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   display: grid;
   gap: 1.1rem;
 }
@@ -446,7 +447,7 @@ input:-webkit-autofill:focus {
 .admin-metric-value {
   font-size: 1.4rem;
   font-weight: 700;
-  color: #020617;
+  color: #111827;
 }
 
 .admin-overview__note {
@@ -473,26 +474,26 @@ input:-webkit-autofill:focus {
   display: grid;
   gap: 0.45rem;
   font-size: 0.95rem;
-  color: #e5e7eb;
+  color: #111827;
 }
 
 .admin-user__search input {
   padding: 0.7rem 0.9rem;
   border-radius: 10px;
-  border: 1px solid #4b5563;
+  border: 1px solid #d1d5db;
   background: #ffffff;
   font-size: 1rem;
-  color: #020617;
+  color: #111827;
 }
 
 .admin-user__search button {
   padding: 0.7rem 1.3rem;
   border-radius: 999px;
-  border: 1px solid #22d3ee;
+  border: 1px solid #d1d5db;
   background: #ffffff;
   font-size: 0.95rem;
   font-weight: 600;
-  color: #020617;
+  color: #111827;
   cursor: pointer;
 }
 
@@ -514,8 +515,8 @@ input:-webkit-autofill:focus {
 .admin-emails__actions {
   padding: 1.25rem 1.4rem;
   border-radius: 16px;
-  background: #020617;
-  border: 1px solid #111827;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
 }
 
 .admin-user__summary h3,
@@ -536,10 +537,10 @@ input:-webkit-autofill:focus {
 .admin-user__settings-grid input {
   padding: 0.6rem 0.8rem;
   border-radius: 10px;
-  border: 1px solid #4b5563;
+  border: 1px solid #d1d5db;
   background: #ffffff;
   font-size: 0.95rem;
-  color: #020617;
+  color: #111827;
 }
 
 .admin-user__checkbox {
@@ -552,7 +553,7 @@ input:-webkit-autofill:focus {
 .admin-user__checkbox input[type='checkbox'] {
   width: 1.1rem;
   height: 1.1rem;
-  accent-color: #22d3ee;
+  accent-color: #111827;
 }
 
 .admin-user__actions {
@@ -567,11 +568,11 @@ input:-webkit-autofill:focus {
 .admin-emails__global button {
   padding: 0.8rem 1.4rem;
   border-radius: 999px;
-  border: 1px solid #22d3ee;
+  border: 1px solid #d1d5db;
   background: #ffffff;
   font-size: 0.95rem;
   font-weight: 600;
-  color: #020617;
+  color: #111827;
   cursor: pointer;
 }
 
@@ -611,8 +612,8 @@ input:-webkit-autofill:focus {
 }
 
 .subscription-chip.active {
-  color: #22d3ee;
-  background: rgba(34, 211, 238, 0.08);
+  color: #111827;
+  background: #f3f4f6;
 }
 
 .subscription-chip.inactive {
@@ -621,8 +622,8 @@ input:-webkit-autofill:focus {
 }
 
 .subscription-chip.pending {
-  color: #22d3ee;
-  background: rgba(34, 211, 238, 0.12);
+  color: #111827;
+  background: #f3f4f6;
 }
 
 .subscription-chip.error {
@@ -647,7 +648,7 @@ input:-webkit-autofill:focus {
 
 .subscription-meta strong {
   font-size: 1.05rem;
-  color: #020617;
+  color: #111827;
 }
 
 .subscription-error {
@@ -687,13 +688,13 @@ input:-webkit-autofill:focus {
 }
 
 .plan-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.5);
-  border-color: #22d3ee;
+  transform: translateY(-2px);
+  box-shadow: none;
+  border-color: #9ca3af;
 }
 
 .plan-card--featured {
-  border-color: #22d3ee;
+  border-color: #111827;
 }
 
 .plan-badge {
@@ -701,8 +702,8 @@ input:-webkit-autofill:focus {
   top: -14px;
   right: 20px;
   padding: 0.45rem 1rem;
-  background: #22d3ee;
-  color: #020617;
+  background: #111827;
+  color: #ffffff;
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -713,7 +714,7 @@ input:-webkit-autofill:focus {
 .plan-card h3 {
   margin: 0;
   font-size: 1.5rem;
-  color: #020617;
+  color: #111827;
 }
 
 .plan-price {
@@ -725,7 +726,7 @@ input:-webkit-autofill:focus {
 .price-amount {
   font-size: 3rem;
   font-weight: 700;
-  color: #22d3ee;
+  color: #111827;
 }
 
 .price-currency {
@@ -745,7 +746,7 @@ input:-webkit-autofill:focus {
   padding: 0.5rem 0;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #22d3ee;
+  color: #374151;
 }
 
 .plan-savings--placeholder {
@@ -762,7 +763,7 @@ input:-webkit-autofill:focus {
 .payment-details h3 {
   margin: 0;
   font-size: 1.5rem;
-  color: #e5e7eb;
+  color: #111827;
 }
 
 .payment-address {
@@ -773,25 +774,25 @@ input:-webkit-autofill:focus {
 
 .payment-address label {
   font-weight: 600;
-  color: #e5e7eb;
+  color: #111827;
   font-size: 0.95rem;
 }
 
 .payment-address-code {
   padding: 1rem;
-  background: #020617;
+  background: #ffffff;
   border-radius: 12px;
-  border: 1px solid #1f2937;
+  border: 1px solid #e5e7eb;
   font-family: 'Courier New', monospace;
   font-size: 0.85rem;
   word-break: break-all;
-  color: #e5e7eb;
+  color: #111827;
 }
 
 .copy-button {
   padding: 0.75rem 1.5rem;
-  background: #22d3ee;
-  color: #020617;
+  background: #111827;
+  color: #ffffff;
   border: none;
   border-radius: 999px;
   font-weight: 600;
@@ -800,7 +801,7 @@ input:-webkit-autofill:focus {
 }
 
 .copy-button:hover {
-  background: #06b6d4;
+  background: #374151;
 }
 
 .payment-qr {
@@ -827,7 +828,7 @@ input:-webkit-autofill:focus {
   border-radius: 8px;
   font-family: 'Courier New', monospace;
   font-size: 0.85rem;
-  color: #020617;
+  color: #111827;
   word-break: break-all;
 }
 
@@ -849,9 +850,9 @@ input:-webkit-autofill:focus {
 .payment-status {
   margin: 0;
   padding: 1rem;
-  background: rgba(34, 211, 238, 0.1);
+  background: #f3f4f6;
   border-radius: 12px;
-  color: #22d3ee;
+  color: #111827;
   font-size: 1.05rem;
   font-weight: 600;
   text-align: center;
@@ -860,9 +861,9 @@ input:-webkit-autofill:focus {
 .payment-success {
   margin-top: 2rem;
   padding: 2rem;
-  background: rgba(34, 211, 238, 0.1);
+  background: #f3f4f6;
   border-radius: 16px;
-  border: 1px solid #22d3ee;
+  border: 1px solid #d1d5db;
   text-align: center;
 }
 
@@ -881,7 +882,7 @@ input:-webkit-autofill:focus {
   background: #ffffff;
   border-radius: 18px;
   border: 1px solid #e5e7eb;
-  box-shadow: 0 22px 50px rgba(15, 23, 42, 0.8);
+  box-shadow: none;
   display: grid;
   gap: 1.5rem;
 }
@@ -896,7 +897,7 @@ input:-webkit-autofill:focus {
 .report-preview__header h3 {
   margin: 0.5rem 0 0;
   font-size: 1.4rem;
-  color: #020617;
+  color: #111827;
 }
 
 .chip {
@@ -908,9 +909,9 @@ input:-webkit-autofill:focus {
   font-size: 0.75rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #020617;
-  background: #22d3ee;
-  border: 1px solid #22d3ee;
+  color: #111827;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
 }
 
 .report-meta {
@@ -923,7 +924,7 @@ input:-webkit-autofill:focus {
 
 .report-meta strong {
   font-size: 1rem;
-  color: #020617;
+  color: #111827;
 }
 
 .report-summary {
@@ -977,7 +978,7 @@ input:-webkit-autofill:focus {
     flex-basis: auto;
     width: 100%;
     border-right: none;
-    border-bottom: 1px solid #111827;
+    border-bottom: 1px solid #e5e7eb;
   }
 
   .auth-nav {
