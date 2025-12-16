@@ -540,7 +540,7 @@ function App() {
     setMessage(null)
 
     try {
-      const amountXmr = '0.01'
+      const amountXmr = plan === 'monthly' ? '0.0001' : '0.005'
       const data = await createPayment(token, plan, amountXmr)
       setPaymentState({
         phase: 'pending',

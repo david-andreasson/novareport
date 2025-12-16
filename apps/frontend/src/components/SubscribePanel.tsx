@@ -43,7 +43,7 @@ export function SubscribePanel({
           <div className="plan-card">
             <h3>Månad</h3>
             <div className="plan-price">
-              <span className="price-amount">0.01</span>
+              <span className="price-amount">0.0001</span>
               <span className="price-currency">XMR</span>
             </div>
             <p className="plan-description">Tillgång i 30 dagar</p>
@@ -63,7 +63,7 @@ export function SubscribePanel({
             <span className="plan-badge">Bäst värde</span>
             <h3>År</h3>
             <div className="plan-price">
-              <span className="price-amount">0.50</span>
+              <span className="price-amount">0.005</span>
               <span className="price-currency">XMR</span>
             </div>
             <p className="plan-description">Tillgång i 365 dagar</p>

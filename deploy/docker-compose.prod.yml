@@ -130,13 +130,16 @@ services:
 
   monero-wallet-rpc:
     image: sethsimmons/simple-monero-wallet-rpc:latest
+    entrypoint: ["monero-wallet-rpc"]
     command: >
-      --stagenet
+      --rpc-bind-ip=0.0.0.0
       --rpc-bind-port=18082
       --daemon-address=${MONERO_DAEMON_ADDRESS}
       --wallet-file=/home/monero/${MONERO_WALLET_NAME}
       --password=${MONERO_WALLET_PASSWORD}
       --disable-rpc-login
+      --confirm-external-bind
+      --no-initial-sync
     volumes:
       - monero-wallet-data:/home/monero
     networks:

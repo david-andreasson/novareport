@@ -11,7 +11,7 @@ public record CreatePaymentRequest(
         String plan,
 
         @NotNull(message = "Amount is required")
-        @DecimalMin(value = "0.001", message = "Amount must be at least 0.001 XMR")
+        @DecimalMin(value = "0.0001", message = "Amount must be at least 0.0001 XMR")
         BigDecimal amountXmr
 ) {
 }

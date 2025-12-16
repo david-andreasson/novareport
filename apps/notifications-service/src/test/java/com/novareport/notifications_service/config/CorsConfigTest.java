@@ -1,7 +1,6 @@
 package com.novareport.notifications_service.config;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
