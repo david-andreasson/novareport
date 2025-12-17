@@ -554,7 +554,7 @@ function App() {
       })
 
       // Start polling for payment status
-      void pollPaymentStatus(data.paymentId)
+      void pollPaymentStatus(data.paymentId, data.expiresAt)
     } catch (error) {
       const text = error instanceof Error ? error.message : 'Okänt fel'
       setPaymentState({ phase: 'error', selectedPlan: null, payment: null, error: text })
@@ -612,15 +612,15 @@ function App() {
     }
   }
 
-  const pollPaymentStatus = async (paymentId: string) => {
+  const pollPaymentStatus = async (paymentId: string, expiresAt: string | null) => {
     if (!token) return
 
     setPaymentState((prev) => ({ ...prev, phase: 'polling' }))
 
-    const maxAttempts = 120 // 10 minutes (5 seconds * 120)
-    let attempts = 0
+    const expiresAtMs = expiresAt ? Date.parse(expiresAt) : Number.NaN
+    const deadlineMs = Number.isFinite(expiresAtMs) ? expiresAtMs : Date.now() + 60 * 60 * 1000
 
-    while (attempts < maxAttempts) {
+    while (Date.now() < deadlineMs) {
       try {
         await delay(5000) // Wait 5 seconds between polls
 
@@ -646,15 +646,12 @@ function App() {
           }))
           return
         }
-
-        attempts++
       } catch (error) {
         console.error('Poll error:', error)
-        attempts++
       }
     }
 
-    // Timeout after max attempts
+    // Timeout after expiresAt
     setPaymentState((prev) => ({ ...prev, phase: 'expired' }))
   }
 
