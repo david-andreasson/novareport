@@ -4,9 +4,7 @@
 Evaluate how well the Nova Report UMVP implementation follows its intended architecture and established software development best practices.
 
 This document must be completed by Claude Sonnet 4.5.  
-Claude should produce two separate reports:
-1. **English version** – for professional review and when proposing changes.  
-2. **Swedish version** – for internal reading and reflection.
+1. **Swedish version** – for internal reading and reflection.
 
 Claude must not modify or generate code.  
 The goal is analysis only.
@@ -43,8 +41,7 @@ Assess how well the code and structure align with:
 - Clean Code and SOLID principles.
 
 Do **not** change or refactor any code.
-Provide two full reports:  
-one in **English** and one in **Swedish**.
+Provide one report in **Swedish**.
 
 ---
 
@@ -118,12 +115,12 @@ Claude must produce two full reports (English first, Swedish second), each conta
 
 - Output must be text-only — no diffs, code blocks, or patches.  
 - Reference real file paths and classes where possible.  
-- All code is assumed to be in English, but the report must appear in **both English and Swedish**.  
+- All code is assumed to be in English, but the report must appear in **Swedish**.  
 - Treat the report as a professional, structured code-review document.
 
 ---
 
-Create a new file docs/audit-umvp-report-(todays date).md containing the full English and Swedish reports.
+Create a new file docs/audit-umvp-report-(todays date).md containing the Swedish report.
 
 
 *End of instructions.*
