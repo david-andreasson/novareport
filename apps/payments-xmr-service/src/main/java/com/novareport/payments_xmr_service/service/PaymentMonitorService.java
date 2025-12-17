@@ -33,6 +33,12 @@ public class PaymentMonitorService {
             return;
         }
 
+        try {
+            moneroWalletClient.refresh();
+        } catch (Exception e) {
+            log.warn("Failed to refresh Monero wallet", e);
+        }
+
         List<Payment> pendingPayments = paymentRepository.findByStatus(PaymentStatus.PENDING);
         if (pendingPayments.isEmpty()) {
             return;

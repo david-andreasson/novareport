@@ -73,6 +73,10 @@ public class MoneroWalletClient {
         return new MoneroSubaddress(accountIndex, index.intValue(), address);
     }
 
+    public void refresh() {
+        invokeRpc("refresh", null);
+    }
+
     public BigDecimal getConfirmedBalanceForSubaddress(int accountIndex, int subaddressIndex) {
         Map<String, Object> params = new HashMap<>();
         params.put("in", Boolean.TRUE);
