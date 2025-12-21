@@ -50,8 +50,9 @@ Copilot's AI-review letar efter:
 
 ## Automatisk check vid PR
 
-GitHub Actions kör automatiskt samma checks när du skapar en PR.
-Se `.github/workflows/code-quality.yml` för detaljer.
+GitHub Actions-workflowen `.github/workflows/build-and-push.yml` bygger och pushar Docker-images när du pushar till `main`, men den kör inte `check-code.ps1`. Innan du skapar en PR ska du därför:
+1. Köra `.\\check-code.ps1` lokalt.
+2. Bifoga senaste `code-quality-report.txt` i PR-beskrivningen (eller länka loggar) så att granskaren ser resultatet.
 
 ## Tips för att undvika vanliga problem
 
