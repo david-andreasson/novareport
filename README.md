@@ -26,7 +26,7 @@ Nova Report is designed as a modular system with six main services:
 
 - AI-generated crypto reports every 4 hours (6 reports per day)  
 - Secure login and account management  
-- Subscription system with Monero payments  
+- Subscription system with Monero and Stripe payments  
 - Email and Discord delivery options  
 - Modular architecture built as microservices  
 - Extensible design for future integrations (Telegram, BTC, etc.)
@@ -58,8 +58,8 @@ The goal of Nova Report is to demonstrate:
 ## 📅 Example Flow
 
 1. User registers and logs in  
-2. User subscribes and pays with Monero  
-3. Payment confirmation activates the subscription  
+2. User subscribes and pays with Stripe or Monero  
+3. Payment confirmation (Stripe webhook or Monero monitor) activates the subscription  
 4. A scheduler in `reporter-service` runs every 4 hours, ingests crypto news and builds the report  
 5. AI (via 1min.ai) generates the structured report summary  
 6. `notifications-service` sends the report via email and Discord  

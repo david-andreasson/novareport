@@ -2,7 +2,7 @@
 
 **Datum:** 2025-11-09  
 **Status:** ✅ KLAR OCH TESTAD  
-**API-nyckel:** `b76c7d3cc16556797aeafebd8715aa1bddf5218a3082dde9afea871525e92f0d`
+**API-nyckel:** Konfigureras via `ONEMIN_API_KEY` i `deploy/.env` (lämna tomt om du kör med `REPORTER_FAKE_AI=true`)
 
 ---
 
