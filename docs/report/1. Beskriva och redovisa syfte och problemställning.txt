@@ -1,0 +1,38 @@
+Inledning
+Bakgrund och syfte
+Kryptomarknaden är en av de mest snabbföränderliga och informationsintensiva
+branscherna i världen. Nyheter, tweets och officiella uttalanden kan på bara några timmar
+påverka värdet på digitala valutor. Informationen sprids genom ett stort antal
+nyhetsplattformar, sociala medier och andra flöden, vilket gör det svårt för användare att få
+en samlad och objektiv överblick.
+Syftet med detta projekt är att undersöka hur modern systemintegration och AI kan
+användas tillsammans för att automatiskt samla, bearbeta och sammanfatta information från
+flera källor. Resultatet ska bli en tjänst som presenterar en daglig rapport över de viktigaste
+händelserna inom kryptovärlden, på ett sätt som är neutralt, automatiserat och lättillgängligt.
+Problemformulering och avgränsningar
+Informationsflödet kring kryptovalutor är enormt och präglas ofta av starka åsikter, politiska
+intressen och ekonomiska motiv. Många nyhetskällor och sociala plattformar blandar fakta
+med tolkningar, spekulationer eller marknadsföring, vilket gör det svårt att skilja objektiv
+information från subjektiv påverkan.
+Även om det finns flera tjänster som samlar kryptonyheter, fokuserar de flesta på
+kursrörelser, sentimentanalys eller marknadspåverkan, snarare än att neutralt återge vad
+som faktiskt har hänt. Det saknas en lösning som automatiskt kan sammanställa
+nyhetsflöden från flera källor, filtrera bort värdeladdade formuleringar och presentera
+händelser i ett så opartiskt format som möjligt.
+Nova Report utvecklas därför som en teknisk prototyp som visar hur AI och
+systemintegration kan användas för att skapa en automatiserad, neutral nyhetsrapport.
+Syftet är inte att tolka, värdera eller ge finansiella råd, utan att erbjuda en daglig
+sammanställning av faktiska händelser och beslut inom kryptovärlden, en neutral
+mellanhand mellan användaren och informationsbruset.
+Mål med projektet
+Målet är att utveckla en fungerande lösning bestående av flera mikrotjänster som
+tillsammans kan:
+- Samla in nyheter och data från externa API:er och RSS-flöden.
+- Låta en AI-tjänst sammanfatta och skapa en daglig kryptorapport.
+- Låta användare registrera sig, logga in och läsa rapporten på webben.
+- Låta användare betala för sitt medlemskap via kryptovaluta
+- Möjliggöra distribution av rapporten via e-post och Discord/Slack/Telegram eller liknande
+plattformar.
+Projektet syftar också till att visa hur man kan bygga en modulär integrationsplattform med
+tydlig ansvarsfördelning mellan tjänster, samt hur AI kan användas som en del av en
+integrationslösning för att skapa värde av ostrukturerad data.
