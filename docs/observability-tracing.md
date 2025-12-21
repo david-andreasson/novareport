@@ -14,13 +14,15 @@ Det här dokumentet är mina egna anteckningar om hur jag har satt upp observabi
 
 Alla backend-tjänster använder ett korrelations-ID för att knyta ihop loggrader som hör till samma logiska anrop.
 
+Obs: `payments-stripe-service` saknar i nuläget ett inkommande `CorrelationIdFilter` som sätter MDC för varje request. Däremot propagerras `X-Correlation-ID` på utgående interna anrop när ett `correlationId` finns i MDC.
+
 - Header-namn: `X-Correlation-ID`
 - MDC-nyckel: `correlationId`
 
 ### Hur det fungerar
 
 1. **Inkommande anrop**
-   - Varje Spring Boot-tjänst har ett `CorrelationIdFilter` (en `OncePerRequestFilter`).
+   - Alla Spring Boot-tjänster (utom `payments-stripe-service`) har ett `CorrelationIdFilter` (en `OncePerRequestFilter`).
    - Filtret läser `X-Correlation-ID` från inkommande HTTP-anrop.
    - Om headern saknas eller är tom genereras ett nytt UUID.
    - Värdet skrivs till SLF4J MDC under nyckeln `correlationId`.

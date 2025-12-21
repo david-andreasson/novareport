@@ -23,11 +23,11 @@
    ```
    Ska visa: `OneMinAiSummarizerService initialized with model: gpt-4o-mini`
 
-3. **Testa AI-generering:**
-   ```powershell
-   cd ..
-   .\test-onemin-ai.ps1
-   ```
+3. **Verifiera att rapporter genereras med AI:**
+   - Vänta in en schemalagd körning (var 4:e timme), eller
+   - Starta om `reporter-service` om du har startup-generering aktiverad.
+   
+   Bekräfta i loggar att 1min.ai-anrop görs och att en rapport sparas.
 
 **Klart!** Rapporter genereras nu automatiskt var 4:e timme med riktig AI.
 
@@ -47,12 +47,12 @@ Integrationen med 1min.ai API ersätter fake AI-sammanfattningar med riktiga AI-
 **Fil:** `service/OneMinAiSummarizerService.java`
 
 **Funktioner:**
-- ✅ Anropar 1min.ai Chat Completions API
-- ✅ Använder GPT-4o-mini som standard (konfigurerbart)
-- ✅ Professionell system-prompt för kryptoanalys
-- ✅ Strukturerad rapportgenerering med sektioner
-- ✅ Felhantering med fallback till manuell sammanfattning
-- ✅ Conditional bean - aktiveras endast när `reporter.fake-ai=false`
+- Anropar 1min.ai AI Feature API (`/api/features`)
+- Använder GPT-4o-mini som standard (konfigurerbart)
+- Professionell system-prompt för kryptoanalys
+- Strukturerad rapportgenerering med sektioner
+- Felhantering med fallback till manuell sammanfattning
+- Conditional bean - aktiveras endast när `reporter.fake-ai=false`
 
 **System Prompt:**
 ```
@@ -140,11 +140,16 @@ reporter-service:
    - Bygger prompt med system + user message
 
 3. **1min.ai API-anrop**
-   - POST till `https://api.1min.ai/v1/chat/completions`
-   - Authorization: Bearer {API_KEY}
-   - Model: gpt-4o-mini (default)
-   - Temperature: 0.7
-   - Max tokens: 2000
+- POST till `https://api.1min.ai/api/features`
+- Header: `API-KEY: {API_KEY}`
+- Request-body (förenklad):
+  - `type`: `CHAT_WITH_AI`
+  - `model`: t.ex. `gpt-4o-mini`
+  - `promptObject`:
+    - `prompt`: full prompt (system + user)
+    - `isMixed`: `false`
+    - `webSearch`: `false`
+    - `maxWord`: `800`
 
 4. **Svar-hantering**
    - Extraherar AI-genererad text från response
@@ -160,12 +165,10 @@ reporter-service:
 
 ## Testning
 
-Kör testskriptet:
-```powershell
-.\test-onemin-ai.ps1
-```
+Verifiera i praktiken genom att låta `reporter-service` generera en rapport och sedan:
 
-Förväntat resultat: AI-genererad rapport på 500-800 ord visas.
+- Kontrollera loggar för `OneMinAiSummarizerService`
+- Kontrollera att en rapport sparas och kan hämtas via applikationens normala flöden
 
 ---
 
