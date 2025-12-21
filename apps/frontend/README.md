@@ -20,6 +20,15 @@ Frontenden bygger ovanpå **Vite + React + TypeScript** men är anpassad specifi
 
 ---
 
+## Nuvarande arkitektur (Docker/produktion)
+
+Frontenden körs som en statisk app i en Nginx-container och anropar backenden via **relativa paths** som börjar med `/api/*`.
+
+- Routing/proxy sker i `apps/frontend/nginx.conf`.
+- Runtime-konfiguration injiceras vid containerstart i `apps/frontend/public/config.js` via `apps/frontend/docker-entrypoint.sh`.
+
+---
+
 ## Utvecklingsmiljö – hur jag körde frontenden lokalt i början
 
 Jag har kört väldigt lite ren frontend-utveckling lokalt. Oftast har jag kört hela systemet via Docker på min Ubuntu-server, men i början av projektet startade jag frontenden några gånger lokalt för att testa.
@@ -55,7 +64,9 @@ I Compose-filen har jag konfigurerat frontend-bilden med följande build-args (m
 - `VITE_PAYMENTS_API_BASE` – bas-URL till payments-xmr-service
 - `VITE_INTERNAL_API_KEY` – intern nyckel som skickas till interna endpoints där det krävs
 
-Om jag någon gång vill köra frontenden lokalt utan Docker kan jag sätta motsvarande variabler i en `.env`-fil i `apps/frontend/`:
+OBS: Detta var en tidig approach. I nuvarande implementation används i praktiken **Nginx reverse proxy + relativa `/api/*`-anrop** (se sektionen ovan), och dessa `VITE_*`-variabler är därför att betrakta som historik.
+
+Om jag någon gång vill köra frontenden lokalt utan Docker (som i början) kan jag sätta motsvarande variabler i en `.env`-fil i `apps/frontend/`:
 
 ```env
 VITE_ACCOUNTS_API_BASE=http://localhost:8080

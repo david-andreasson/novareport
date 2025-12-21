@@ -1,9 +1,11 @@
 # Nova Report - Project Roadmap
 
-**Skapad:** 2025-11-09  
-**Senast uppdaterad:** 2025-11-21  
-**Status:** Pågående (MVP-demo klar)  
-**Mål:** Komplett fungerande mikroservice-arkitektur för AI-genererade kryptorapporter
+ **Skapad:** 2025-11-09  
+ **Senast uppdaterad:** 2025-11-21  
+ **Status:** Pågående (MVP-demo klar)  
+ **Mål:** Komplett fungerande mikroservice-arkitektur för AI-genererade kryptorapporter
+
+ Obs: Detta dokument är en historisk roadmap/snapshot från projektets utvecklingsperiod. Vissa punkter kan vara inaktuella jämfört med aktuell kod och senare audit-rapporter.
 
 ---
 

@@ -10,11 +10,15 @@ Alla tjänster delar samma JWT-relaterade konfiguration via miljövariabler:
 - `JWT_ISSUER` – förväntad issuer för alla access tokens (just nu `accounts-service`).
 - `JWT_ACCESS_TOKEN_MINUTES` – livslängd för access tokens i minuter (t.ex. `30`).
 
+Obs: `accounts-service` använder i nuläget en fast TTL på 30 minuter och läser inte `JWT_ACCESS_TOKEN_MINUTES` (se `apps/accounts-service/src/main/resources/application.properties` och `apps/accounts-service/src/main/resources/application-dev.properties`).
+
 Spring-properties:
 
 - `jwt.secret = ${JWT_SECRET}`
 - `jwt.issuer = ${JWT_ISSUER}`
 - `jwt.access-token-minutes = ${JWT_ACCESS_TOKEN_MINUTES}`
+
+För `accounts-service` gäller i nuläget: `jwt.access-token-minutes = 30`.
 
 ## 2. Format på access tokens
 
