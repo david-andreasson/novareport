@@ -53,6 +53,25 @@ Jag använder den här filen som en kort översikt över de viktigaste tjänster
 
 ---
 
+## payments-stripe-service
+
+**Ansvar:**
+- Hantera kortbetalningar med Stripe PaymentIntents
+- Skapa PaymentIntent och visa status för frontend
+- Konsumera Stripe-webhooks för att bekräfta eller avvisa betalningar
+- Aktivera prenumerationer via `subscriptions-service` efter lyckad betalning
+- Skicka betalningsbekräftelse-mail via `notifications-service`
+
+**Nyckelkoncept:**
+- Publikt API under `/api/v1/payments-stripe`:
+  - `POST /create-intent` – skapar PaymentIntent och returnerar `clientSecret`
+  - `GET /{paymentId}/status` – läser status för en betalning
+- Webhook-endpoint `/api/v1/payments-stripe/webhook/stripe` verifierar Stripe-signatur och uppdaterar betalningar.
+- `SubscriptionActivationService` + `SubscriptionsClient` aktiverar access när betalningen är klar
+- `PaymentEventPublisher` publicerar events när betalningar bekräftas
+
+---
+
 ## reporter-service
 
 **Ansvar:**
@@ -74,15 +93,20 @@ Jag använder den här filen som en kort översikt över de viktigaste tjänster
 
 **Ansvar:**
 - Lagra färdiga rapporter för notifiering (`NotificationReport`)
-- Skicka rapporter via email
+- Skicka rapporter via email (dagliga rapportmail + välkomstmail)
 - Skicka rapporter till Discord (embeds)
+- Skicka mail när betalning bekräftas (Stripe eller XMR)
 - Exponera ett enkelt API för att hämta senaste rapporten
 
 **Nyckelkoncept:**
-- Internt API: `POST /api/v1/internal/notifications/report-ready`
+- Internt API:
+  - `POST /api/v1/internal/notifications/report-ready`
+  - `POST /api/v1/internal/notifications/welcome-email`
+  - `POST /api/v1/internal/notifications/payment-confirmed-email`
 - Publikt API: `GET /api/v1/notifications/latest`
 - `DailyReportEmailJob` för dagliga email-utskick
 - `DiscordReportService` + `DailyReportDiscordJob` för Discord-notiser
+- `NotificationReportService` sparar rapporter och används även av frontend
 - Konfiguration via `notifications.mail.*` och `notifications.discord.*`
 - Se `docs/notifications-service.md` för en mer detaljerad beskrivning.
 
@@ -93,13 +117,14 @@ Jag använder den här filen som en kort översikt över de viktigaste tjänster
 **Ansvar:**
 - Ge användaren ett UI för hela flödet:
   - registrering/login
-  - köpa prenumeration med Monero
+  - köpa prenumeration med Monero eller Stripe
   - visa om användaren har access
   - läsa senaste rapporten
 
 **Nyckelkoncept:**
 - Byggd med React + TypeScript + Vite
 - Pratar med backend-tjänsterna via `VITE_*`-konfigurerade bas-URL:er (se frontend-README)
+- Stripe-flödet använder PaymentIntent `clientSecret` som hämtas via `payments-stripe-service`
 - Visar rapportsammanfattningen med enkel markdown-liknande formattering (rubriker m.m.)
 
 ---

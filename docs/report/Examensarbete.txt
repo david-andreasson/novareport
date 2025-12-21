@@ -1,0 +1,47 @@
+Examensarbete
+JIN – 40 yhp (8 veckor)
+Syfte och mål
+• Undersöka och lära sig en IT-relaterad teknik, programvara eller
+programmeringsspråk som man tidigare inte har kunskap om.
+• Planera och identifiera resurser för genomförandet av arbetet
+• Implementera en lösning som fungerar med avseende på den
+uppställda problemformuleringen
+• Sammanställa en rapport på svenska och en sammanfattning på
+engelska
+• Presentera arbetet muntligt för en i förväg definierad mottagare samt
+demonstrera det som implementerats
+Stil
+Whitepaper
+• Syftet med ett whitepaper är vanligtvis att
+informera, marknadsföra eller utbilda
+• Innehållet i varje avsnitt kan variera mer
+beroende på ämne och syfte.
+• Det kan innehålla tekniska detaljer, best
+practices som inte nödvändigtvis är baserade på
+formell forskning.
+• Målgruppen för ett whitepaper är bredare (ex.
+tekniska experter, företagsledare och
+allmänheten)
+IMRAD
+• Syftet med IMRAD är att rapportera resultat av
+formell forskning och vetenskapliga studier.
+• Strukturen är standardiserad för att göra det lätt
+för andra forskare att förstå och utvärdera
+forskningen.
+• Varje avsnitt har ett specifikt syfte:
+• Introduktion: presenterar problemet
+• Metod: beskriver hur forskningen utfördes
+• Resultat: visar de insamlade data
+• Diskussion: analyserar och tolkar resultaten.
+• Målgruppen för IMRAD är främst forskare och
+akademiker inom samma ämnesområde.
+Studieguide
+Vecka Aktivitet
+1 Beskriva och redovisa syfte och problemställning – vad? kapitel: Inledning
+2 Implementation. Redogöra för genomförandeplanen – när? Detaljerad milestolpeplan
+3 Implementation. Beskriva metoden för genomförandet – hur? kapitel: Teori och Metod
+4 Implementation
+5 Implementation
+6 2/3-presentation med opposition – kapitel: Resultat och Diskussion
+7 Färdigställa och lämna in slutrapporten
+8 Presentation av arbetet

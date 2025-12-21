@@ -1,0 +1,79 @@
+Teori, metod och design för Nova Report
+Teorier, best practices och koncept
+Arbetet med Nova Report utgår från ett antal etablerade teorier och best practices inom modern
+systemutveckling.
+En grundläggande utgångspunkt är microservice‑arkitektur. I stället för en monolit är systemet
+uppdelat i flera mindre tjänster med tydligt avgränsade ansvarsområden. Varje tjänst har ett eget
+domänfokus, exempelvis konton, prenumerationer, betalningar, rapportgenerering och
+notifieringar. Detta följer principerna om separation of concerns och high cohesion/low coupling.
+Det gör det lättare att utveckla och testa varje del för sig, och att skala eller byta ut komponenter
+vid behov.
+Kommunikationen mellan tjänsterna bygger huvudsakligen på REST‑baserade API:er. Det
+innebär att man använder HTTP‑verb, resurser och statuskoder på ett konsekvent sätt, vilket är
+en beprövad standard i distribuerade system. I backend följer koden en typisk lagerindelning
+med controller‑lager, service‑lager och data‑/repository‑lager. Det ger en tydlig separation mellan
+presentation av API:et, affärslogik och datalagring, och underlättar testning och vidareutveckling.
+Projektet använder också inslag av event‑driven design. När en betalning blir bekräftad i
+betalningstjänsten publiceras en intern händelse som i sin tur triggar aktivering av användarens
+abonnemang i prenumerationstjänsten. På så sätt kopplas betalningslogiken lösare från
+abonnemangslogiken, vilket stämmer med principer om asynkron kommunikation och eventual
+consistency.
+När det gäller säkerhet utgår arbetet från best practices som autentisering med JWT, separata
+interna API‑nycklar för kommunikation mellan tjänster samt försiktighet kring externa anrop, till
+exempel skydd mot SSRF genom validering av konfigurerade bas‑URL:er. Dessutom används
+loggsanitering för att undvika att känsliga uppgifter skrivs ut i loggar.
+Slutligen vilar projektet på principer hämtade från DevOps och 12‑factor app. Tjänsterna körs i
+Docker‑containrar, konfiguration sker via environment‑variabler och Docker Compose används
+för att starta hela systemet. Det gör miljön reproducerbar och förenklar både lokal utveckling och
+senare drift.
+Hur arbetet ska genomföras
+Arbetet planeras att genomföras iterativt och inkrementellt. I stället för att försöka bygga allt på
+en gång delas projektet upp i mindre delmål där varje steg ger ett fungerande delresultat.
+Ett första steg är att säkerställa ett minsta fungerande flöde genom systemet: registrering av
+användare, mockat skapande av abonnemang, mockad betalning med Monero och generering
+av en enkel rapport. Detta ger en baslinje som sedan kan förbättras och utökas. Varje iteration
+fokuserar på en tydlig del, till exempel betalningsflödet eller schemalagd rapportgenerering, och
+avslutas med testning.
+Som en del av arbetssättet har jag löpande gjort strukturerade arkitektur‑ och
+kodgranskningar utifrån en gemensam audit‑mall. Varje granskning har resulterat i en
+tvåspråkig rapport med sammanfattning, betyg per område och en konkret åtgärdslista. Dessa
+rapporter används som underlag för nästa iteration: jag väljer ut ett fåtal prioriterade åtgärder
+från checklistan och implementerar dem innan nästa audit görs. På så sätt får projektet en
+återkommande "hälsokontroll" där arkitektur, säkerhet och kodkvalitet följs upp systematiskt.
+Genom hela arbetet är målet att hålla förändringar små och väl avgränsade, dokumentera viktiga
+beslut i projektets dokumentation och löpande refaktorera kod som blir svåröverskådlig. På så
+sätt blir projektet stegvis mer robust utan att man tappar kontrollen över helheten. I samband
+med lite större ändringar arbetar jag via pull requests på GitHub, där jag använder GitHub
+Copilots PR‑granskning som stöd. Copilot analyserar ändringarna, pekar ut möjliga problem och
+föreslår förbättringar på samma sätt som en senior utvecklare skulle göra vid en kodgranskning.
+Det ger snabb feedback på design‑ och kodbeslut och hjälper till att upptäcka brister tidigt i
+processen.
+Versionhantering sker i Git, vilket möjliggör arbete i separata brancher för nya funktioner. När en
+funktion är tillräckligt stabil kan den integreras tillbaka till huvudgrenen. Det ger spårbarhet och
+minskar risken för konflikter.
+Testning sker på flera nivåer. På kodnivå är målet att använda enhetstester och enklare
+integrationstester för kritiska delar, som betalningslogik och abonnemangsaktivering. På
+systemnivå används Docker Compose för att starta hela plattformen lokalt och utföra manuella
+end‑to‑end‑tester: skapa användare, göra betalningar, kontrollera att rapporter genereras och att
+notifieringar skickas. Loggar används aktivt för felsökning och för att verifiera att schemalagda
+jobb och event‑drivna flöden fungerar som tänkt.
+Designprinciper som tillämpas
+Flera konkreta designprinciper ligger till grund för lösningen.
+En central princip är separation of concerns. Varje microservice ansvarar för ett eget
+domänområde, och inom respektive tjänst är koden uppdelad i tydliga lager (controller, service,
+repository). Det minskar komplexiteten, gör koden lättare att förstå och förenklar framtida
+förändringar.
+Projektet strävar efter lös koppling mellan tjänster. I stället för att hårdkoda beroenden används
+konfiguration (till exempel bas‑URL:er och API‑nycklar) och tydliga HTTP‑kontrakt. I de delar
+som är mer event‑drivna, till exempel när en bekräftad betalning leder till att ett abonnemang
+aktiveras, används interna events och asynkron hantering för att undvika att en tjänst blir
+beroende av en annan tjänsts interna implementation.
+Ytterligare en princip är robusthet och felhantering. Externa anrop skyddas med retry‑logik och
+tydliga undantagstyper. Ett schemalagt jobb övervakar obekräftade betalningar och försöker
+bekräfta dem när tillräckligt saldo finns. På så sätt kan systemet hantera tillfälliga nätverksfel eller
+fördröjningar i betalningskedjan.
+Slutligen eftersträvas konfigurerbarhet och miljöoberoende. Beteenden som fake‑läge för
+betalningar, intervall för schemalagda jobb och olika URL:er styrs via properties och
+environment‑variabler i stället för att vara hårdkodade. Det följer 12‑factor‑tänket och gör att
+samma kodbas kan köras både lokalt i utvecklingsmiljö och senare i en mer produktionslik miljö
+utan större ändringar.

@@ -1,0 +1,74 @@
+Tidsplan – Examensarbete: Nova Report
+Student: David Andreasson
+Utbildning: Javautvecklare – Integration (Campus Mölndal)
+Omfattning: 8 veckor
+Projekt: Nova Report – mikrotjänst-arkitektur för nyhetsanalys och notifiering
+Syfte: Att utveckla en modulär mikrotjänst-arkitektur som samlar nyheter, bearbetar dem till en
+daglig kryptorapport och distribuerar den via olika kanaler.
+Vecka 1 – Förstudie och planering
+– Fastställa projektets omfattning, mål och arkitektur.
+– Identifiera datakällor (RSS, NewsData.io) och externa API:er.
+– Sätta upp GitHub-miljö och CI-struktur.
+– Skapa mindmap och systemöversikt.
+– Dokumentera mikrotjänsternas roller.
+– Konfigurera grundläggande docker-compose och miljövariabler.
+– Resultat: Klar projektplan, arkitekturskiss och fungerande lokal miljö.
+Vecka 2 – UMVP (Ultra Minimal Viable Product)
+– Få igång hela flödet end-to-end i minimal form.
+– Reporter-service levererar en enkel rapport (ingen AI ännu).
+– Implementera registrering och inloggning i accounts-service.
+– Mocka prenumeration och betalning.
+– Skapa enkel REST-endpoint i reporter-service som returnerar rapporttext.
+– Visa rapporten i en minimal frontend.
+– Resultat: En fullt körbar PoC som bevisar arkitekturens funktionalitet.
+Vecka 3 – Prenumerationer, konton och CI/CD
+– Hantera användarstatus, betalningsmock och prenumerationslogik.
+– Automatisera bygg och deployflöde.
+– Implementera subscriptions-service och länkning till accounts-service.
+– Konfigurera GitHub Actions för build/test/push till Docker.
+– Skriva enhetstester för kärnlogik.
+– Resultat: Hel kedja av autentisering och prenumerationskontroll fungerar.
+Vecka 4 – Kryptobetalningar och verifiering
+– Införa grundläggande stöd för betalningar via Monero.
+– Testa integration och notifiering efter betalning.
+– Implementera payments-xmr-service (mock + verifieringsflöde).
+– Integrera med subscriptions-service.
+– Testa att prenumerationer aktiveras vid godkänd betalning.
+– Resultat: Fungerande betalningslogik och tydligt flöde mellan tjänster.
+Vecka 5 – Dashboard och e-postnotifiering (MMP)
+– Skapa användargränssnitt för att läsa rapporter och prenumerationsstatus.
+– Lägga till notifieringar via e-post.
+– Utveckla dashboard-vy i frontend.
+– Implementera notifications-service för e-postutskick.
+– Utöka testsuite för notifieringar.
+– Resultat: Minsta marknadsfärdiga version (MMP) redo för demonstration.
+Vecka 6 – Telegramintegration och säkerhetsgranskning
+– Implementera notifiering via Telegram-bot.
+– Säkerställa grundläggande skydd, loggning och validering.
+– Skapa Telegram-bot och webhook.
+– Granska JWT-hantering och Spring Security-konfiguration.
+– Köra intern säkerhetsaudit (OWASP-check).
+– Resultat: Robust säkerhetsnivå och utökade notifieringskanaler.
+Vecka 7 – Dokumentation och förberedelse för demo
+– Slutdokumentera systemet och testresultaten.
+– Förbereda presentationsmaterial.
+– Skriva teknisk dokumentation (API-spec, CI/CD-flöde, arkitektur).
+– Sluttesta funktioner och prestanda.
+– Förbereda portfolio-sida och demo.
+– Resultat: Komplett dokumentation och fungerande demoexemplar.
+Vecka 8 – Slutpresentation och reflektion
+– Genomföra presentation och sammanställa lärdomar.
+– Hålla muntlig presentation.
+– Lämna in rapport, källkod och tidslogg.
+– Reflektera över projektets resultat och förbättringspotential.
+– Resultat: Godkänd inlämning, tydlig redovisning och reflekterad avslutning.
+Övergripande milstolpar
+Milstolpe Deadline Resultat
+Arkitektur och miljö färdig v.1 Lokalt körbar miljö
+UMVP klar v.2 Enkel rapport utan AI
+Prenumeration + CI/CD klart v.3 Automatisk byggkedja
+Betalningsflöde klart v.4 Verifierad mockbetalning
+MMP-demo färdig v.5 Dashboard + e-post
+Telegram och säkerhet v.6 Säkerhetsgranskning genomförd
+Dokumentation klar v.7 Komplett repo och rapport
+Slutpresentation v.8 Inlämnad och redovisad
