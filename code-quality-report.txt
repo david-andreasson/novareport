@@ -1,49 +1,43 @@
-=== Nova Report Code Quality Check ===
+=== Nova Report Code Quality Report (2025-12-18 05:54:17) ===
 
-Checking apps/accounts-service...
-  → Compiling...
- ✓
-  → SpotBugs analysis...
- ✓
-  → Running tests...
- ✓
-  → Building package...
- ✓
-Checking apps/subscriptions-service...
-  → Compiling...
- ✓
-  → SpotBugs analysis...
- ✓
-  → Running tests...
- ✓
-  → Building package...
- ✓
-Checking apps/reporter-service...
-  → Compiling...
- ✓
-  → SpotBugs analysis...
- ✓
-  → Running tests...
- ✓
-  → Building package...
- ✓
-Checking apps/notifications-service...
-  → Compiling...
- ✓
-  → SpotBugs analysis...
- ✓
-  → Running tests...
- ✓
-  → Building package...
- ✓
-Checking apps/payments-xmr-service...
-  → Compiling...
- ✓
-  → SpotBugs analysis...
- ✓
-  → Running tests...
- ✓
-  → Building package...
- ✓
+--- apps/accounts-service ---
+Maven command: ./mvnw.cmd
+[PASS] mvn clean verify
+Tests run: 62, Failures: 0, Errors: 0, Skipped: 1
+Coverage: Line 91.65% (395/431), Instruction 89.29% (1659/1858) [C:\git\novareport\apps\accounts-service\target\site\jacoco\jacoco.csv]
+[PASS] mvn spotbugs:check
+--- apps/subscriptions-service ---
+Maven command: ./mvnw.cmd
+[PASS] mvn clean verify
+Tests run: 44, Failures: 0, Errors: 0, Skipped: 1
+Coverage: Line 86.94% (253/291), Instruction 81.95% (976/1191) [C:\git\novareport\apps\subscriptions-service\target\site\jacoco\jacoco.csv]
+[PASS] mvn spotbugs:check
+--- apps/reporter-service ---
+Maven command: ./mvnw.cmd
+[PASS] mvn clean verify
+Tests run: 81, Failures: 0, Errors: 0, Skipped: 1
+Coverage: Line 86.49% (685/792), Instruction 84.35% (2814/3336) [C:\git\novareport\apps\reporter-service\target\site\jacoco\jacoco.csv]
+[PASS] mvn spotbugs:check
+--- apps/notifications-service ---
+Maven command: ./mvnw.cmd
+[PASS] mvn clean verify
+Tests run: 76, Failures: 0, Errors: 0, Skipped: 2
+Coverage: Line 83.9% (615/733), Instruction 81.48% (2639/3239) [C:\git\novareport\apps\notifications-service\target\site\jacoco\jacoco.csv]
+[PASS] mvn spotbugs:check
+--- apps/payments-xmr-service ---
+Maven command: ./mvnw.cmd
+[PASS] mvn clean verify
+Tests run: 77, Failures: 0, Errors: 0, Skipped: 0
+Coverage: Line 83.76% (521/622), Instruction 82.26% (2133/2593) [C:\git\novareport\apps\payments-xmr-service\target\site\jacoco\jacoco.csv]
+[PASS] mvn spotbugs:check
+--- apps/payments-stripe-service ---
+Maven command: C:\git\novareport\apps\accounts-service\mvnw.cmd
+[PASS] mvn clean verify
+Tests run: 59, Failures: 0, Errors: 0, Skipped: 0
+Coverage: Line 88.69% (447/504), Instruction 86.31% (1684/1951) [C:\git\novareport\apps\payments-stripe-service\target\site\jacoco\jacoco.csv]
+[PASS] mvn spotbugs:check
+--- apps/frontend ---
 
-✓ All checks passed! Code is ready to commit.
+=== Summary ===
+Duration: 00:08:14
+Overall: PASS

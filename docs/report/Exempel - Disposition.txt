@@ -1,0 +1,52 @@
+Det är viktigt att följa en tydlig och strukturerad rapportdisposition för att göra din rapport
+lättläst och begriplig för läsarna. Anpassa dispositionen efter ditt specifika projekt och din
+målgrupp. Se till att rapporten ger en klar och tydlig bild av din implementationsprocess och
+ditt resultat.
+Detta är ett exempel på en disposition som kan användas i rapporter som beskriver
+implementation av IT-relaterade lösningar och applikationer:
+1. Titelsida:
+Titel på rapporten
+Ditt namn och kurs
+Datum
+2. Sammanfattning (Abstract):
+En kort sammanfattning av rapporten, inklusive syftet, de viktigaste resultaten och
+slutsatserna.
+3. Inledning:
+Beskriv bakgrunden och syftet med mjukvaruprojektet.
+Beskriv problemet som projektet syftar till att lösa eller undersöka samt eventuella
+avgränsningar.
+Förklara målen med projektet.
+Beskriv den tidigare situationen eller systemet om det är relevant.
+Presentera en översikt av rapportens struktur och innehåll.
+4. Teori
+Redogör för relevant teori, best practices eller andra koncept
+5. Metod och Design:
+Beskriv hur du har planerat och genomfört projektet - en metodbeskrivning.
+Presentera projektets arkitektur och designbeslut och hur teorin tillämpas
+6. Implementation:
+Exempel - Disposition
+Beskriv hur prototypen eller mjukvarusystemet utvecklades.
+Inkludera tekniska detaljer om språk, ramverk, verktyg och tekniker som användes.
+Diskutera eventuella utmaningar eller problem som uppstod under
+implementationen och hur de löstes.
+Beskriv hur det praktiskt går till att sätta upp lösningnen. Gärna som en steg-försteg-beskrivning med förutsättningar, steg och verifieringar.
+7. Resultat:
+Presentera resultaten av din implementation.
+Inkludera bilder, diagram eller annat visuellt material för att visa hur systemet
+fungerar.
+Om möjligt, jämför resultat med de ursprungliga målen och kraven.
+8. Diskussion:
+Analysera de resultat som presenterats tidigare.
+Diskutera de tekniska och icke-tekniska implikationerna av ditt arbete.
+Reflektera över lärdomar och eventuella förbättringsmöjligheter.
+9. Slutsatser:
+Redogör för de slutsatser som kan dras från ditt arbete.
+Upprepa projektets mål och hur de har uppnåtts.
+10. Rekommendationer:
+Om det finns rekommendationer för framtida utveckling eller förbättringar.
+11. Referenser:
+En lista över alla källor och resurser som användes i rapporten, inklusive
+dokumentation för teknologier och ramverk.
+12. Bilagor:
+Eventuellt extra material som källkod, användarhandledningar eller ytterligare
+tekniska detaljer.
