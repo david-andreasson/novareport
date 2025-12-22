@@ -1,4 +1,4 @@
-=== Nova Report Code Quality Report (2025-12-18 05:54:17) ===
+=== Nova Report Code Quality Report (2025-12-21 11:46:30) ===
 
 --- apps/accounts-service ---
 Maven command: ./mvnw.cmd
@@ -39,5 +39,5 @@ Coverage: Line 88.69% (447/504), Instruction 86.31% (1684/1951) [C:\git\novarepo
 --- apps/frontend ---
 
 === Summary ===
-Duration: 00:08:14
+Duration: 00:05:02
 Overall: PASS
